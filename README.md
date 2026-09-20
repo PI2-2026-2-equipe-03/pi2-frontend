@@ -22,12 +22,23 @@ E aos administradores, o painel para gerenciar os conteúdos gerados pela botoei
 
 ## Quickstart
 
-Requer Node.js 22+.
+### Opção 1 — Docker (recomendado)
+
+Requer Docker + Docker Compose.
 
 ```bash
 git clone https://github.com/PI2-2026-2-equipe-03/pi2-frontend
 cd pi2-frontend
 cp .env.example .env      # ajuste VITE_API_URL se necessário
+docker compose up --build # http://localhost:5173
+```
+
+### Opção 2 — Node local
+
+Requer Node.js 22+.
+
+```bash
+cp .env.example .env
 npm install
 npm run dev               # http://localhost:5173
 ```
@@ -36,7 +47,15 @@ O backend precisa estar rodando em paralelo (por padrão em `http://localhost:30
 
 ## Estrutura
 
-Neste momento o repositório contém apenas o esqueleto (`src/`). A estrutura definitiva (rotas, componentes, hooks, serviços) será definida ao longo das Sprints 1 e 2, em conjunto com o design no Figma.
+```
+src/
+  main.tsx           # bootstrap do React + RouterProvider
+  index.css          # tokens Tailwind 4 (@theme) e reset base
+  routes/            # telas por rota (Login, Início)
+  components/        # peças reutilizáveis (Logo, etc.)
+```
+
+Ver [docs/stack-frontend.md](docs/stack-frontend.md) para a justificativa de tecnologia.
 
 ## Licença
 
