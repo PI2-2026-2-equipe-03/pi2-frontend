@@ -13,12 +13,22 @@ E aos administradores, o painel para gerenciar os conteúdos gerados pela botoei
 
 ## Stack
 
-| Camada | Tecnologia |
-|---|---|
-| Framework | React 19 |
-| Build | Vite |
-| Estilização | Tailwind CSS 4 |
-| Linguagem | TypeScript |
+| Camada      | Tecnologia                               |
+| ----------- | ---------------------------------------- |
+| Framework   | React 19                                 |
+| Build       | Vite 7 + `@vitejs/plugin-react-swc`      |
+| Linguagem   | TypeScript strict                        |
+| Estilização | Tailwind CSS 4 (via `@tailwindcss/vite`) |
+| UI kit      | shadcn/ui (estilo "new-york") + Radix UI |
+| Ícones      | `lucide-react`                           |
+| Formulários | React Hook Form + Zod                    |
+| Dados       | TanStack Query + axios                   |
+| URL state   | `nuqs`                                   |
+| Tema        | `next-themes` (RNF-01)                   |
+| Toaster     | `sonner`                                 |
+| Qualidade   | ESLint + `simple-import-sort` + Prettier |
+
+Ver [docs/stack-frontend.md](docs/stack-frontend.md) para a justificativa completa.
 
 ## Quickstart
 
@@ -49,13 +59,31 @@ O backend precisa estar rodando em paralelo (por padrão em `http://localhost:30
 
 ```
 src/
-  main.tsx           # bootstrap do React + RouterProvider
-  index.css          # tokens Tailwind 4 (@theme) e reset base
-  routes/            # telas por rota (Login, Início)
-  components/        # peças reutilizáveis (Logo, etc.)
+  main.tsx                # bootstrap + StrictMode
+  app.tsx                 # providers (theme, query, router, toaster)
+  routes.tsx              # createBrowserRouter centralizado
+  env.ts                  # zod schema para import.meta.env
+  style.css               # tokens shadcn + marca (@theme inline)
+  components/
+    logo.tsx
+    theme/                # theme-provider + theme-toggle (RNF-01)
+    ui/                   # primitivas shadcn (button, input, label, form, sonner)
+  lib/
+    utils.ts              # cn()
+    react-query.ts        # queryClient
+    schemas/              # zod schemas
+  pages/
+    _layouts/             # layouts compartilhados (Outlet)
+    auth/                 # /sign-in
+    app/                  # área autenticada (/app)
 ```
 
-Ver [docs/stack-frontend.md](docs/stack-frontend.md) para a justificativa de tecnologia.
+Convenções:
+
+- Arquivos em kebab-case; named exports (nada de `default export`).
+- Comentários curtos, em pt-BR, em caixa baixa.
+- Path alias `@/` → `src/`.
+- Sem CSS Modules / CSS-in-JS — só Tailwind + tokens do shadcn.
 
 ## Licença
 
