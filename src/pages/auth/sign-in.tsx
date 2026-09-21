@@ -119,7 +119,7 @@ export function SignIn() {
           <Button
             type="submit"
             disabled={isSubmitting}
-            className="bg-tg-brand-yellow text-tg-brand-blue-dark hover:bg-tg-brand-yellow/90 w-full font-semibold"
+            className="bg-tg-brand-yellow text-tg-brand-blue-dark hover:bg-tg-brand-yellow/90 w-full font-semibold shadow-sm transition-transform hover:-translate-y-0.5 hover:shadow-md active:translate-y-0"
           >
             {isSubmitting ? (
               <>
@@ -134,7 +134,7 @@ export function SignIn() {
           <p className="text-muted-foreground text-center text-sm">
             Não possui uma conta?{' '}
             <Link
-              to="/sign-in"
+              to="/sign-up"
               className="text-primary font-medium hover:underline"
             >
               Criar conta

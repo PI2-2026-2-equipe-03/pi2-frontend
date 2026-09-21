@@ -7,7 +7,8 @@ import tseslint from 'typescript-eslint'
 
 export default [
   {
-    ignores: ['dist', 'node_modules'],
+    // scripts das skills versionadas em .claude/ são internos delas (node cjs) e não fazem parte do app
+    ignores: ['dist', 'node_modules', '.claude/**', '.agents/**'],
   },
   js.configs.recommended,
   {
