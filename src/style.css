@@ -1,3 +1,17 @@
+@import '@fontsource/poppins/400.css';
+@import '@fontsource/poppins/500.css';
+@import '@fontsource/poppins/600.css';
+@import '@fontsource/poppins/700.css';
+@import '@fontsource/poppins/800.css';
+@import '@fontsource/poppins/900.css';
+
+@import '@fontsource/geologica/400.css';
+@import '@fontsource/geologica/500.css';
+@import '@fontsource/geologica/600.css';
+@import '@fontsource/geologica/700.css';
+@import '@fontsource/geologica/800.css';
+@import '@fontsource/geologica/900.css';
+
 @import 'tailwindcss';
 @import 'tw-animate-css';
 
@@ -7,6 +21,13 @@
    light mode — paleta shadcn/neutral com primary do azul tagravado (#103A9E)
 ──────────────────────────────────────────────────────────────────────────── */
 :root {
+
+  /* cores branco e preto suaves, 
+  para não causar desconforto visual */
+  --app-white: oklch(0.97 0.008 240);
+  --app-black: oklch(0.24 0.03 260);
+
+  /* cores padrões do shadcn/neutral */
   --background: oklch(0.97 0.008 240);
   --foreground: oklch(0.24 0.03 260);
   --card: oklch(1 0 0);
@@ -68,6 +89,8 @@
   --font-mono:
     ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
     'Courier New', monospace;
+    --font-poppins: 'Poppins', system-ui, sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif ;
+    --font-geologica: 'Geologica', system-ui, sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 
   --radius: 0.625rem;
 }
@@ -131,6 +154,8 @@
   --font-mono:
     ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
     'Courier New', monospace;
+  --font-poppins: 'Poppins', system-ui, sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-geologica: 'Geologica', system-ui, sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 
   --radius: 0.625rem;
 }
@@ -139,6 +164,9 @@
    @theme inline — expõe as css vars ao tailwind v4
 ──────────────────────────────────────────────────────────────────────────── */
 @theme inline {
+  --color-app-white: var(--app-white);
+  --color-app-black: var(--app-black);
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -191,6 +219,8 @@
 
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
+  --font-poppins: var(--font-poppins);
+  --font-geologica: var(--font-geologica);
 
   --text-2xs: 0.6875rem;
 
