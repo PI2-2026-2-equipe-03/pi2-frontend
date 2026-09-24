@@ -1,3 +1,9 @@
+# skills e agents do claude/cursor/etc. são versionados (compartilhados pelo time)
+# ignorar apenas artefatos locais dentro deles
+.claude/skills/*/data/user/
+.claude/**/.cache/
+.claude/**/*.lock
+
 # Logs
 logs
 *.log
@@ -141,6 +147,3 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
-
-# claude code local state
-.claude/

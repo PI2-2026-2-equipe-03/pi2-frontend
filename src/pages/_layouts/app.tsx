@@ -4,6 +4,11 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { Logo } from '@/components/logo'
 import { ThemeToggle } from '@/components/theme/theme-toggle'
 import { Button } from '@/components/ui/button'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 
 // itens do menu lateral — reflete os wireframes de "início / meus replays / arenas / quadras"
@@ -22,27 +27,37 @@ export function AppLayout() {
 
   return (
     <div className="bg-background text-foreground flex min-h-screen flex-col">
-      <header className="bg-tg-brand-blue flex items-center justify-between px-6 py-4 text-white">
+      <header className="bg-tg-brand-blue flex items-center justify-between px-6 py-4 text-white shadow-sm">
         <Logo className="text-2xl" />
         <div className="flex items-center gap-2">
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            aria-label="Favoritos"
-            className="rounded-full text-white hover:bg-white/10 hover:text-white"
-          >
-            <Star className="size-4" />
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            aria-label="Perfil"
-            className="rounded-full text-white hover:bg-white/10 hover:text-white"
-          >
-            <User className="size-4" />
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                aria-label="Favoritos"
+                className="rounded-full text-white transition-transform hover:scale-110 hover:bg-white/10 hover:text-white"
+              >
+                <Star className="size-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Favoritos</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                aria-label="Perfil"
+                className="rounded-full text-white transition-transform hover:scale-110 hover:bg-white/10 hover:text-white"
+              >
+                <User className="size-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Meu perfil</TooltipContent>
+          </Tooltip>
           <ThemeToggle />
         </div>
       </header>
@@ -57,10 +72,10 @@ export function AppLayout() {
                 end={item.end}
                 className={({ isActive }) =>
                   cn(
-                    'rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                    'group relative rounded-md px-3 py-2 text-sm font-medium transition-all duration-200',
                     isActive
-                      ? 'bg-tg-brand-yellow text-tg-brand-blue-dark'
-                      : 'text-sidebar-foreground/90 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
+                      ? 'bg-tg-brand-yellow text-tg-brand-blue-dark shadow-sm'
+                      : 'text-sidebar-foreground/90 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:translate-x-0.5',
                   )
                 }
               >
@@ -72,7 +87,7 @@ export function AppLayout() {
           <div className="flex flex-col gap-1 px-3">
             <button
               type="button"
-              className="text-sidebar-foreground/90 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground flex items-center gap-2 rounded-md px-3 py-2 text-left text-sm font-medium"
+              className="text-sidebar-foreground/90 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground flex items-center gap-2 rounded-md px-3 py-2 text-left text-sm font-medium transition-colors"
             >
               <User className="size-4" />
               Perfil
@@ -80,7 +95,7 @@ export function AppLayout() {
             <button
               type="button"
               onClick={() => navigate('/sign-in')}
-              className="text-sidebar-foreground/90 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground flex items-center gap-2 rounded-md px-3 py-2 text-left text-sm font-medium"
+              className="text-sidebar-foreground/90 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground flex items-center gap-2 rounded-md px-3 py-2 text-left text-sm font-medium transition-colors"
             >
               <LogOut className="size-4" />
               Sair

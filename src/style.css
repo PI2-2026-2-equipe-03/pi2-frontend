@@ -17,9 +17,7 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* ────────────────────────────────────────────────────────────────────────────
-   light mode — paleta shadcn/neutral com primary do azul tagravado (#103A9E)
-──────────────────────────────────────────────────────────────────────────── */
+/* light mode — paleta shadcn/neutral com primary do azul tagravado (#103a9e) */
 :root {
 
   /* cores branco e preto suaves, 
@@ -95,9 +93,7 @@
   --radius: 0.625rem;
 }
 
-/* ────────────────────────────────────────────────────────────────────────────
-   dark mode — RNF-01
-──────────────────────────────────────────────────────────────────────────── */
+/* dark mode — rnf-01 */
 .dark {
   --background: oklch(0.18 0.04 265);
   --foreground: oklch(0.87 0.009 258);
@@ -160,9 +156,7 @@
   --radius: 0.625rem;
 }
 
-/* ────────────────────────────────────────────────────────────────────────────
-   @theme inline — expõe as css vars ao tailwind v4
-──────────────────────────────────────────────────────────────────────────── */
+/* expõe as css vars ao tailwind v4 */
 @theme inline {
   --color-app-white: var(--app-white);
   --color-app-black: var(--app-black);

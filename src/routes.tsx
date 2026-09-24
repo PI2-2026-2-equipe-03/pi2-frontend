@@ -9,6 +9,10 @@ import { Dashboard } from '@/pages/admin/dashboard'
 import { Home } from '@/pages/app/home'
 import { ForgotPassword } from '@/pages/auth/forgot-password'
 import { ResetPassword } from '@/pages/auth/reset-password'
+import { Arenas } from '@/pages/app/arenas'
+import { Home } from '@/pages/app/home'
+import { Quadras } from '@/pages/app/quadras'
+import { Replays } from '@/pages/app/replays'
 import { SignIn } from '@/pages/auth/sign-in'
 import { SignUp } from '@/pages/auth/sign-up'
 
@@ -38,7 +42,12 @@ export const router = createBrowserRouter([
       {
         path: '/app',
         element: <AppLayout />,
-        children: [{ index: true, element: <Home /> }],
+        children: [
+          { index: true, element: <Home /> },
+          { path: 'replays', element: <Replays /> },
+          { path: 'arenas', element: <Arenas /> },
+          { path: 'quadras', element: <Quadras /> },
+        ],
       },
       {
         path: '/admin',
