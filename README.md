@@ -39,8 +39,9 @@ Requer Docker + Docker Compose.
 ```bash
 git clone https://github.com/PI2-2026-2-equipe-03/pi2-frontend
 cd pi2-frontend
-cp .env.example .env      # ajuste VITE_API_URL se necessário
-docker compose up --build # http://localhost:5173
+cp .env.example .env
+docker compose up --build  # primeira vez (ou após instalar nova dependência)
+docker compose up          # uso diário → http://localhost:5173
 ```
 
 ### Opção 2 — Node local
@@ -84,6 +85,15 @@ Convenções:
 - Comentários curtos, em pt-BR, em caixa baixa.
 - Path alias `@/` → `src/`.
 - Sem CSS Modules / CSS-in-JS — só Tailwind + tokens do shadcn.
+
+## Time
+
+<table>
+  <tr>
+    <td align="center"><a href="https://github.com/KaikMcpe12"><img src="https://github.com/KaikMcpe12.png" width="80" alt="Kaik"/><br/><sub><b>Kaik</b></sub></a><br/>Frontend</td>
+    <td align="center"><a href="https://github.com/alanbfx-dev"><img src="https://github.com/alanbfx-dev.png" width="80" alt="Alan"/><br/><sub><b>Alan</b></sub></a><br/>Frontend</td>
+  </tr>
+</table>
 
 ## Licença
 
