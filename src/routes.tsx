@@ -2,8 +2,13 @@
 import { NuqsAdapter } from 'nuqs/adapters/react-router/v7'
 import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom'
 
+import { AdminLayout } from '@/pages/_layouts/admin'
 import { AppLayout } from '@/pages/_layouts/app'
 import { AuthLayout } from '@/pages/_layouts/auth'
+import { Dashboard } from '@/pages/admin/dashboard'
+import { Home } from '@/pages/app/home'
+import { ForgotPassword } from '@/pages/auth/forgot-password'
+import { ResetPassword } from '@/pages/auth/reset-password'
 import { Arenas } from '@/pages/app/arenas'
 import { Home } from '@/pages/app/home'
 import { Quadras } from '@/pages/app/quadras'
@@ -30,6 +35,8 @@ export const router = createBrowserRouter([
         children: [
           { path: '/sign-in', element: <SignIn /> },
           { path: '/sign-up', element: <SignUp /> },
+          { path: '/forgot-password', element: <ForgotPassword /> },
+          { path: '/reset-password', element: <ResetPassword /> },
         ],
       },
       {
@@ -41,6 +48,11 @@ export const router = createBrowserRouter([
           { path: 'arenas', element: <Arenas /> },
           { path: 'quadras', element: <Quadras /> },
         ],
+      },
+      {
+        path: '/admin',
+        element: <AdminLayout />,
+        children: [{ index: true, element: <Dashboard /> }],
       },
       { path: '*', element: <Navigate to="/sign-in" replace /> },
     ],

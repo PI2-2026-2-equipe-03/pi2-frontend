@@ -15,8 +15,14 @@ import {
 import { Input } from '@/components/ui/input'
 import { type SignInInput, signInSchema } from '@/lib/schemas/sign-in-schema'
 
+// credenciais mock do administrador — sprint 2 substitui pela api
+const MOCK_ADMIN = {
+  email: 'admin@admin.com',
+  password: 'Admin123',
+} as const
+
 // tela login — baixa fidelidade, ainda sem integração de auth
-// aceita qualquer e-mail/senha válidos pelo schema e navega para /app
+// admin@admin.com + Admin123 vai para /admin; demais e-mails válidos vão para /app
 export function SignIn() {
   const navigate = useNavigate()
 
@@ -25,9 +31,17 @@ export function SignIn() {
     defaultValues: { email: '', password: '' },
   })
 
-  async function onSubmit(_data: SignInInput) {
+  async function onSubmit(data: SignInInput) {
     // mock: sprint 2 chamará o backend
-    navigate('/app', { replace: true })
+    const isAdminEmail = data.email.toLowerCase() === MOCK_ADMIN.email
+    const isAdmin = isAdminEmail && data.password === MOCK_ADMIN.password
+
+    if (isAdminEmail && !isAdmin) {
+      form.setError('password', { message: 'Senha inválida' })
+      return
+    }
+
+    navigate(isAdmin ? '/admin' : '/app', { replace: true })
   }
 
   const {
@@ -83,8 +97,7 @@ export function SignIn() {
                 <div className="flex items-center justify-between">
                   <FormLabel>Senha</FormLabel>
                   <Link
-                    to="#"
-                    tabIndex={-1}
+                    to="/forgot-password"
                     className="text-primary text-sm hover:underline"
                   >
                     Esqueci minha senha
