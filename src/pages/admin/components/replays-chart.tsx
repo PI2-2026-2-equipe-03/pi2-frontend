@@ -1,4 +1,5 @@
 import { ChartColumn } from 'lucide-react'
+import { useMemo } from 'react'
 
 export type ReplayDay = {
   date: string
@@ -9,11 +10,21 @@ type ReplaysChartProps = {
   data: readonly ReplayDay[]
 }
 
-const Y_MAX = 40
-const Y_TICKS = [0, 10, 20, 30, 40] as const
+// deriva um yMax "bonito" (múltiplo de 10) com 15% de folga acima do maior valor
+function computeYMax(data: readonly ReplayDay[]) {
+  const max = data.length ? Math.max(...data.map((d) => d.value)) : 0
+  const withPadding = Math.max(max * 1.15, 10)
+  return Math.ceil(withPadding / 10) * 10
+}
 
 // gráfico de barras css — mock dos replays dos últimos 7 dias, sem lib extra
 export function ReplaysChart({ data }: ReplaysChartProps) {
+  const yMax = useMemo(() => computeYMax(data), [data])
+  const yTicks = useMemo(
+    () => [0, yMax * 0.25, yMax * 0.5, yMax * 0.75, yMax],
+    [yMax],
+  )
+
   return (
     <section className="bg-card border-border rounded-xl border p-5 md:p-6">
       <header className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -32,23 +43,23 @@ export function ReplaysChart({ data }: ReplaysChartProps) {
         </div>
       </header>
 
-      <div className="flex gap-3">
+      <div className="flex gap-3 pt-3">
         <div className="relative h-64 w-6 shrink-0">
-          {Y_TICKS.map((tick) => (
+          {yTicks.map((tick) => (
             <span
               key={tick}
               className="text-muted-foreground absolute right-0 text-xs leading-none"
               style={{
-                bottom: `${(tick / Y_MAX) * 100}%`,
+                bottom: `${(tick / yMax) * 100}%`,
                 transform:
                   tick === 0
                     ? 'none'
-                    : tick === Y_MAX
+                    : tick === yMax
                       ? 'translateY(100%)'
                       : 'translateY(50%)',
               }}
             >
-              {tick}
+              {Math.round(tick)}
             </span>
           ))}
         </div>
@@ -56,7 +67,7 @@ export function ReplaysChart({ data }: ReplaysChartProps) {
         <div className="flex min-w-0 flex-1 flex-col">
           <div className="relative h-64">
             <div className="pointer-events-none absolute inset-0 flex flex-col-reverse justify-between">
-              {Y_TICKS.map((tick) => (
+              {yTicks.map((tick) => (
                 <div key={tick} className="border-border/70 border-t" />
               ))}
             </div>
@@ -69,9 +80,9 @@ export function ReplaysChart({ data }: ReplaysChartProps) {
                 >
                   <div
                     className="bg-tg-brand-blue relative w-full max-w-14 rounded-t-sm"
-                    style={{ height: `${(day.value / Y_MAX) * 100}%` }}
+                    style={{ height: `${(day.value / yMax) * 100}%` }}
                   >
-                    <span className="text-tg-brand-blue absolute -top-5 left-1/2 -translate-x-1/2 text-xs font-semibold">
+                    <span className="text-tg-brand-blue absolute -top-6 left-1/2 -translate-x-1/2 text-xs font-semibold">
                       {day.value}
                     </span>
                   </div>
