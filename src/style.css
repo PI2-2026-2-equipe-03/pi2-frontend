@@ -81,14 +81,16 @@
   --sidebar-border: oklch(0.32 0.14 265);
   --sidebar-ring: oklch(0.9 0.13 90);
 
-  /* tipografia */
+  /* tipografia — Poppins para UI, Geologica para display/números */
   --font-sans:
-    'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    'Poppins', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --font-mono:
     ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
     'Courier New', monospace;
-    --font-poppins: 'Poppins', system-ui, sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif ;
-    --font-geologica: 'Geologica', system-ui, sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-poppins:
+    'Poppins', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-geologica:
+    'Geologica', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 
   --radius: 0.625rem;
 }
@@ -146,12 +148,14 @@
   --sidebar-ring: oklch(0.85 0.15 90);
 
   --font-sans:
-    'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    'Poppins', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --font-mono:
     ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
     'Courier New', monospace;
-  --font-poppins: 'Poppins', system-ui, sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --font-geologica: 'Geologica', system-ui, sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-poppins:
+    'Poppins', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-geologica:
+    'Geologica', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 
   --radius: 0.625rem;
 }
