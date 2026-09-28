@@ -80,13 +80,43 @@ function NavItems({
   )
 }
 
+function NavFooter({ onNavigate }: { onNavigate?: () => void }) {
+  const navigate = useNavigate()
+
+  return (
+    <div className="flex flex-col gap-1 px-3">
+      <button
+        type="button"
+        onClick={onNavigate}
+        className="text-sidebar-foreground/90 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground flex items-center gap-2 rounded-md px-3 py-2 text-left text-sm font-medium transition-colors"
+      >
+        <User className="size-4" />
+        Perfil
+      </button>
+      <button
+        type="button"
+        onClick={() => {
+          onNavigate?.()
+          navigate('/sign-in')
+        }}
+        className="text-sidebar-foreground/90 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground flex items-center gap-2 rounded-md px-3 py-2 text-left text-sm font-medium transition-colors"
+      >
+        <LogOut className="size-4" />
+        Sair
+      </button>
+    </div>
+  )
+}
+
 // layout autenticado — topbar azul + sidebar escuro + main
+// container tem altura fixa da viewport (h-screen) e o scroll acontece dentro do <main>,
+// para header e sidebar ficarem sempre ancorados independentemente do tamanho do conteúdo.
 export function AppLayout() {
   const navigate = useNavigate()
 
   return (
-    <div className="bg-background text-foreground flex min-h-screen flex-col">
-      <header className="bg-tg-brand-blue flex items-center justify-between px-6 py-4 text-white shadow-sm">
+    <div className="bg-background text-foreground flex h-screen flex-col">
+      <header className="bg-tg-brand-blue flex shrink-0 items-center justify-between px-6 py-4 text-white shadow-sm">
         <div className="flex items-center gap-2">
           <Sheet>
             <SheetTrigger asChild>
@@ -102,15 +132,20 @@ export function AppLayout() {
             </SheetTrigger>
             <SheetContent
               side="left"
-              className="bg-sidebar text-sidebar-foreground w-64 border-none p-0"
+              className="bg-sidebar text-sidebar-foreground flex w-64 flex-col justify-between border-none p-0"
             >
-              <SheetHeader className="border-sidebar-border/40 border-b">
-                <SheetTitle className="text-sidebar-foreground">
-                  <Logo />
-                </SheetTitle>
-              </SheetHeader>
-              <div className="py-4">
-                <NavItems pillId="app-nav-pill-mobile" />
+              <div>
+                <SheetHeader className="border-sidebar-border/40 border-b">
+                  <SheetTitle className="text-sidebar-foreground">
+                    <Logo />
+                  </SheetTitle>
+                </SheetHeader>
+                <div className="py-4">
+                  <NavItems pillId="app-nav-pill-mobile" />
+                </div>
+              </div>
+              <div className="border-sidebar-border/40 border-t py-4">
+                <NavFooter />
               </div>
             </SheetContent>
           </Sheet>
@@ -171,30 +206,13 @@ export function AppLayout() {
         </div>
       </header>
 
-      <div className="flex flex-1">
+      <div className="flex flex-1 overflow-hidden">
         <aside className="bg-sidebar text-sidebar-foreground z-sidebar hidden w-56 shrink-0 flex-col justify-between py-6 md:flex">
           <NavItems />
-
-          <div className="flex flex-col gap-1 px-3">
-            <button
-              type="button"
-              className="text-sidebar-foreground/90 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground flex items-center gap-2 rounded-md px-3 py-2 text-left text-sm font-medium transition-colors"
-            >
-              <User className="size-4" />
-              Perfil
-            </button>
-            <button
-              type="button"
-              onClick={() => navigate('/sign-in')}
-              className="text-sidebar-foreground/90 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground flex items-center gap-2 rounded-md px-3 py-2 text-left text-sm font-medium transition-colors"
-            >
-              <LogOut className="size-4" />
-              Sair
-            </button>
-          </div>
+          <NavFooter />
         </aside>
 
-        <main className="flex-1 p-6 md:p-10">
+        <main className="flex-1 overflow-y-auto p-6 md:p-10">
           <RouteTransition>
             <Outlet />
           </RouteTransition>

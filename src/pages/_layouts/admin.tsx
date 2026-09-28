@@ -68,13 +68,33 @@ function AdminNav({
   )
 }
 
-// layout do administrador — topbar azul + sidebar escuro + main
-export function AdminLayout() {
+function AdminFooter({ onNavigate }: { onNavigate?: () => void }) {
   const navigate = useNavigate()
 
   return (
-    <div className="bg-tg-brand-bg text-foreground flex min-h-screen flex-col">
-      <header className="bg-tg-brand-blue flex items-center justify-between px-6 py-4 text-white">
+    <div className="px-3">
+      <button
+        type="button"
+        onClick={() => {
+          onNavigate?.()
+          navigate('/sign-in')
+        }}
+        className="text-sidebar-foreground/90 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground flex items-center gap-2 rounded-md px-5 py-2 text-left text-base font-medium"
+      >
+        <LogOut className="size-4" />
+        Sair
+      </button>
+    </div>
+  )
+}
+
+// layout do administrador — topbar azul + sidebar escuro + main
+// container tem altura fixa da viewport (h-screen); scroll acontece dentro do <main>,
+// para header e sidebar ficarem sempre ancorados independentemente do tamanho do conteúdo.
+export function AdminLayout() {
+  return (
+    <div className="bg-tg-brand-bg text-foreground flex h-screen flex-col">
+      <header className="bg-tg-brand-blue flex shrink-0 items-center justify-between px-6 py-4 text-white">
         <div className="flex items-center gap-2">
           <Sheet>
             <SheetTrigger asChild>
@@ -90,15 +110,20 @@ export function AdminLayout() {
             </SheetTrigger>
             <SheetContent
               side="left"
-              className="bg-sidebar text-sidebar-foreground w-64 border-none p-0"
+              className="bg-sidebar text-sidebar-foreground flex w-64 flex-col justify-between border-none p-0"
             >
-              <SheetHeader className="border-sidebar-border/40 border-b">
-                <SheetTitle className="text-sidebar-foreground">
-                  <Logo />
-                </SheetTitle>
-              </SheetHeader>
-              <div className="py-4">
-                <AdminNav pillId="admin-nav-pill-mobile" />
+              <div>
+                <SheetHeader className="border-sidebar-border/40 border-b">
+                  <SheetTitle className="text-sidebar-foreground">
+                    <Logo />
+                  </SheetTitle>
+                </SheetHeader>
+                <div className="py-4">
+                  <AdminNav pillId="admin-nav-pill-mobile" />
+                </div>
+              </div>
+              <div className="border-sidebar-border/40 border-t py-4">
+                <AdminFooter />
               </div>
             </SheetContent>
           </Sheet>
@@ -116,23 +141,13 @@ export function AdminLayout() {
         </div>
       </header>
 
-      <div className="flex flex-1">
+      <div className="flex flex-1 overflow-hidden">
         <aside className="bg-sidebar text-sidebar-foreground z-sidebar hidden w-56 shrink-0 flex-col justify-between py-6 md:flex">
           <AdminNav />
-
-          <div className="px-3">
-            <button
-              type="button"
-              onClick={() => navigate('/sign-in')}
-              className="text-sidebar-foreground/90 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground flex items-center gap-2 rounded-md px-5 py-2 text-left text-base font-medium"
-            >
-              <LogOut className="size-4" />
-              Sair
-            </button>
-          </div>
+          <AdminFooter />
         </aside>
 
-        <main className="flex-1 p-6 md:p-10">
+        <main className="flex-1 overflow-y-auto p-6 md:p-10">
           <RouteTransition>
             <Outlet />
           </RouteTransition>
