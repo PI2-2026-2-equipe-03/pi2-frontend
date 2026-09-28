@@ -3,6 +3,7 @@ import { Construction, type LucideIcon } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 import { Button } from '@/components/ui/button'
+import { transitions } from '@/lib/motion'
 
 type ComingSoonProps = {
   title: string
@@ -25,7 +26,7 @@ export function ComingSoon({
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35, ease: 'easeOut' }}
+      transition={transitions.slideUp}
       className="mx-auto flex max-w-2xl flex-col items-center gap-6 py-10 text-center"
     >
       <div className="bg-tg-brand-yellow/15 ring-tg-brand-yellow/30 flex size-24 items-center justify-center rounded-full ring-8">
