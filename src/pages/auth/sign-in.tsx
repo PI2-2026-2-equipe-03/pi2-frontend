@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form'
 import { Link, useNavigate } from 'react-router-dom'
 
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Form,
   FormControl,
@@ -121,10 +122,9 @@ export function SignIn() {
           />
 
           <label className="text-muted-foreground flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
+            <Checkbox
               defaultChecked
-              className="border-input text-primary focus:ring-ring size-4 rounded"
+              className="data-[state=checked]:bg-tg-brand-blue data-[state=checked]:border-tg-brand-blue"
             />
             Lembrar de mim
           </label>
