@@ -1,7 +1,9 @@
+import { motion } from 'framer-motion'
 import { LogOut, Menu, Settings, Star, User } from 'lucide-react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 
 import { Logo } from '@/components/logo'
+import { RouteTransition } from '@/components/route-transition'
 import { ThemeToggle } from '@/components/theme/theme-toggle'
 import { Button } from '@/components/ui/button'
 import {
@@ -36,7 +38,13 @@ const NAV_ITEMS: readonly NavItem[] = [
   { label: 'Quadras', to: '/app/quadras' },
 ]
 
-function NavItems({ onNavigate }: { onNavigate?: () => void }) {
+function NavItems({
+  onNavigate,
+  pillId = 'app-nav-pill',
+}: {
+  onNavigate?: () => void
+  pillId?: string
+}) {
   return (
     <nav className="flex flex-col gap-1 px-3">
       {NAV_ITEMS.map((item) => (
@@ -47,14 +55,25 @@ function NavItems({ onNavigate }: { onNavigate?: () => void }) {
           onClick={onNavigate}
           className={({ isActive }) =>
             cn(
-              'group relative rounded-md px-3 py-2 text-sm font-medium transition-all duration-200',
+              'group relative rounded-md px-3 py-2 text-sm font-medium transition-colors',
               isActive
-                ? 'bg-tg-brand-yellow text-tg-brand-blue-dark shadow-sm'
-                : 'text-sidebar-foreground/90 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:translate-x-0.5',
+                ? 'text-tg-brand-blue-dark'
+                : 'text-sidebar-foreground/90 hover:text-sidebar-accent-foreground',
             )
           }
         >
-          {item.label}
+          {({ isActive }) => (
+            <>
+              {isActive ? (
+                <motion.span
+                  layoutId={pillId}
+                  className="bg-tg-brand-yellow absolute inset-0 -z-0 rounded-md shadow-sm"
+                  transition={{ type: 'spring', stiffness: 500, damping: 40 }}
+                />
+              ) : null}
+              <span className="relative z-10">{item.label}</span>
+            </>
+          )}
         </NavLink>
       ))}
     </nav>
@@ -91,7 +110,7 @@ export function AppLayout() {
                 </SheetTitle>
               </SheetHeader>
               <div className="py-4">
-                <NavItems />
+                <NavItems pillId="app-nav-pill-mobile" />
               </div>
             </SheetContent>
           </Sheet>
@@ -176,7 +195,9 @@ export function AppLayout() {
         </aside>
 
         <main className="flex-1 p-6 md:p-10">
-          <Outlet />
+          <RouteTransition>
+            <Outlet />
+          </RouteTransition>
         </main>
       </div>
     </div>

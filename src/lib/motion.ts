@@ -1,3 +1,5 @@
+import { type Transition,useReducedMotion } from 'framer-motion'
+
 // tokens de motion espelhados em JS para consumo pelo framer-motion.
 // mantidos em sincronia com --motion-* de src/style.css.
 export const motionTokens = {
@@ -23,3 +25,20 @@ export const transitions = {
     ease: motionTokens.ease.out,
   },
 } as const
+
+// respeita prefers-reduced-motion do sistema.
+// devolve um wrapper que retorna variants "estáticas" (sem transform/opacity)
+// quando o usuário pediu para reduzir movimento — mantém contraste sem parar animações inteiras.
+export function useMotionSafe() {
+  const shouldReduce = useReducedMotion()
+  return {
+    shouldReduce,
+    // aplica em cada campo initial/animate — devolve identity quando reduzido.
+    prop<T>(value: T): T | undefined {
+      return shouldReduce ? undefined : value
+    },
+    transition(t: Transition): Transition {
+      return shouldReduce ? { duration: 0 } : t
+    },
+  }
+}

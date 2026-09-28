@@ -1,7 +1,9 @@
+import { motion } from 'framer-motion'
 import { LogOut, Menu, User } from 'lucide-react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 
 import { Logo } from '@/components/logo'
+import { RouteTransition } from '@/components/route-transition'
 import { ThemeToggle } from '@/components/theme/theme-toggle'
 import { Button } from '@/components/ui/button'
 import {
@@ -24,7 +26,13 @@ const NAV_ITEMS: readonly NavItem[] = [
   { label: 'Replays', to: '/admin/replays' },
 ]
 
-function AdminNav({ onNavigate }: { onNavigate?: () => void }) {
+function AdminNav({
+  onNavigate,
+  pillId = 'admin-nav-pill',
+}: {
+  onNavigate?: () => void
+  pillId?: string
+}) {
   return (
     <nav className="flex flex-col gap-2 px-3">
       {NAV_ITEMS.map((item) => (
@@ -35,14 +43,25 @@ function AdminNav({ onNavigate }: { onNavigate?: () => void }) {
           onClick={onNavigate}
           className={({ isActive }) =>
             cn(
-              'px-5 py-2 text-base font-medium transition-colors',
+              'relative px-5 py-2 text-base font-medium transition-colors',
               isActive
-                ? 'bg-tg-brand-yellow text-tg-brand-blue-dark rounded-full'
-                : 'text-sidebar-foreground/90 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground rounded-md',
+                ? 'text-tg-brand-blue-dark'
+                : 'text-sidebar-foreground/90 hover:text-sidebar-accent-foreground',
             )
           }
         >
-          {item.label}
+          {({ isActive }) => (
+            <>
+              {isActive ? (
+                <motion.span
+                  layoutId={pillId}
+                  className="bg-tg-brand-yellow absolute inset-0 -z-0 rounded-full shadow-sm"
+                  transition={{ type: 'spring', stiffness: 500, damping: 40 }}
+                />
+              ) : null}
+              <span className="relative z-10">{item.label}</span>
+            </>
+          )}
         </NavLink>
       ))}
     </nav>
@@ -79,7 +98,7 @@ export function AdminLayout() {
                 </SheetTitle>
               </SheetHeader>
               <div className="py-4">
-                <AdminNav />
+                <AdminNav pillId="admin-nav-pill-mobile" />
               </div>
             </SheetContent>
           </Sheet>
@@ -114,7 +133,9 @@ export function AdminLayout() {
         </aside>
 
         <main className="flex-1 p-6 md:p-10">
-          <Outlet />
+          <RouteTransition>
+            <Outlet />
+          </RouteTransition>
         </main>
       </div>
     </div>
