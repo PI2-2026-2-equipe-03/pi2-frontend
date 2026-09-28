@@ -137,7 +137,7 @@ export function ResetPassword() {
             Lembrou sua senha?{' '}
             <Link
               to="/sign-in"
-              className="text-primary font-medium hover:underline"
+              className="text-primary rounded-sm font-medium hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-offset-2"
             >
               Entrar
             </Link>
