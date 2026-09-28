@@ -131,8 +131,9 @@ export function SignIn() {
 
           <Button
             type="submit"
+            variant="brand"
             disabled={isSubmitting}
-            className="bg-tg-brand-yellow text-tg-brand-blue-dark hover:bg-tg-brand-yellow/90 w-full font-semibold shadow-sm transition-transform hover:-translate-y-0.5 hover:shadow-md active:translate-y-0"
+            className="w-full"
           >
             {isSubmitting ? (
               <>

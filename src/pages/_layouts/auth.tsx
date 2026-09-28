@@ -9,11 +9,9 @@ export function AuthLayout() {
   return (
     <div className="bg-tg-brand-blue-dark relative flex min-h-screen text-white">
       <aside
-        className="relative hidden flex-1 flex-col justify-between overflow-hidden p-10 md:flex"
+        className="relative hidden flex-1 flex-col justify-between overflow-hidden bg-cover bg-center p-10 md:flex"
         style={{
-          backgroundImage: `linear-gradient(135deg, rgba(11,42,117,0.85) 0%, rgba(16,58,158,0.6) 60%, rgba(16,58,158,0.35) 100%), url('${AUTH_BG}')`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
+          backgroundImage: `linear-gradient(135deg, color-mix(in oklab, var(--tg-brand-blue-dark) 85%, transparent) 0%, color-mix(in oklab, var(--tg-brand-blue) 60%, transparent) 60%, color-mix(in oklab, var(--tg-brand-blue) 35%, transparent) 100%), url('${AUTH_BG}')`,
         }}
       >
         <Logo className="text-3xl drop-shadow-md" />
