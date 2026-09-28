@@ -1,9 +1,24 @@
-import { LogOut, Star, User } from 'lucide-react'
+import { LogOut, Menu, Settings, Star, User } from 'lucide-react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 
 import { Logo } from '@/components/logo'
 import { ThemeToggle } from '@/components/theme/theme-toggle'
 import { Button } from '@/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet'
 import {
   Tooltip,
   TooltipContent,
@@ -21,6 +36,31 @@ const NAV_ITEMS: readonly NavItem[] = [
   { label: 'Quadras', to: '/app/quadras' },
 ]
 
+function NavItems({ onNavigate }: { onNavigate?: () => void }) {
+  return (
+    <nav className="flex flex-col gap-1 px-3">
+      {NAV_ITEMS.map((item) => (
+        <NavLink
+          key={item.to}
+          to={item.to}
+          end={item.end}
+          onClick={onNavigate}
+          className={({ isActive }) =>
+            cn(
+              'group relative rounded-md px-3 py-2 text-sm font-medium transition-all duration-200',
+              isActive
+                ? 'bg-tg-brand-yellow text-tg-brand-blue-dark shadow-sm'
+                : 'text-sidebar-foreground/90 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:translate-x-0.5',
+            )
+          }
+        >
+          {item.label}
+        </NavLink>
+      ))}
+    </nav>
+  )
+}
+
 // layout autenticado — topbar azul + sidebar escuro + main
 export function AppLayout() {
   const navigate = useNavigate()
@@ -28,7 +68,36 @@ export function AppLayout() {
   return (
     <div className="bg-background text-foreground flex min-h-screen flex-col">
       <header className="bg-tg-brand-blue flex items-center justify-between px-6 py-4 text-white shadow-sm">
-        <Logo className="text-2xl" />
+        <div className="flex items-center gap-2">
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                aria-label="Abrir menu"
+                className="rounded-full text-white hover:bg-white/10 hover:text-white md:hidden"
+              >
+                <Menu className="size-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent
+              side="left"
+              className="bg-sidebar text-sidebar-foreground w-64 border-none p-0"
+            >
+              <SheetHeader className="border-sidebar-border/40 border-b">
+                <SheetTitle className="text-sidebar-foreground">
+                  <Logo />
+                </SheetTitle>
+              </SheetHeader>
+              <div className="py-4">
+                <NavItems />
+              </div>
+            </SheetContent>
+          </Sheet>
+          <Logo className="text-2xl" />
+        </div>
+
         <div className="flex items-center gap-2">
           <Tooltip>
             <TooltipTrigger asChild>
@@ -44,45 +113,48 @@ export function AppLayout() {
             </TooltipTrigger>
             <TooltipContent>Favoritos</TooltipContent>
           </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
-                aria-label="Perfil"
+                aria-label="Menu do perfil"
                 className="rounded-full text-white transition-transform hover:scale-110 hover:bg-white/10 hover:text-white"
               >
                 <User className="size-4" />
               </Button>
-            </TooltipTrigger>
-            <TooltipContent>Meu perfil</TooltipContent>
-          </Tooltip>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuLabel>Minha conta</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem>
+                <User className="size-4" />
+                Meu perfil
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Settings className="size-4" />
+                Configurações
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                variant="destructive"
+                onSelect={() => navigate('/sign-in')}
+              >
+                <LogOut className="size-4" />
+                Sair
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
           <ThemeToggle />
         </div>
       </header>
 
       <div className="flex flex-1">
-        <aside className="bg-sidebar text-sidebar-foreground hidden w-56 shrink-0 flex-col justify-between py-6 md:flex">
-          <nav className="flex flex-col gap-1 px-3">
-            {NAV_ITEMS.map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                end={item.end}
-                className={({ isActive }) =>
-                  cn(
-                    'group relative rounded-md px-3 py-2 text-sm font-medium transition-all duration-200',
-                    isActive
-                      ? 'bg-tg-brand-yellow text-tg-brand-blue-dark shadow-sm'
-                      : 'text-sidebar-foreground/90 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:translate-x-0.5',
-                  )
-                }
-              >
-                {item.label}
-              </NavLink>
-            ))}
-          </nav>
+        <aside className="bg-sidebar text-sidebar-foreground z-sidebar hidden w-56 shrink-0 flex-col justify-between py-6 md:flex">
+          <NavItems />
 
           <div className="flex flex-col gap-1 px-3">
             <button
