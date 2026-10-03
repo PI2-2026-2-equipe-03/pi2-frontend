@@ -1,27 +1,29 @@
 import { motion } from 'framer-motion'
-import { Filter, Search, VideoOff } from 'lucide-react'
+import { CalendarDays, VideoOff, X } from 'lucide-react'
 import { useQueryState } from 'nuqs'
 import { useMemo } from 'react'
 
 import { EmptyState } from '@/components/empty-state'
+import { ListingToolbar } from '@/components/listing-toolbar'
+import { PaginationControl } from '@/components/pagination-control'
+import { SearchCombobox } from '@/components/search-combobox'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import type { Sport } from '@/lib/mocks'
-import { REPLAYS, SPORT_LABEL } from '@/lib/mocks'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { ARENAS, QUADRAS, REPLAY_VIEWS } from '@/lib/mocks'
 import { motionTokens } from '@/lib/motion'
+import { usePagination } from '@/lib/pagination'
+import { courtSuggestions } from '@/lib/search'
+import { useFakeLoading } from '@/lib/use-fake-loading'
 
 import { ReplayCard } from './components/replay-card'
-
-type SportFilter = Sport | 'todos'
-
-const SPORT_TABS: readonly SportFilter[] = [
-  'todos',
-  'volei',
-  'futebol',
-  'tenis',
-  'padel',
-]
+import { ReplayCardSkeleton } from './components/replay-card-skeleton'
 
 const listVariants = {
   hidden: { opacity: 0 },
@@ -43,89 +45,208 @@ const itemVariants = {
   },
 }
 
+const CITY_ANY = 'all'
+
 export function Replays() {
-  const [esporte, setEsporte] = useQueryState<SportFilter>('esporte', {
-    defaultValue: 'todos',
-    parse: (value): SportFilter =>
-      SPORT_TABS.includes(value as SportFilter)
-        ? (value as SportFilter)
-        : 'todos',
-  })
-  const [q, setQ] = useQueryState('q', { defaultValue: '' })
+  const [city, setCity] = useQueryState('city', { defaultValue: CITY_ANY })
+  const [date, setDate] = useQueryState('date', { defaultValue: '' })
+  const [courtId, setCourtId] = useQueryState('court', { defaultValue: '' })
+  const [courtQ, setCourtQ] = useQueryState('q', { defaultValue: '' })
+  const isLoading = useFakeLoading()
+
+  const cityOptions = useMemo(() => {
+    const set = new Set(ARENAS.map((a) => a.cidade))
+    return Array.from(set).sort((a, b) => a.localeCompare(b, 'pt-BR'))
+  }, [])
+
+  const selectedCourtName = useMemo(() => {
+    if (!courtId) return ''
+    const quadra = QUADRAS.find((q) => q.id === Number(courtId))
+    if (!quadra) return ''
+    const arena = ARENAS.find((a) => a.id === quadra.arenaId)
+    return arena ? `${quadra.nome} — ${arena.nome}` : quadra.nome
+  }, [courtId])
 
   const replaysFiltrados = useMemo(() => {
-    const termo = q.trim().toLowerCase()
-    return REPLAYS.filter((replay) => {
-      const passaEsporte = esporte === 'todos' || replay.esporte === esporte
-      const passaBusca =
-        !termo || replay.titulo.toLowerCase().includes(termo)
-      return passaEsporte && passaBusca
+    return REPLAY_VIEWS.filter((replay) => {
+      const passaCity = city === CITY_ANY || replay.city === city
+      const passaCourt = !courtId || replay.court.id === Number(courtId)
+      const passaDate = !date || replay.recordedAt.startsWith(date)
+      return passaCity && passaCourt && passaDate
     })
-  }, [esporte, q])
+  }, [city, courtId, date])
+
+  const pagination = usePagination({
+    items: replaysFiltrados,
+    pageParam: 'page',
+  })
+
+  const hasActiveFilters = Boolean(
+    (city && city !== CITY_ANY) || date || courtId,
+  )
+
+  function resetPage() {
+    pagination.setPage(1)
+  }
+
+  function clearFilters() {
+    setCity(null)
+    setDate(null)
+    setCourtId(null)
+    setCourtQ(null)
+    resetPage()
+  }
 
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-6">
       <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-tg-brand-blue text-2xl font-bold md:text-3xl">
-            Meus replays
+          <h1 className="text-tg-brand-blue text-[clamp(1.5rem,3vw,2rem)] font-bold">
+            Replays
           </h1>
           <p className="text-tg-brand-blue font-medium">
-            Assista, baixe ou compartilhe suas jogadas.
+            Replays disponíveis nos últimos 7 dias. Assista ou baixe antes de
+            expirar.
           </p>
         </div>
-        <Button variant="brandOutline">
-          <Filter className="size-4" />
-          Filtrar
-        </Button>
+        {hasActiveFilters ? (
+          <Button variant="brandOutline" size="sm" onClick={clearFilters}>
+            <X className="size-4" />
+            Limpar filtros
+          </Button>
+        ) : null}
       </header>
 
-      <div className="flex flex-col gap-3 md:flex-row md:items-center">
-        <Tabs
-          value={esporte}
-          onValueChange={(value) => setEsporte(value as SportFilter)}
-          className="w-full md:w-auto"
-        >
-          <TabsList>
-            {SPORT_TABS.map((tab) => (
-              <TabsTrigger key={tab} value={tab}>
-                {tab === 'todos' ? 'Todos' : SPORT_LABEL[tab]}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
-
-        <div className="border-border bg-background focus-within:ring-tg-brand-blue/30 flex flex-1 items-center gap-2 rounded-full border px-4 py-2 shadow-sm transition-all focus-within:shadow-md focus-within:ring-4">
-          <Search className="text-muted-foreground size-4" />
-          <Input
-            type="search"
-            value={q}
-            onChange={(event) => setQ(event.target.value || null)}
-            placeholder="Buscar por título…"
-            className="h-9 border-0 bg-transparent shadow-none focus-visible:ring-0"
+      <ListingToolbar
+        activeCount={
+          (city !== CITY_ANY ? 1 : 0) +
+          (date ? 1 : 0) +
+          (courtId ? 1 : 0)
+        }
+        onClearAll={clearFilters}
+        search={
+          <SearchCombobox
+            value={courtQ || selectedCourtName}
+            onValueChange={(value) => {
+              setCourtQ(value || null)
+              if (!value) {
+                setCourtId(null)
+                resetPage()
+              }
+            }}
+            onSelect={(suggestion) => {
+              if (suggestion.payload.kind === 'court') {
+                setCourtId(String(suggestion.payload.value))
+                setCourtQ(suggestion.label)
+                resetPage()
+              }
+            }}
+            fetchSuggestions={courtSuggestions}
+            placeholder="Buscar por quadra, arena ou cidade…"
+            emptyMessage="Nenhuma correspondência."
           />
-        </div>
-      </div>
+        }
+        filters={[
+          {
+            id: 'city',
+            label: 'Cidade',
+            active: city !== CITY_ANY,
+            control: (
+              <Select
+                value={city}
+                onValueChange={(v) => {
+                  setCity(v || null)
+                  resetPage()
+                }}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Cidade" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={CITY_ANY}>Todas as cidades</SelectItem>
+                  {cityOptions.map((c) => (
+                    <SelectItem key={c} value={c}>
+                      {c}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ),
+          },
+          {
+            id: 'date',
+            label: 'Data',
+            active: Boolean(date),
+            position: 'trailing',
+            width: '11rem',
+            control: (
+              <div className="border-border bg-background flex items-center gap-2 rounded-md border px-3 py-1.5">
+                <CalendarDays className="text-muted-foreground size-4 shrink-0" />
+                <Input
+                  type="date"
+                  value={date}
+                  onChange={(event) => {
+                    setDate(event.target.value || null)
+                    resetPage()
+                  }}
+                  className="h-7 border-0 bg-transparent p-0 shadow-none focus-visible:ring-0"
+                />
+              </div>
+            ),
+          },
+        ]}
+      />
 
-      {replaysFiltrados.length === 0 ? (
+      {isLoading ? (
+        <ul
+          aria-busy="true"
+          aria-live="polite"
+          className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
+        >
+          {Array.from({ length: 6 }).map((_, i) => (
+            <li key={i}>
+              <ReplayCardSkeleton />
+            </li>
+          ))}
+        </ul>
+      ) : replaysFiltrados.length === 0 ? (
         <EmptyState
           icon={VideoOff}
           title="Nenhum replay encontrado"
-          description="Tente ajustar o filtro de esporte ou o termo de busca."
+          description={
+            hasActiveFilters
+              ? 'Ajuste os filtros ou limpe para ver todos os replays.'
+              : 'Nenhum replay disponível no momento.'
+          }
+          action={
+            hasActiveFilters ? (
+              <Button variant="brandOutline" onClick={clearFilters}>
+                Limpar filtros
+              </Button>
+            ) : undefined
+          }
         />
       ) : (
-        <motion.ul
-          variants={listVariants}
-          initial="hidden"
-          animate="visible"
-          className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
-        >
-          {replaysFiltrados.map((replay) => (
-            <motion.li key={replay.id} variants={itemVariants}>
-              <ReplayCard replay={replay} />
-            </motion.li>
-          ))}
-        </motion.ul>
+        <>
+          <motion.ul
+            key={pagination.page}
+            variants={listVariants}
+            initial="hidden"
+            animate="visible"
+            className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
+          >
+            {pagination.pageItems.map((replay) => (
+              <motion.li key={replay.id} variants={itemVariants}>
+                <ReplayCard replay={replay} />
+              </motion.li>
+            ))}
+          </motion.ul>
+          <PaginationControl
+            page={pagination.page}
+            totalPages={pagination.totalPages}
+            onPageChange={pagination.setPage}
+          />
+        </>
       )}
     </div>
   )

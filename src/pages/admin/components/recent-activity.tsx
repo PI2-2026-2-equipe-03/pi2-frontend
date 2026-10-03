@@ -1,6 +1,5 @@
 import { History } from 'lucide-react'
 
-import { Badge } from '@/components/ui/badge'
 import {
   Table,
   TableBody,
@@ -9,15 +8,25 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { ARENAS, QUADRAS, REPLAYS, SPORT_LABEL } from '@/lib/mocks'
+import { REPLAY_VIEWS } from '@/lib/mocks'
 
 const dateFormatter = new Intl.DateTimeFormat('pt-BR', {
   day: '2-digit',
   month: 'short',
 })
 
+const timeFormatter = new Intl.DateTimeFormat('pt-BR', {
+  hour: '2-digit',
+  minute: '2-digit',
+})
+
 export function RecentActivity() {
-  const recentes = REPLAYS.slice(0, 5)
+  const recentes = [...REPLAY_VIEWS]
+    .sort(
+      (a, b) =>
+        new Date(b.recordedAt).getTime() - new Date(a.recordedAt).getTime(),
+    )
+    .slice(0, 5)
 
   return (
     <section className="bg-card border-border rounded-xl border p-5 md:p-6">
@@ -35,37 +44,34 @@ export function RecentActivity() {
         <TableHeader>
           <TableRow>
             <TableHead>Quadra</TableHead>
-            <TableHead>Esporte</TableHead>
+            <TableHead>Cidade</TableHead>
             <TableHead className="text-right">Duração</TableHead>
             <TableHead>Data</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {recentes.map((replay) => {
-            const quadra = QUADRAS.find((q) => q.id === replay.quadraId)
-            const arena = ARENAS.find((a) => a.id === replay.arenaId)
+            const date = new Date(replay.recordedAt)
             return (
               <TableRow key={replay.id}>
                 <TableCell>
                   <div className="flex flex-col">
                     <span className="text-foreground font-medium">
-                      {quadra?.nome ?? '—'}
+                      {replay.court.nome}
                     </span>
                     <span className="text-muted-foreground text-xs">
-                      {arena?.nome ?? '—'}
+                      {replay.arena.nome}
                     </span>
                   </div>
                 </TableCell>
-                <TableCell>
-                  <Badge variant="outline">
-                    {SPORT_LABEL[replay.esporte]}
-                  </Badge>
+                <TableCell className="text-muted-foreground text-sm">
+                  {replay.city}
                 </TableCell>
                 <TableCell className="text-right tabular-nums">
-                  {replay.duracao}
+                  {replay.duration}s
                 </TableCell>
                 <TableCell className="text-muted-foreground text-sm">
-                  {dateFormatter.format(new Date(replay.data))}
+                  {dateFormatter.format(date)} · {timeFormatter.format(date)}
                 </TableCell>
               </TableRow>
             )

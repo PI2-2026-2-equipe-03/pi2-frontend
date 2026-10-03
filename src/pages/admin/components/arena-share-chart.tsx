@@ -2,28 +2,27 @@ import { motion } from 'framer-motion'
 import { Activity } from 'lucide-react'
 import { useMemo } from 'react'
 
-import type { Sport } from '@/lib/mocks'
-import { SPORT_LABEL } from '@/lib/mocks'
 import { motionTokens, useMotionSafe } from '@/lib/motion'
 
-type SportShare = {
-  esporte: Sport
+type ArenaShare = {
+  arenaId: number
+  arenaNome: string
   value: number
 }
 
-type SportShareChartProps = {
-  data: readonly SportShare[]
+type ArenaShareChartProps = {
+  data: readonly ArenaShare[]
 }
 
-const SPORT_COLOR: Record<Sport, string> = {
-  volei: 'bg-chart-1',
-  futebol: 'bg-chart-2',
-  tenis: 'bg-chart-3',
-  padel: 'bg-chart-4',
-}
+const BAR_COLORS = [
+  'bg-chart-1',
+  'bg-chart-2',
+  'bg-chart-3',
+  'bg-chart-4',
+  'bg-chart-5',
+] as const
 
-// barras horizontais mostrando participação de cada esporte
-export function SportShareChart({ data }: SportShareChartProps) {
+export function ArenaShareChart({ data }: ArenaShareChartProps) {
   const { shouldReduce } = useMotionSafe()
   const total = useMemo(
     () => data.reduce((sum, item) => sum + item.value, 0) || 1,
@@ -35,10 +34,10 @@ export function SportShareChart({ data }: SportShareChartProps) {
       <header className="mb-4">
         <h2 className="text-tg-brand-blue flex items-center gap-2 text-lg font-bold">
           <Activity className="size-5" />
-          Replays por esporte
+          Replays por arena
         </h2>
         <p className="text-muted-foreground mt-1 text-sm">
-          Distribuição percentual dos replays gerados.
+          Distribuição dos replays gerados entre as arenas da plataforma.
         </p>
       </header>
 
@@ -46,10 +45,10 @@ export function SportShareChart({ data }: SportShareChartProps) {
         {data.map((item, index) => {
           const pct = (item.value / total) * 100
           return (
-            <li key={item.esporte}>
+            <li key={item.arenaId}>
               <div className="mb-1 flex justify-between text-sm">
                 <span className="text-foreground font-medium">
-                  {SPORT_LABEL[item.esporte]}
+                  {item.arenaNome}
                 </span>
                 <span className="text-muted-foreground tabular-nums">
                   {item.value} ({pct.toFixed(0)}%)
@@ -64,7 +63,7 @@ export function SportShareChart({ data }: SportShareChartProps) {
                     delay: shouldReduce ? 0 : index * 0.08,
                     ease: motionTokens.ease.out,
                   }}
-                  className={`h-full ${SPORT_COLOR[item.esporte]}`}
+                  className={`h-full ${BAR_COLORS[index % BAR_COLORS.length]}`}
                 />
               </div>
             </li>

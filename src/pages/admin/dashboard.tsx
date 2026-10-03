@@ -3,10 +3,10 @@ import { useState } from 'react'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
+import { ArenaShareChart } from '@/pages/admin/components/arena-share-chart'
 import { HourlyChart } from '@/pages/admin/components/hourly-chart'
 import { RecentActivity } from '@/pages/admin/components/recent-activity'
 import { ReplaysChart } from '@/pages/admin/components/replays-chart'
-import { SportShareChart } from '@/pages/admin/components/sport-share-chart'
 import { StatCard } from '@/pages/admin/components/stat-card'
 
 // mock local — kpis do painel enquanto a api não existe
@@ -60,11 +60,12 @@ const USO_POR_HORA = Array.from({ length: 24 }, (_, hour) => ({
   ),
 }))
 
-const REPLAYS_POR_ESPORTE = [
-  { esporte: 'volei' as const, value: 42 },
-  { esporte: 'futebol' as const, value: 33 },
-  { esporte: 'tenis' as const, value: 18 },
-  { esporte: 'padel' as const, value: 12 },
+const REPLAYS_POR_ARENA = [
+  { arenaId: 1, arenaNome: 'Reriutaba Vôlei', value: 42 },
+  { arenaId: 2, arenaNome: 'Vila Sport', value: 33 },
+  { arenaId: 3, arenaNome: 'Arena Charito', value: 18 },
+  { arenaId: 5, arenaNome: 'Padel Club Fortaleza', value: 12 },
+  { arenaId: 4, arenaNome: 'Campo Central', value: 9 },
 ]
 
 // tela dashboard — painel administrativo (fluxo admin)
@@ -105,7 +106,7 @@ export function Dashboard() {
 
       <section className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <HourlyChart data={USO_POR_HORA} />
-        <SportShareChart data={REPLAYS_POR_ESPORTE} />
+        <ArenaShareChart data={REPLAYS_POR_ARENA} />
       </section>
 
       <RecentActivity />

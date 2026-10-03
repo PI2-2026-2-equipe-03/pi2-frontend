@@ -1,33 +1,24 @@
-import { AnimatePresence, motion } from 'framer-motion'
 import type { ReactNode } from 'react'
 import { useLocation } from 'react-router-dom'
-
-import { motionTokens, useMotionSafe } from '@/lib/motion'
 
 type RouteTransitionProps = {
   children: ReactNode
 }
 
-// envolve o outlet com AnimatePresence — fade+slide na troca de rota
-// respeita prefers-reduced-motion via useMotionSafe.
+// transição de rota via CSS animation + key no DOM.
+// motivo: tentativas anteriores com framer-motion AnimatePresence causavam
+// um "flash" perceptível — o novo conteúdo renderizava no estado final por 1-2
+// frames antes do motion aplicar `initial` via inline style. CSS animation roda
+// desde o paint inicial, sem depender de effects do React.
+// o `key` força o React a remount o container inteiro quando a URL muda,
+// disparando a animação naturalmente. respeita `prefers-reduced-motion` via
+// a `@keyframes route-fade-in` em src/style.css.
 export function RouteTransition({ children }: RouteTransitionProps) {
   const location = useLocation()
-  const { shouldReduce } = useMotionSafe()
 
   return (
-    <AnimatePresence mode="wait">
-      <motion.div
-        key={location.pathname}
-        initial={shouldReduce ? { opacity: 0 } : { opacity: 0, y: 8 }}
-        animate={shouldReduce ? { opacity: 1 } : { opacity: 1, y: 0 }}
-        exit={shouldReduce ? { opacity: 0 } : { opacity: 0, y: -8 }}
-        transition={{
-          duration: motionTokens.durations.base,
-          ease: motionTokens.ease.out,
-        }}
-      >
-        {children}
-      </motion.div>
-    </AnimatePresence>
+    <div key={location.pathname} className="route-transition">
+      {children}
+    </div>
   )
 }

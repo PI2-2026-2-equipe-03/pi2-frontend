@@ -43,10 +43,11 @@ function AdminNav({
           onClick={onNavigate}
           className={({ isActive }) =>
             cn(
-              'relative px-5 py-2 text-base font-medium transition-colors',
+              'relative isolate rounded-full px-5 py-2 text-base font-medium transition-colors',
+              'focus-visible:ring-tg-brand-yellow/60 focus-visible:ring-2 focus-visible:outline-none',
               isActive
                 ? 'text-tg-brand-blue-dark'
-                : 'text-sidebar-foreground/90 hover:text-sidebar-accent-foreground',
+                : 'text-sidebar-foreground/90 hover:bg-tg-brand-yellow/20 hover:text-sidebar-accent-foreground',
             )
           }
         >
@@ -55,11 +56,11 @@ function AdminNav({
               {isActive ? (
                 <motion.span
                   layoutId={pillId}
-                  className="bg-tg-brand-yellow absolute inset-0 -z-0 rounded-full shadow-sm"
+                  className="bg-tg-brand-yellow absolute inset-0 -z-10 rounded-full shadow-sm"
                   transition={{ type: 'spring', stiffness: 500, damping: 40 }}
                 />
               ) : null}
-              <span className="relative z-10">{item.label}</span>
+              <span className="relative">{item.label}</span>
             </>
           )}
         </NavLink>
@@ -93,8 +94,8 @@ function AdminFooter({ onNavigate }: { onNavigate?: () => void }) {
 // para header e sidebar ficarem sempre ancorados independentemente do tamanho do conteúdo.
 export function AdminLayout() {
   return (
-    <div className="bg-tg-brand-bg text-foreground flex h-screen flex-col">
-      <header className="bg-tg-brand-blue flex shrink-0 items-center justify-between px-6 py-4 text-white">
+    <div className="bg-tg-brand-bg text-foreground flex min-h-svh flex-col">
+      <header className="bg-tg-brand-blue sticky top-0 z-sticky flex h-16 shrink-0 items-center justify-between px-4 text-white shadow-sm md:px-6">
         <div className="flex items-center gap-2">
           <Sheet>
             <SheetTrigger asChild>
@@ -141,13 +142,13 @@ export function AdminLayout() {
         </div>
       </header>
 
-      <div className="flex flex-1 overflow-hidden">
-        <aside className="bg-sidebar text-sidebar-foreground z-sidebar hidden w-56 shrink-0 flex-col justify-between py-6 md:flex">
+      <div className="flex flex-1">
+        <aside className="bg-sidebar text-sidebar-foreground z-sidebar sticky top-16 hidden h-[calc(100svh-4rem)] w-56 shrink-0 flex-col justify-between overflow-y-auto py-6 md:flex">
           <AdminNav />
           <AdminFooter />
         </aside>
 
-        <main className="flex-1 overflow-y-auto p-6 md:p-10">
+        <main className="min-w-0 flex-1 p-4 md:p-8">
           <RouteTransition>
             <Outlet />
           </RouteTransition>

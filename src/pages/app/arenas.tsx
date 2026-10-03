@@ -1,11 +1,13 @@
 import { motion } from 'framer-motion'
-import { MapPinOff, Search } from 'lucide-react'
+import { MapPinOff } from 'lucide-react'
 import { useQueryState } from 'nuqs'
 import { useMemo } from 'react'
 
 import { EmptyState } from '@/components/empty-state'
+import { ListingToolbar } from '@/components/listing-toolbar'
+import { PaginationControl } from '@/components/pagination-control'
+import { SearchCombobox } from '@/components/search-combobox'
 import { Badge } from '@/components/ui/badge'
-import { Input } from '@/components/ui/input'
 import {
   Select,
   SelectContent,
@@ -13,15 +15,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ARENAS } from '@/lib/mocks'
 import { motionTokens } from '@/lib/motion'
+import { usePagination } from '@/lib/pagination'
+import { arenaSuggestions } from '@/lib/search'
+import { useFakeLoading } from '@/lib/use-fake-loading'
 
 import { ArenaCard } from './components/arena-card'
+import { ArenaCardSkeleton } from './components/arena-card-skeleton'
 
-type Filter = 'todas' | 'favoritas'
-const FILTROS: readonly Filter[] = ['todas', 'favoritas']
-const CIDADE_TODAS = 'todas'
+const CITY_ANY = 'all'
 
 const listVariants = {
   hidden: { opacity: 0 },
@@ -43,15 +46,18 @@ const itemVariants = {
   },
 }
 
+function normalize(value: string): string {
+  return value
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .toLowerCase()
+    .trim()
+}
+
 export function Arenas() {
-  const [filtro, setFiltro] = useQueryState<Filter>('filtro', {
-    defaultValue: 'todas',
-    parse: (value): Filter =>
-      FILTROS.includes(value as Filter) ? (value as Filter) : 'todas',
-  })
   const [q, setQ] = useQueryState('q', { defaultValue: '' })
   const [cidade, setCidade] = useQueryState('cidade', {
-    defaultValue: CIDADE_TODAS,
+    defaultValue: CITY_ANY,
   })
 
   const cidadesDisponiveis = useMemo(() => {
@@ -60,28 +66,43 @@ export function Arenas() {
   }, [])
 
   const arenasFiltradas = useMemo(() => {
-    const termo = q.trim().toLowerCase()
+    const termo = normalize(q)
     return ARENAS.filter((arena) => {
-      const passaFav = filtro === 'todas' || arena.favorita
-      const passaCidade =
-        cidade === CIDADE_TODAS || arena.cidade === cidade
+      const passaCidade = cidade === CITY_ANY || arena.cidade === cidade
       const passaBusca =
         !termo ||
-        arena.nome.toLowerCase().includes(termo) ||
-        arena.cidade.toLowerCase().includes(termo)
-      return passaFav && passaCidade && passaBusca
+        normalize(arena.nome).includes(termo) ||
+        normalize(arena.cidade).includes(termo)
+      return passaCidade && passaBusca
     })
-  }, [filtro, cidade, q])
+  }, [cidade, q])
+
+  const pagination = usePagination({
+    items: arenasFiltradas,
+    pageParam: 'page',
+  })
+
+  const isLoading = useFakeLoading()
+
+  function resetPage() {
+    pagination.setPage(1)
+  }
+
+  function clearFilters() {
+    setQ(null)
+    setCidade(null)
+    resetPage()
+  }
 
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-6">
       <header className="flex items-end justify-between gap-3">
         <div>
-          <h1 className="text-tg-brand-blue text-2xl font-bold md:text-3xl">
+          <h1 className="text-tg-brand-blue text-[clamp(1.5rem,3vw,2rem)] font-bold">
             Arenas
           </h1>
           <p className="text-tg-brand-blue font-medium">
-            Explore locais parceiros e monte sua próxima partida.
+            Explore locais parceiros e abra as quadras.
           </p>
         </div>
         <Badge variant="outline" className="tabular-nums">
@@ -89,63 +110,90 @@ export function Arenas() {
         </Badge>
       </header>
 
-      <div className="bg-background/70 sticky top-0 z-sticky -mx-6 flex flex-col gap-3 px-6 py-3 backdrop-blur md:mx-0 md:flex-row md:items-center md:rounded-xl md:px-4">
-        <Tabs
-          value={filtro}
-          onValueChange={(value) => setFiltro(value as Filter)}
-          className="w-full md:w-auto"
-        >
-          <TabsList>
-            <TabsTrigger value="todas">Todas</TabsTrigger>
-            <TabsTrigger value="favoritas">Favoritas</TabsTrigger>
-          </TabsList>
-        </Tabs>
-
-        <Select value={cidade} onValueChange={setCidade}>
-          <SelectTrigger className="md:w-52">
-            <SelectValue placeholder="Cidade" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value={CIDADE_TODAS}>Todas as cidades</SelectItem>
-            {cidadesDisponiveis.map((c) => (
-              <SelectItem key={c} value={c}>
-                {c}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <div className="border-border bg-background focus-within:ring-tg-brand-blue/30 flex flex-1 items-center gap-2 rounded-full border px-4 py-2 shadow-sm transition-all focus-within:shadow-md focus-within:ring-4">
-          <Search className="text-muted-foreground size-4" />
-          <Input
-            type="search"
+      <ListingToolbar
+        activeCount={(q ? 1 : 0) + (cidade !== CITY_ANY ? 1 : 0)}
+        onClearAll={clearFilters}
+        search={
+          <SearchCombobox
             value={q}
-            onChange={(event) => setQ(event.target.value || null)}
+            onValueChange={(value) => {
+              setQ(value || null)
+              resetPage()
+            }}
+            fetchSuggestions={arenaSuggestions}
             placeholder="Buscar por arena ou cidade…"
-            className="h-9 border-0 bg-transparent shadow-none focus-visible:ring-0"
+            emptyMessage="Nenhuma arena encontrada."
           />
-        </div>
-      </div>
+        }
+        filters={[
+          {
+            id: 'cidade',
+            label: 'Cidade',
+            active: cidade !== CITY_ANY,
+            control: (
+              <Select
+                value={cidade}
+                onValueChange={(v) => {
+                  setCidade(v || null)
+                  resetPage()
+                }}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Cidade" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={CITY_ANY}>Todas as cidades</SelectItem>
+                  {cidadesDisponiveis.map((c) => (
+                    <SelectItem key={c} value={c}>
+                      {c}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ),
+          },
+        ]}
+      />
 
-      {arenasFiltradas.length === 0 ? (
+      {isLoading ? (
+        <ul
+          aria-busy="true"
+          aria-live="polite"
+          className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
+        >
+          {Array.from({ length: 6 }).map((_, i) => (
+            <li key={i}>
+              <ArenaCardSkeleton />
+            </li>
+          ))}
+        </ul>
+      ) : arenasFiltradas.length === 0 ? (
         <EmptyState
           icon={MapPinOff}
           title="Nenhuma arena encontrada"
           description="Ajuste os filtros para ver mais locais parceiros."
         />
       ) : (
-        <motion.ul
-          variants={listVariants}
-          initial="hidden"
-          animate="visible"
-          className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
-        >
-          {arenasFiltradas.map((arena) => (
-            <motion.li key={arena.id} variants={itemVariants}>
-              <ArenaCard arena={arena} />
-            </motion.li>
-          ))}
-        </motion.ul>
+        <>
+          <motion.ul
+            key={pagination.page}
+            variants={listVariants}
+            initial="hidden"
+            animate="visible"
+            className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
+          >
+            {pagination.pageItems.map((arena) => (
+              <motion.li key={arena.id} variants={itemVariants}>
+                <ArenaCard arena={arena} />
+              </motion.li>
+            ))}
+          </motion.ul>
+          <PaginationControl
+            page={pagination.page}
+            totalPages={pagination.totalPages}
+            onPageChange={pagination.setPage}
+          />
+        </>
       )}
     </div>
   )
