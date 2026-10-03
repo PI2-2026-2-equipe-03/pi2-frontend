@@ -2,8 +2,10 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { Loader2, Lock, Mail } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { Link, useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Form,
   FormControl,
@@ -40,6 +42,16 @@ export function SignIn() {
       form.setError('password', { message: 'Senha inválida' })
       return
     }
+
+    await toast.promise(
+      // mock delay para experienciar o toast de loading até a integração real
+      new Promise((resolve) => setTimeout(resolve, 350)),
+      {
+        loading: 'Autenticando…',
+        success: 'Login realizado com sucesso',
+        error: 'Não foi possível entrar',
+      },
+    )
 
     navigate(isAdmin ? '/admin' : '/app', { replace: true })
   }
@@ -98,7 +110,7 @@ export function SignIn() {
                   <FormLabel>Senha</FormLabel>
                   <Link
                     to="/forgot-password"
-                    className="text-primary text-sm hover:underline"
+                    className="text-primary rounded-sm text-sm hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-offset-2"
                   >
                     Esqueci minha senha
                   </Link>
@@ -121,10 +133,9 @@ export function SignIn() {
           />
 
           <label className="text-muted-foreground flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
+            <Checkbox
               defaultChecked
-              className="border-input text-primary focus:ring-ring size-4 rounded"
+              className="data-[state=checked]:bg-tg-brand-blue data-[state=checked]:border-tg-brand-blue"
             />
             Lembrar de mim
           </label>
@@ -149,7 +160,7 @@ export function SignIn() {
             Não possui uma conta?{' '}
             <Link
               to="/sign-up"
-              className="text-primary font-medium hover:underline"
+              className="text-primary rounded-sm font-medium hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-offset-2"
             >
               Criar conta
             </Link>

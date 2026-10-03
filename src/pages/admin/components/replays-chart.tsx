@@ -1,5 +1,8 @@
+import { motion } from 'framer-motion'
 import { ChartColumn } from 'lucide-react'
 import { useMemo } from 'react'
+
+import { motionTokens, useMotionSafe } from '@/lib/motion'
 
 export type ReplayDay = {
   date: string
@@ -24,6 +27,7 @@ export function ReplaysChart({ data }: ReplaysChartProps) {
     () => [0, yMax * 0.25, yMax * 0.5, yMax * 0.75, yMax],
     [yMax],
   )
+  const { shouldReduce } = useMotionSafe()
 
   return (
     <section className="bg-card border-border rounded-xl border p-5 md:p-6">
@@ -73,21 +77,33 @@ export function ReplaysChart({ data }: ReplaysChartProps) {
             </div>
 
             <div className="relative flex h-full items-end justify-around gap-2 px-1 sm:px-4">
-              {data.map((day) => (
-                <div
-                  key={day.date}
-                  className="flex h-full min-w-0 flex-1 flex-col items-center justify-end"
-                >
+              {data.map((day, index) => {
+                const barPct = `${(day.value / yMax) * 100}%`
+                return (
                   <div
-                    className="bg-tg-brand-blue relative w-full max-w-14 rounded-t-sm"
-                    style={{ height: `${(day.value / yMax) * 100}%` }}
+                    key={day.date}
+                    className="flex h-full min-w-0 flex-1 flex-col items-center justify-end"
                   >
-                    <span className="text-tg-brand-blue absolute -top-6 left-1/2 -translate-x-1/2 text-xs font-semibold">
-                      {day.value}
-                    </span>
+                    <motion.div
+                      initial={shouldReduce ? { height: barPct } : { height: 0 }}
+                      animate={{ height: barPct }}
+                      transition={{
+                        duration: motionTokens.durations.slow,
+                        delay: shouldReduce ? 0 : index * 0.06,
+                        ease: motionTokens.ease.out,
+                      }}
+                      whileHover={
+                        shouldReduce ? undefined : { scale: 1.04, y: -2 }
+                      }
+                      className="bg-tg-brand-blue relative w-full max-w-14 origin-bottom rounded-t-sm"
+                    >
+                      <span className="text-tg-brand-blue absolute -top-6 left-1/2 -translate-x-1/2 text-xs font-semibold tabular-nums">
+                        {day.value}
+                      </span>
+                    </motion.div>
                   </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           </div>
 

@@ -1,151 +1,218 @@
 import { motion } from 'framer-motion'
-import { MapPin, Search, Star, Video } from 'lucide-react'
+import { MapPin, SearchX, Video } from 'lucide-react'
+import { useQueryState } from 'nuqs'
+import { useEffect, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 
-import { Badge } from '@/components/ui/badge'
-import { Card } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { ARENA_COVERS } from '@/lib/assets'
+import { EmptyState } from '@/components/empty-state'
+import { FeaturedCard } from '@/components/featured-card'
+import { SearchCombobox } from '@/components/search-combobox'
+import { ARENAS, REPLAY_VIEWS } from '@/lib/mocks'
+import { motionTokens } from '@/lib/motion'
+import type { CourtMatch, Suggestion } from '@/lib/search'
+import { courtSuggestions, suggestCourts } from '@/lib/search'
+import { useFakeLoading } from '@/lib/use-fake-loading'
 
-type Arena = {
-  nome: string
-  cidade: string
-  distancia: string
-  nota: number
-  quadras: number
-  extra: string
-  cover: string
-}
+import { ArenaCard } from './components/arena-card'
+import { ArenaCardSkeleton } from './components/arena-card-skeleton'
 
-const ARENAS_FAVORITAS: readonly Arena[] = [
-  {
-    nome: 'Reriutaba Vôlei',
-    cidade: 'Barra da Tijuca, RJ',
-    distancia: '2.000 km',
-    nota: 4.6,
-    quadras: 4,
-    extra: 'Estacionamento',
-    cover: ARENA_COVERS.beachVolley1,
-  },
-  {
-    nome: 'Vila Sport',
-    cidade: 'Crateús, CE',
-    distancia: '2 km',
-    nota: 4.9,
-    quadras: 4,
-    extra: 'Estacionamento',
-    cover: ARENA_COVERS.volleyIndoor,
-  },
-  {
-    nome: 'Arena Charito',
-    cidade: 'Ipueiras, CE',
-    distancia: '40 km',
-    nota: 4.8,
-    quadras: 6,
-    extra: 'Iluminação',
-    cover: ARENA_COVERS.tennisCourt,
-  },
-]
+// seleciona o replay mais recente disponível pra alimentar o FeaturedCard.
+// projeção pura — nenhum campo novo na entidade.
+const featuredReplay = [...REPLAY_VIEWS]
+  .filter((r) => r.status === 'available')
+  .sort(
+    (a, b) =>
+      new Date(b.recordedAt).getTime() - new Date(a.recordedAt).getTime(),
+  )[0]
+
+const RESULT_PREVIEW_LIMIT = 12
 
 const listVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: { staggerChildren: 0.08, delayChildren: 0.05 },
+    transition: { staggerChildren: 0.06, delayChildren: 0.05 },
   },
 }
 
 const itemVariants = {
   hidden: { opacity: 0, y: 16 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.35 } },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: motionTokens.durations.base,
+      ease: motionTokens.ease.out,
+    },
+  },
 }
 
 export function Home() {
+  const navigate = useNavigate()
+  const [q, setQ] = useQueryState('q', { defaultValue: '' })
+  const [matches, setMatches] = useState<CourtMatch[]>([])
+  const isLoading = useFakeLoading()
+
+  useEffect(() => {
+    let cancelled = false
+    suggestCourts(q).then((res) => {
+      if (!cancelled) setMatches(res)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [q])
+
+  function handleSelect(suggestion: Suggestion) {
+    if (suggestion.payload.kind === 'court') {
+      navigate(`/app/replays?court=${suggestion.payload.value}`)
+    }
+  }
+
+  const hasQuery = Boolean(q.trim())
+  const preview = matches.slice(0, RESULT_PREVIEW_LIMIT)
+  const hasMore = matches.length > RESULT_PREVIEW_LIMIT
+
   return (
-    <div className="mx-auto flex max-w-5xl flex-col gap-8">
+    <div className="mx-auto flex max-w-5xl flex-col gap-10">
       <motion.header
         initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
+        transition={{
+          duration: motionTokens.durations.base,
+          ease: motionTokens.ease.out,
+        }}
+        className="flex flex-col items-center gap-4 text-center"
       >
-        <h1 className="text-tg-brand-blue text-2xl font-bold md:text-3xl">
-          Selecione a arena
+        <h1 className="text-tg-brand-blue text-[clamp(1.75rem,3.5vw,2.5rem)] leading-tight font-bold">
+          Reviva seus melhores lances
         </h1>
-        <p className="text-tg-brand-blue font-medium">
-          Reviva seus melhores momentos.
+        <p className="text-muted-foreground max-w-xl text-sm md:text-base">
+          Encontre sua quadra pelo nome ou pela cidade e abra o replay dos
+          últimos 7 dias.
         </p>
       </motion.header>
 
       <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
+        initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.4, delay: 0.1 }}
-        className="flex justify-center"
+        transition={{
+          duration: motionTokens.durations.slow,
+          delay: 0.05,
+          ease: motionTokens.ease.out,
+        }}
+        className="flex flex-col items-center gap-3"
       >
-        <Video className="text-tg-brand-blue-dark size-24" />
-      </motion.div>
-
-      <div className="flex justify-center">
-        <div className="border-border bg-background focus-within:ring-tg-brand-blue/30 flex w-full max-w-xl items-center gap-2 rounded-full border px-4 py-2 shadow-sm transition-all focus-within:shadow-md focus-within:ring-4">
-          <Search className="text-muted-foreground size-4" />
-          <Input
-            type="search"
-            placeholder="Qual cidade você está buscando?"
-            className="h-9 border-0 bg-transparent shadow-none focus-visible:ring-0"
+        <Video className="text-tg-brand-blue-dark size-14 md:size-16" />
+        <div className="w-full max-w-2xl">
+          <SearchCombobox
+            value={q}
+            onValueChange={(value) => setQ(value || null)}
+            onSelect={handleSelect}
+            fetchSuggestions={courtSuggestions}
+            placeholder="Qual quadra ou cidade você procura?"
+            emptyMessage="Nenhuma quadra encontrada."
+            size="hero"
           />
         </div>
-      </div>
+      </motion.div>
 
-      <section>
-        <h2 className="text-tg-brand-blue mb-3 text-lg font-bold">
-          Arenas favoritas
-        </h2>
-        <motion.ul
-          variants={listVariants}
-          initial="hidden"
-          animate="visible"
-          className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
-        >
-          {ARENAS_FAVORITAS.map((arena) => (
-            <motion.li key={arena.nome} variants={itemVariants}>
-              <Card className="group hover:border-tg-brand-blue/30 cursor-pointer overflow-hidden py-0 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
-                <div className="relative h-32 overflow-hidden">
-                  <img
-                    src={arena.cover}
-                    alt={`Foto da arena ${arena.nome}`}
-                    loading="lazy"
-                    className="size-full object-cover transition-transform duration-500 group-hover:scale-110"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
-                  <Badge
-                    variant="secondary"
-                    className="bg-background/90 text-tg-brand-blue-dark absolute top-2 right-2 backdrop-blur"
+      {hasQuery ? (
+        preview.length === 0 ? (
+          <EmptyState
+            icon={SearchX}
+            title="Nenhuma quadra encontrada"
+            description="Tente outro termo — nome da quadra, da arena ou da cidade."
+          />
+        ) : (
+          <section className="flex flex-col gap-4">
+            <motion.ul
+              variants={listVariants}
+              initial="hidden"
+              animate="visible"
+              className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3"
+            >
+              {preview.map(({ quadra, arena }) => (
+                <motion.li key={quadra.id} variants={itemVariants}>
+                  <Link
+                    to={`/app/replays?court=${quadra.id}`}
+                    className="hover:border-tg-brand-blue/30 focus-visible:ring-ring/40 bg-card flex items-center gap-3 rounded-xl border p-3 transition-all hover:-translate-y-0.5 hover:shadow-md focus-visible:ring-4 focus-visible:outline-none"
                   >
-                    <Star className="fill-tg-brand-yellow text-tg-brand-yellow size-3" />
-                    {arena.nota}
-                  </Badge>
-                </div>
-                <div className="space-y-1.5 p-3">
-                  <p className="text-foreground group-hover:text-tg-brand-blue font-semibold transition-colors">
-                    {arena.nome}
-                  </p>
-                  <p className="text-muted-foreground flex items-center gap-1 text-xs">
-                    <MapPin className="size-3" />
-                    {arena.distancia} • {arena.cidade}
-                  </p>
-                  <div className="flex flex-wrap gap-1.5 pt-1">
-                    <Badge variant="outline" className="text-2xs">
-                      {arena.quadras} quadras
-                    </Badge>
-                    <Badge variant="outline" className="text-2xs">
-                      {arena.extra}
-                    </Badge>
-                  </div>
-                </div>
-              </Card>
-            </motion.li>
-          ))}
-        </motion.ul>
-      </section>
+                    <img
+                      src={arena.fotoUrl}
+                      alt=""
+                      className="size-14 shrink-0 rounded-lg object-cover"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-foreground truncate font-semibold">
+                        {quadra.nome}
+                      </p>
+                      <p className="text-muted-foreground flex items-center gap-1 truncate text-xs">
+                        <MapPin className="size-3 shrink-0" />
+                        {arena.nome} · {arena.cidade}
+                      </p>
+                    </div>
+                  </Link>
+                </motion.li>
+              ))}
+            </motion.ul>
+            {hasMore ? (
+              <div className="flex justify-center">
+                <Link
+                  to={`/app/replays?q=${encodeURIComponent(q)}`}
+                  className="text-tg-brand-blue hover:underline text-sm font-medium"
+                >
+                  Ver todos os replays correspondentes →
+                </Link>
+              </div>
+            ) : null}
+          </section>
+        )
+      ) : (
+        <>
+          {featuredReplay ? <FeaturedCard replay={featuredReplay} /> : null}
+
+          <section>
+            <div className="mb-4 flex items-end justify-between">
+              <h2 className="text-tg-brand-blue text-lg font-bold">
+                Explore arenas
+              </h2>
+              <Link
+                to="/app/arenas"
+                className="text-tg-brand-blue hover:underline text-xs font-medium"
+              >
+                Ver todas →
+              </Link>
+            </div>
+          {isLoading ? (
+            <ul
+              aria-busy="true"
+              aria-live="polite"
+              className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
+            >
+              {Array.from({ length: 6 }).map((_, i) => (
+                <li key={i}>
+                  <ArenaCardSkeleton />
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <motion.ul
+              variants={listVariants}
+              initial="hidden"
+              animate="visible"
+              className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
+            >
+              {ARENAS.map((arena) => (
+                <motion.li key={arena.id} variants={itemVariants}>
+                  <ArenaCard arena={arena} />
+                </motion.li>
+              ))}
+            </motion.ul>
+          )}
+          </section>
+        </>
+      )}
     </div>
   )
 }

@@ -1,8 +1,4 @@
-# skills e agents do claude/cursor/etc. são versionados (compartilhados pelo time)
-# ignorar apenas artefatos locais dentro deles
-.claude/skills/*/data/user/
-.claude/**/.cache/
-.claude/**/*.lock
+.specs
 
 # Logs
 logs
