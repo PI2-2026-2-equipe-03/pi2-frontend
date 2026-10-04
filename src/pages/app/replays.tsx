@@ -1,5 +1,6 @@
+import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
-import { CalendarDays, VideoOff, X } from 'lucide-react'
+import { CalendarDays, RefreshCw, VideoOff, WifiOff, X } from 'lucide-react'
 import { useQueryState } from 'nuqs'
 import { useMemo } from 'react'
 
@@ -16,11 +17,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { ARENAS, QUADRAS, REPLAY_VIEWS } from '@/lib/mocks'
+import { toReplayView } from '@/lib/api/mappers'
+import { listReplays } from '@/lib/api/replays'
+import { ARENAS, QUADRAS } from '@/lib/mocks'
 import { motionTokens } from '@/lib/motion'
 import { usePagination } from '@/lib/pagination'
 import { courtSuggestions } from '@/lib/search'
-import { useFakeLoading } from '@/lib/use-fake-loading'
 
 import { ReplayCard } from './components/replay-card'
 import { ReplayCardSkeleton } from './components/replay-card-skeleton'
@@ -52,12 +54,27 @@ export function Replays() {
   const [date, setDate] = useQueryState('date', { defaultValue: '' })
   const [courtId, setCourtId] = useQueryState('court', { defaultValue: '' })
   const [courtQ, setCourtQ] = useQueryState('q', { defaultValue: '' })
-  const isLoading = useFakeLoading()
+
+  const replaysQuery = useQuery({
+    queryKey: ['replays'],
+    queryFn: listReplays,
+  })
+
+  const replays = useMemo(
+    () => (replaysQuery.data?.data ?? []).map(toReplayView),
+    [replaysQuery.data],
+  )
+
+  const isLoading = replaysQuery.isPending
+  const isError = replaysQuery.isError
 
   const cityOptions = useMemo(() => {
-    const set = new Set(ARENAS.map((a) => a.cidade))
+    const fromApi = replays.map((replay) => replay.city).filter(Boolean)
+    const set = new Set(
+      fromApi.length > 0 ? fromApi : ARENAS.map((a) => a.cidade),
+    )
     return Array.from(set).sort((a, b) => a.localeCompare(b, 'pt-BR'))
-  }, [])
+  }, [replays])
 
   const selectedCourtName = useMemo(() => {
     if (!courtId) return ''
@@ -68,13 +85,13 @@ export function Replays() {
   }, [courtId])
 
   const replaysFiltrados = useMemo(() => {
-    return REPLAY_VIEWS.filter((replay) => {
+    return replays.filter((replay) => {
       const passaCity = city === CITY_ANY || replay.city === city
-      const passaCourt = !courtId || replay.court.id === Number(courtId)
+      const passaCourt = !courtId || String(replay.court.id) === courtId
       const passaDate = !date || replay.recordedAt.startsWith(date)
       return passaCity && passaCourt && passaDate
     })
-  }, [city, courtId, date])
+  }, [city, courtId, date, replays])
 
   const pagination = usePagination({
     items: replaysFiltrados,
@@ -209,6 +226,21 @@ export function Replays() {
             </li>
           ))}
         </ul>
+      ) : isError ? (
+        <EmptyState
+          icon={WifiOff}
+          title="Não foi possível carregar os replays"
+          description="Confira se a API está no ar e tente novamente."
+          action={
+            <Button
+              variant="brandOutline"
+              onClick={() => void replaysQuery.refetch()}
+            >
+              <RefreshCw className="size-4" />
+              Tentar novamente
+            </Button>
+          }
+        />
       ) : replaysFiltrados.length === 0 ? (
         <EmptyState
           icon={VideoOff}

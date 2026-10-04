@@ -3,7 +3,7 @@
 // com prioridade quadra > arena > cidade quando o termo é ambíguo.
 // módulo puro — testável quando o harness entrar.
 
-import { ARENAS, QUADRAS, getArenaById } from '@/lib/mocks'
+import { ARENAS, getArenaById, QUADRAS } from '@/lib/mocks'
 import type { Arena, Quadra } from '@/lib/types'
 
 export type CourtMatch = { quadra: Quadra; arena: Arena }
@@ -13,8 +13,8 @@ export type Suggestion = {
   label: string
   subtitle?: string
   payload:
-    | { kind: 'court'; value: number }
-    | { kind: 'arena'; value: number }
+    | { kind: 'court'; value: number | string }
+    | { kind: 'arena'; value: number | string }
 }
 
 type CourtMatchKind = 'court' | 'arena' | 'city'
