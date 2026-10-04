@@ -62,9 +62,9 @@ export const REPLAY_DURATION_SECONDS = 30 as const
 // view-model consumido pelos componentes de UI — já carrega os joins necessários
 // (quadra, arena, cidade, patrocinador ativo) para evitar lookups manuais nos cards.
 export type ReplayView = {
-  id: number
-  court: { id: number; nome: string }
-  arena: { id: number; nome: string; fotoUrl: string }
+  id: number | string
+  court: { id: number | string; nome: string }
+  arena: { id: number | string; nome: string; fotoUrl: string }
   city: string
   recordedAt: string
   duration: typeof REPLAY_DURATION_SECONDS

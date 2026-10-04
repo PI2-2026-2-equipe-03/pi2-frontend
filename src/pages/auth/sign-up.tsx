@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useMutation } from '@tanstack/react-query'
 import { Loader2, Lock, Mail, Phone, User } from 'lucide-react'
 import { useForm, useWatch } from 'react-hook-form'
 import { Link, useNavigate } from 'react-router-dom'
@@ -14,10 +15,11 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { registerUser } from '@/lib/api/auth'
+import { getApiErrorMessage } from '@/lib/api/errors'
 import { type SignUpInput, signUpSchema } from '@/lib/schemas/sign-up-schema'
 import { PasswordRequirements } from '@/pages/auth/components/password-requirements'
 
-// tela de criação de conta — baixa fidelidade, ainda sem integração de auth
 export function SignUp() {
   const navigate = useNavigate()
 
@@ -38,17 +40,41 @@ export function SignUp() {
     name: 'confirmPassword',
   })
 
-  async function onSubmit() {
-    // mock: sprint 2 chamará o backend para criar a conta de fato
-    toast.success('Conta criada com sucesso!', {
-      description: 'Você já pode entrar com seu e-mail e senha.',
-    })
-    navigate('/sign-in', { replace: true })
+  const registerMutation = useMutation({
+    mutationFn: registerUser,
+  })
+
+  async function onSubmit(data: SignUpInput) {
+    try {
+      const request = registerMutation.mutateAsync({
+        name: data.fullName,
+        email: data.email,
+        password: data.password,
+        confirmPassword: data.confirmPassword,
+        phone: data.phone,
+      })
+      void toast.promise(request, {
+        loading: 'Criando conta…',
+        success: 'Conta criada com sucesso',
+        error: (error) =>
+          getApiErrorMessage(error, 'Não foi possível criar a conta'),
+      })
+      await request
+      navigate('/sign-in', { replace: true })
+    } catch (error) {
+      const message = getApiErrorMessage(
+        error,
+        'Não foi possível criar a conta',
+      )
+      if (/e-mail|já cadastrado/i.test(message)) {
+        form.setError('email', { message })
+      } else {
+        form.setError('root', { message })
+      }
+    }
   }
 
-  const {
-    formState: { isSubmitting },
-  } = form
+  const isSubmitting = registerMutation.isPending
 
   return (
     <div className="bg-card border-border w-full max-w-md rounded-xl border p-8 shadow-sm">
@@ -188,6 +214,12 @@ export function SignUp() {
             password={password}
             confirmPassword={confirmPassword}
           />
+
+          {form.formState.errors.root?.message ? (
+            <p role="alert" className="text-destructive text-sm">
+              {form.formState.errors.root.message}
+            </p>
+          ) : null}
 
           <Button
             type="submit"

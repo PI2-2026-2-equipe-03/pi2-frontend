@@ -1,4 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion'
+import type { LucideIcon } from 'lucide-react'
 import {
   Film,
   Home,
@@ -10,7 +11,6 @@ import {
   User,
   X,
 } from 'lucide-react'
-import type { LucideIcon } from 'lucide-react'
 import { useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 
@@ -38,6 +38,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+import { clearSession, getSession } from '@/lib/auth/session'
 import { useMotionSafe } from '@/lib/motion'
 import { useScrolled } from '@/lib/use-scrolled'
 import { cn } from '@/lib/utils'
@@ -98,6 +99,11 @@ function NavItems({
   )
 }
 
+function handleLogout(navigate: ReturnType<typeof useNavigate>) {
+  clearSession()
+  navigate('/sign-in', { replace: true })
+}
+
 function NavFooter({ onNavigate }: { onNavigate?: () => void }) {
   const navigate = useNavigate()
 
@@ -115,7 +121,7 @@ function NavFooter({ onNavigate }: { onNavigate?: () => void }) {
         type="button"
         onClick={() => {
           onNavigate?.()
-          navigate('/sign-in')
+          handleLogout(navigate)
         }}
         className="text-sidebar-foreground/90 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground flex items-center gap-2 rounded-md px-3 py-2 text-left text-sm font-medium transition-colors"
       >
@@ -131,6 +137,7 @@ const headerIconClasses =
 
 export function AppLayout() {
   const navigate = useNavigate()
+  const session = getSession()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const motionSafe = useMotionSafe()
   const scrolled = useScrolled(8)
@@ -235,7 +242,9 @@ export function AppLayout() {
               <TooltipContent>Perfil</TooltipContent>
             </Tooltip>
             <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuLabel>Minha conta</DropdownMenuLabel>
+              <DropdownMenuLabel>
+                {session?.name ?? 'Minha conta'}
+              </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem>
                 <User className="size-4" />
@@ -248,7 +257,7 @@ export function AppLayout() {
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 variant="destructive"
-                onSelect={() => navigate('/sign-in')}
+                onSelect={() => handleLogout(navigate)}
               >
                 <LogOut className="size-4" />
                 Sair

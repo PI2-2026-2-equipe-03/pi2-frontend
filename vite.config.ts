@@ -24,8 +24,12 @@ export default defineConfig({
     },
     proxy: {
       '/api': {
-        target: 'http://localhost:3000',
+        // no host: 127.0.0.1 evita IPv6/localhost no Windows.
+        // no docker: API_PROXY_TARGET=http://host.docker.internal:3000
+        target: process.env.API_PROXY_TARGET ?? 'http://127.0.0.1:3000',
         changeOrigin: true,
+        // api do backend vive na raiz (/login, /replays); o spa chama /api/*
+        rewrite: (path) => path.replace(/^\/api/, ''),
       },
     },
   },
