@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useMutation } from '@tanstack/react-query'
 import { Loader2, Lock, Mail } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { Link, useNavigate } from 'react-router-dom'
@@ -15,16 +16,11 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { loginUser } from '@/lib/api/auth'
+import { getApiErrorMessage } from '@/lib/api/errors'
+import { saveSession } from '@/lib/auth/session'
 import { type SignInInput, signInSchema } from '@/lib/schemas/sign-in-schema'
 
-// credenciais mock do administrador — sprint 2 substitui pela api
-const MOCK_ADMIN = {
-  email: 'admin@admin.com',
-  password: 'Admin123',
-} as const
-
-// tela login — baixa fidelidade, ainda sem integração de auth
-// admin@admin.com + Admin123 vai para /admin; demais e-mails válidos vão para /app
 export function SignIn() {
   const navigate = useNavigate()
 
@@ -33,32 +29,36 @@ export function SignIn() {
     defaultValues: { email: '', password: '' },
   })
 
+  const loginMutation = useMutation({
+    mutationFn: loginUser,
+  })
+
   async function onSubmit(data: SignInInput) {
-    // mock: sprint 2 chamará o backend
-    const isAdminEmail = data.email.toLowerCase() === MOCK_ADMIN.email
-    const isAdmin = isAdminEmail && data.password === MOCK_ADMIN.password
-
-    if (isAdminEmail && !isAdmin) {
-      form.setError('password', { message: 'Senha inválida' })
-      return
-    }
-
-    await toast.promise(
-      // mock delay para experienciar o toast de loading até a integração real
-      new Promise((resolve) => setTimeout(resolve, 350)),
-      {
+    try {
+      const request = loginMutation.mutateAsync(data)
+      void toast.promise(request, {
         loading: 'Autenticando…',
         success: 'Login realizado com sucesso',
-        error: 'Não foi possível entrar',
-      },
-    )
+        error: (error) =>
+          getApiErrorMessage(error, 'Não foi possível entrar'),
+      })
+      const response = await request
 
-    navigate(isAdmin ? '/admin' : '/app', { replace: true })
+      saveSession({
+        id: response.data.id,
+        name: response.data.name,
+        email: response.data.email,
+        token: response.data.token,
+      })
+      navigate('/app', { replace: true })
+    } catch (error) {
+      form.setError('password', {
+        message: getApiErrorMessage(error, 'E-mail ou senha inválidos'),
+      })
+    }
   }
 
-  const {
-    formState: { isSubmitting },
-  } = form
+  const isSubmitting = loginMutation.isPending
 
   return (
     <div className="bg-card border-border w-full max-w-md rounded-xl border p-8 shadow-sm">

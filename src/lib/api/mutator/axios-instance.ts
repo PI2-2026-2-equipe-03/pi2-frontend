@@ -1,8 +1,18 @@
-import Axios from 'axios'
 import type { AxiosError, AxiosRequestConfig } from 'axios'
+import Axios from 'axios'
+
+import { getSession } from '@/lib/auth/session'
 
 export const axiosInstance = Axios.create({
   baseURL: import.meta.env.VITE_API_URL,
+})
+
+axiosInstance.interceptors.request.use((config) => {
+  const token = getSession()?.token
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
+  }
+  return config
 })
 
 export const customInstance = <T>(
