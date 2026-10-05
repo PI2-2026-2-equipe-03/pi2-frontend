@@ -19,6 +19,10 @@ const envSchema = z
       )
       .optional(),
     VITE_APP_ENV: z.enum(['development', 'staging', 'production']).optional(),
+    VITE_USE_MOCKS: z
+      .enum(['true', 'false'])
+      .optional()
+      .transform((value) => value !== 'false'),
   })
   .superRefine((data, ctx) => {
     const environment = data.VITE_APP_ENV ?? 'development'

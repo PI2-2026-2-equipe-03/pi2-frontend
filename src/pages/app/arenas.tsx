@@ -1,5 +1,6 @@
+import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
-import { MapPinOff } from 'lucide-react'
+import { MapPinOff, RefreshCw, WifiOff } from 'lucide-react'
 import { useQueryState } from 'nuqs'
 import { useMemo } from 'react'
 
@@ -8,6 +9,7 @@ import { ListingToolbar } from '@/components/listing-toolbar'
 import { PaginationControl } from '@/components/pagination-control'
 import { SearchCombobox } from '@/components/search-combobox'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import {
   Select,
   SelectContent,
@@ -15,11 +17,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { ARENAS } from '@/lib/mocks'
+import { listArenas } from '@/lib/api/arenas'
 import { motionTokens } from '@/lib/motion'
 import { usePagination } from '@/lib/pagination'
 import { arenaSuggestions } from '@/lib/search'
-import { useFakeLoading } from '@/lib/use-fake-loading'
 
 import { ArenaCard } from './components/arena-card'
 import { ArenaCardSkeleton } from './components/arena-card-skeleton'
@@ -60,14 +61,27 @@ export function Arenas() {
     defaultValue: CITY_ANY,
   })
 
+  const arenasQuery = useQuery({
+    queryKey: ['arenas'],
+    queryFn: listArenas,
+  })
+
+  const arenas = useMemo(
+    () => arenasQuery.data?.data ?? [],
+    [arenasQuery.data],
+  )
+
+  const isLoading = arenasQuery.isPending
+  const isError = arenasQuery.isError
+
   const cidadesDisponiveis = useMemo(() => {
-    const set = new Set(ARENAS.map((a) => a.cidade))
+    const set = new Set(arenas.map((a) => a.cidade))
     return Array.from(set).sort((a, b) => a.localeCompare(b, 'pt-BR'))
-  }, [])
+  }, [arenas])
 
   const arenasFiltradas = useMemo(() => {
     const termo = normalize(q)
-    return ARENAS.filter((arena) => {
+    return arenas.filter((arena) => {
       const passaCidade = cidade === CITY_ANY || arena.cidade === cidade
       const passaBusca =
         !termo ||
@@ -75,14 +89,12 @@ export function Arenas() {
         normalize(arena.cidade).includes(termo)
       return passaCidade && passaBusca
     })
-  }, [cidade, q])
+  }, [arenas, cidade, q])
 
   const pagination = usePagination({
     items: arenasFiltradas,
     pageParam: 'page',
   })
-
-  const isLoading = useFakeLoading()
 
   function resetPage() {
     pagination.setPage(1)
@@ -106,7 +118,7 @@ export function Arenas() {
           </p>
         </div>
         <Badge variant="outline" className="tabular-nums">
-          {arenasFiltradas.length} de {ARENAS.length}
+          {arenasFiltradas.length} de {arenas.length}
         </Badge>
       </header>
 
@@ -167,6 +179,21 @@ export function Arenas() {
             </li>
           ))}
         </ul>
+      ) : isError ? (
+        <EmptyState
+          icon={WifiOff}
+          title="Não foi possível carregar as arenas"
+          description="Confira se a API está no ar e tente novamente."
+          action={
+            <Button
+              variant="brandOutline"
+              onClick={() => void arenasQuery.refetch()}
+            >
+              <RefreshCw className="size-4" />
+              Tentar novamente
+            </Button>
+          }
+        />
       ) : arenasFiltradas.length === 0 ? (
         <EmptyState
           icon={MapPinOff}

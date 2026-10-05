@@ -51,6 +51,7 @@ Páginas vivem em `src/pages/{auth,app,admin}/*.tsx`. Componentes específicos d
 - Todas as chamadas passam pelo mutator `src/lib/api/mutator/axios-instance.ts` (`customInstance`), ponto único para interceptors, baseURL e auth.
 - `queryClient` configurado em `src/lib/react-query.ts` (padrão `staleTime` 5min / `gcTime` 10min — ver `docs/stack-frontend.md`).
 - Dev: `vite.config.ts` proxia `/api` → `http://localhost:3000`. A env `VITE_API_URL` só é obrigatória em `staging`/`production` (validado por zod em `src/env.ts` — boot quebra cedo se faltar).
+- **Toggle mock/real por domínio**: a flag `VITE_USE_MOCKS` (default `true`) é consumida em cada stub de `src/lib/api/*.ts`. Em modo mock, o stub devolve dados de `src/lib/api/mocks/<domínio>.ts` com o mesmo envelope `{ data: ... }` do backend. Páginas usam `useQuery` sem saber da flag.
 
 ### Formulários e validação
 
@@ -70,7 +71,7 @@ Páginas vivem em `src/pages/{auth,app,admin}/*.tsx`. Componentes específicos d
 
 - Arquivos em **kebab-case** (`sign-in.tsx`, `theme-toggle.tsx`).
 - **Named exports** sempre; nada de `export default`.
-- Comentários **curtos, em pt-BR, caixa baixa**.
+- Comments: **short English, lowercase. Explain WHY, not WHAT.** Applies to new code only.
 - Path alias **`@/`** → `src/` (replicado em `tsconfig.app.json` e `vite.config.ts`).
 - TypeScript strict com `noUnusedLocals`, `noUnusedParameters`, `verbatimModuleSyntax`, `erasableSyntaxOnly`.
 - Prettier: `semi: false`, `singleQuote: true`, `printWidth: 80`, `arrowParens: 'always'`.

@@ -1,5 +1,13 @@
+import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
-import { ChevronRight, LayoutGrid, MapPin, X } from 'lucide-react'
+import {
+  ChevronRight,
+  LayoutGrid,
+  MapPin,
+  RefreshCw,
+  WifiOff,
+  X,
+} from 'lucide-react'
 import { useQueryState } from 'nuqs'
 import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
@@ -28,18 +36,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import {
-  ARENAS,
-  QUADRAS,
-  REPLAY_VIEWS,
-  getArenaById,
-  getSponsorForCourt,
-} from '@/lib/mocks'
+import type { ArenaDto } from '@/lib/api/arenas'
+import { listArenas } from '@/lib/api/arenas'
+import type { QuadraDto } from '@/lib/api/quadras'
+import { listQuadras } from '@/lib/api/quadras'
+import { getSponsorForCourt,REPLAY_VIEWS } from '@/lib/mocks'
 import { motionTokens } from '@/lib/motion'
 import { usePagination } from '@/lib/pagination'
 import { arenaSuggestions } from '@/lib/search'
-import type { Quadra } from '@/lib/types'
-import { useFakeLoading } from '@/lib/use-fake-loading'
 import { cn } from '@/lib/utils'
 
 import { QuadraCardSkeleton } from './components/quadra-card-skeleton'
@@ -78,8 +82,13 @@ const STATUS_OPTIONS: ReadonlyArray<{ value: StatusFilter; label: string }> = [
   { value: 'indisponivel', label: 'Indisponíveis' },
 ]
 
-function QuadraCard({ quadra }: { quadra: Quadra }) {
-  const arena = getArenaById(quadra.arenaId)
+function QuadraCard({
+  quadra,
+  arena,
+}: {
+  quadra: QuadraDto
+  arena: ArenaDto | undefined
+}) {
   const sponsor = getSponsorForCourt(quadra.id)
   const replaysDaQuadra = REPLAY_VIEWS.filter(
     (r) => r.court.id === quadra.id,
@@ -259,20 +268,47 @@ export function Quadras() {
   const [arenaQ, setArenaQ] = useQueryState('q', { defaultValue: '' })
   const [from, setFrom] = useQueryState('from', { defaultValue: '' })
 
+  const arenasQuery = useQuery({
+    queryKey: ['arenas'],
+    queryFn: listArenas,
+  })
+  const quadrasQuery = useQuery({
+    queryKey: ['quadras'],
+    queryFn: listQuadras,
+  })
+
+  const arenas = useMemo(
+    () => arenasQuery.data?.data ?? [],
+    [arenasQuery.data],
+  )
+  const quadras = useMemo(
+    () => quadrasQuery.data?.data ?? [],
+    [quadrasQuery.data],
+  )
+
+  const arenaById = useMemo(() => {
+    const map = new Map<number, ArenaDto>()
+    for (const arena of arenas) map.set(arena.id, arena)
+    return map
+  }, [arenas])
+
+  const isLoading = arenasQuery.isPending || quadrasQuery.isPending
+  const isError = arenasQuery.isError || quadrasQuery.isError
+
   const arenaSelecionada = useMemo(
     () =>
-      arenaId ? ARENAS.find((a) => a.id === Number(arenaId)) : undefined,
-    [arenaId],
+      arenaId ? arenas.find((a) => a.id === Number(arenaId)) : undefined,
+    [arenaId, arenas],
   )
 
   const cityOptions = useMemo(() => {
-    const set = new Set(ARENAS.map((a) => a.cidade))
+    const set = new Set(arenas.map((a) => a.cidade))
     return Array.from(set).sort((a, b) => a.localeCompare(b, 'pt-BR'))
-  }, [])
+  }, [arenas])
 
   const quadrasFiltradas = useMemo(() => {
-    return QUADRAS.filter((quadra) => {
-      const arena = getArenaById(quadra.arenaId)
+    return quadras.filter((quadra) => {
+      const arena = arenaById.get(quadra.arenaId)
       if (!arena) return false
       const passaArena = !arenaId || quadra.arenaId === Number(arenaId)
       const passaCidade = cidade === CITY_ANY || arena.cidade === cidade
@@ -282,14 +318,17 @@ export function Quadras() {
         (status === 'indisponivel' && !quadra.disponivel)
       return passaArena && passaCidade && passaStatus
     })
-  }, [arenaId, cidade, status])
+  }, [arenaById, arenaId, cidade, quadras, status])
 
   const pagination = usePagination({
     items: quadrasFiltradas,
     pageParam: 'page',
   })
 
-  const isLoading = useFakeLoading()
+  function refetchAll() {
+    void arenasQuery.refetch()
+    void quadrasQuery.refetch()
+  }
 
   function resetPage() {
     pagination.setPage(1)
@@ -459,6 +498,18 @@ export function Quadras() {
             </li>
           ))}
         </ul>
+      ) : isError ? (
+        <EmptyState
+          icon={WifiOff}
+          title="Não foi possível carregar as quadras"
+          description="Confira se a API está no ar e tente novamente."
+          action={
+            <Button variant="brandOutline" onClick={refetchAll}>
+              <RefreshCw className="size-4" />
+              Tentar novamente
+            </Button>
+          }
+        />
       ) : quadrasFiltradas.length === 0 ? (
         <EmptyState
           icon={LayoutGrid}
@@ -491,7 +542,10 @@ export function Quadras() {
           >
             {pagination.pageItems.map((quadra) => (
               <motion.li key={quadra.id} variants={itemVariants}>
-                <QuadraCard quadra={quadra} />
+                <QuadraCard
+                  quadra={quadra}
+                  arena={arenaById.get(quadra.arenaId)}
+                />
               </motion.li>
             ))}
           </motion.ul>

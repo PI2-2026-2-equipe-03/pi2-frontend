@@ -9,6 +9,7 @@ import { Dashboard } from '@/pages/admin/dashboard'
 import { Arenas } from '@/pages/app/arenas'
 import { Home } from '@/pages/app/home'
 import { Quadras } from '@/pages/app/quadras'
+import { ReplayDetail } from '@/pages/app/replay-detail'
 import { Replays } from '@/pages/app/replays'
 import { ForgotPassword } from '@/pages/auth/forgot-password'
 import { ResetPassword } from '@/pages/auth/reset-password'
@@ -44,6 +45,7 @@ export const router = createBrowserRouter([
         children: [
           { index: true, element: <Home /> },
           { path: 'replays', element: <Replays /> },
+          { path: 'replays/:id', element: <ReplayDetail /> },
           { path: 'arenas', element: <Arenas /> },
           { path: 'quadras', element: <Quadras /> },
         ],
