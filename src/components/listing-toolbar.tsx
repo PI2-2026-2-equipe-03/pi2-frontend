@@ -1,6 +1,6 @@
 import { SlidersHorizontal } from 'lucide-react'
-import { useState } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
+import { useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import {

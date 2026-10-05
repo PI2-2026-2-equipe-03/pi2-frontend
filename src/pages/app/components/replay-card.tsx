@@ -1,5 +1,6 @@
 import { useMutation } from '@tanstack/react-query'
 import { Calendar, Download, Loader2, MapPin, Play, Share2 } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import { ReplayExpiry } from '@/components/replay-expiry'
@@ -40,6 +41,7 @@ function triggerDownload(url: string, fileName: string) {
 export function ReplayCard({ replay }: ReplayCardProps) {
   const recorded = new Date(replay.recordedAt)
   const title = `${replay.arena.nome} · ${replay.court.nome}`
+  const detailHref = `/app/replays/${replay.id}`
   const watchUrl = resolveMediaUrl(replay.arquivoUrl)
 
   const downloadMutation = useMutation({
@@ -69,14 +71,6 @@ export function ReplayCard({ replay }: ReplayCardProps) {
     },
   })
 
-  function handleWatch() {
-    if (!watchUrl) {
-      toast.error('Este replay ainda não tem arquivo disponível.')
-      return
-    }
-    window.open(watchUrl, '_blank', 'noopener,noreferrer')
-  }
-
   function handleShare() {
     const shareUrl = watchUrl || window.location.href
     void navigator.clipboard.writeText(shareUrl).then(
@@ -96,14 +90,13 @@ export function ReplayCard({ replay }: ReplayCardProps) {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
 
-        <button
-          type="button"
-          aria-label={`Assistir replay de ${title}`}
-          onClick={handleWatch}
+        <Link
+          to={detailHref}
+          aria-label={`Abrir replay de ${title}`}
           className="bg-tg-brand-blue/90 hover:bg-tg-brand-blue focus-visible:ring-ring/60 absolute inset-0 m-auto flex size-14 items-center justify-center rounded-full text-white opacity-0 shadow-lg transition-opacity duration-300 focus-visible:opacity-100 focus-visible:ring-4 focus-visible:outline-none group-hover:opacity-100"
         >
           <Play className="size-6 fill-current" />
-        </button>
+        </Link>
 
         <span className="bg-background/90 text-foreground absolute right-2 bottom-2 rounded-md px-2 py-0.5 text-xs tabular-nums backdrop-blur">
           {replay.duration}s
@@ -123,9 +116,12 @@ export function ReplayCard({ replay }: ReplayCardProps) {
       </div>
 
       <div className="space-y-2 p-4">
-        <p className="text-foreground group-hover:text-tg-brand-blue line-clamp-1 font-semibold tracking-tight transition-colors">
+        <Link
+          to={detailHref}
+          className="text-foreground group-hover:text-tg-brand-blue line-clamp-1 block font-semibold tracking-tight transition-colors hover:underline"
+        >
           {title}
-        </p>
+        </Link>
         <div className="text-muted-foreground flex flex-col gap-1 text-xs">
           <span className="flex items-center gap-1">
             <MapPin className="size-3 shrink-0" />
@@ -138,9 +134,11 @@ export function ReplayCard({ replay }: ReplayCardProps) {
         </div>
 
         <div className="flex items-center justify-between pt-2">
-          <Button variant="ghost" size="sm" onClick={handleWatch}>
-            <Play className="size-3.5" />
-            Ver
+          <Button asChild variant="ghost" size="sm">
+            <Link to={detailHref}>
+              <Play className="size-3.5" />
+              Ver
+            </Link>
           </Button>
           <div className="flex gap-1">
             <Button

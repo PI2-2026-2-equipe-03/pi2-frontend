@@ -1,3 +1,5 @@
+import { env } from '@/env'
+import * as mocks from '@/lib/api/mocks/replays'
 import { customInstance } from '@/lib/api/mutator/axios-instance'
 
 export type ReplayDto = {
@@ -29,6 +31,7 @@ type ReplayDownloadResponse = {
 }
 
 export function listReplays() {
+  if (env.VITE_USE_MOCKS) return mocks.listReplays()
   return customInstance<ListReplaysResponse>({
     url: '/replays',
     method: 'GET',
@@ -36,6 +39,7 @@ export function listReplays() {
 }
 
 export function getReplayDownload(id: number | string) {
+  if (env.VITE_USE_MOCKS) return mocks.getReplayDownload(id)
   return customInstance<ReplayDownloadResponse>({
     url: `/replays/${id}/download`,
     method: 'GET',

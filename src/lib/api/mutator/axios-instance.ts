@@ -4,7 +4,7 @@ import Axios from 'axios'
 import { getSession } from '@/lib/auth/session'
 
 export const axiosInstance = Axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: import.meta.env.VITE_API_URL ?? '/api',
 })
 
 axiosInstance.interceptors.request.use((config) => {
