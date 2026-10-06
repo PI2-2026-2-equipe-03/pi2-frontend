@@ -2,7 +2,7 @@
 
 > Documento vivo listando o que o frontend espera e o `pi2-backend` ainda não entrega. Cada seção já traz um corpo pronto para virar issue no repositório do backend.
 
-Varredura feita em 2026-10-04 contra `pi2-backend` (branch `main`).
+Varredura feita em 2026-10-06 contra `pi2-backend` (branch `main`), com integração real exercitada via `docker compose up` + frontend em modo `VITE_USE_MOCKS=false`.
 
 ---
 
@@ -41,7 +41,7 @@ Critério de aceitação:
 
 **Estado atual**: endpoint não existe. Frontend fallback: `VITE_USE_MOCKS=true` para servir mock local.
 
-**Contrato esperado**:
+**Contrato esperado** (IDs são UUIDs — mesma convenção que `GET /replays` já usa):
 
 - Método: `GET /arenas`
 - Query params (opcionais): `cidade?: string`, `q?: string` (busca por nome/cidade).
@@ -50,8 +50,8 @@ Critério de aceitação:
 ```ts
 {
   data: Array<{
-    id: number
-    clienteId: number
+    id: string        // uuid
+    clienteId: string // uuid do gestor
     nome: string
     cidade: string
     endereco: string
@@ -63,6 +63,8 @@ Critério de aceitação:
 - Erros: `500` genérico.
 - Filtra arenas de gestores inativos (quando aplicável).
 
+**Observação sobre tipo do id no frontend**: o stub `src/lib/api/arenas.ts` hoje tipa `id` como `number` porque esse era o shape dos mocks. Quando o endpoint entrar, precisa trocar para `string` (ou `number | string`) para aceitar UUID.
+
 **Issue sugerida** (`pi2-backend`):
 
 ```
@@ -73,7 +75,7 @@ Frontend precisa listar arenas na tela "/app/arenas" (ver pi2-frontend/src/pages
 Contrato:
 - GET /arenas?cidade=<string>&q=<string>
 - 200 { data: ArenaDto[] } onde ArenaDto = {
-    id, clienteId, nome, cidade, endereco, fotoUrl
+    id: uuid, clienteId: uuid, nome, cidade, endereco, fotoUrl
   }
 
 Tarefas:
@@ -89,17 +91,17 @@ Tarefas:
 
 **Estado atual**: endpoint não existe. Frontend fallback: mock local via `VITE_USE_MOCKS=true`. O stub do frontend em `src/lib/api/quadras.ts` hoje aponta para `GET /quadras` (listagem global); se o backend preferir `GET /arenas/:id/quadras`, o stub é atualizado — avisar via comentário na issue.
 
-**Contrato esperado** (listagem global, forma mais simples):
+**Contrato esperado** (listagem global, forma mais simples; IDs são UUIDs):
 
 - Método: `GET /quadras`
-- Query params (opcionais): `arenaId?: number`, `disponivel?: boolean`.
+- Query params (opcionais): `arenaId?: string` (uuid), `disponivel?: boolean`.
 - Resposta `200`:
 
 ```ts
 {
   data: Array<{
-    id: number
-    arenaId: number
+    id: string      // uuid
+    arenaId: string // uuid
     nome: string
     disponivel: boolean
   }>
@@ -107,6 +109,8 @@ Tarefas:
 ```
 
 - Erros: `500` genérico.
+
+**Observação sobre tipo do id no frontend**: igual ao gap #2 — stub tipa como `number` por legado dos mocks, trocar para `string` quando o endpoint entrar.
 
 **Issue sugerida** (`pi2-backend`):
 
@@ -116,8 +120,8 @@ Título: Implementar GET /quadras (listagem com filtro por arena)
 Frontend precisa listar quadras na tela "/app/quadras" (ver pi2-frontend/src/pages/app/quadras.tsx), com filtro opcional por arena.
 
 Contrato:
-- GET /quadras?arenaId=<number>&disponivel=<boolean>
-- 200 { data: QuadraDto[] } onde QuadraDto = { id, arenaId, nome, disponivel }
+- GET /quadras?arenaId=<uuid>&disponivel=<boolean>
+- 200 { data: QuadraDto[] } onde QuadraDto = { id: uuid, arenaId: uuid, nome, disponivel }
 
 Tarefas:
 - query SELECT q.id, q.id_arena AS arenaId, q.nome, q.disponivel FROM quadra q
@@ -165,6 +169,86 @@ Tarefas:
 
 ---
 
+## 5. `GET /replays/:id/download` — aceitar UUID no path
+
+**Estado atual**: a seed (`src/db/init/002_seed.sql`) usa UUIDs em todas as tabelas, inclusive `replay.id` (ex.: `60000000-0000-0000-0000-000000000010`). `GET /replays` já devolve `id` como UUID. Mas o handler de `GET /replays/:id/download` valida o `:id` como numérico e rejeita UUIDs com:
+
+```json
+{ "error": { "message": "ID do replay inválido" } }
+```
+
+Reproduzível com:
+
+```bash
+curl http://localhost:3000/replays/60000000-0000-0000-0000-000000000010/download
+```
+
+**Efeito no frontend**: na tela `/app/replays/:id` o botão "Baixar replay" dispara o toast de erro ("Não foi possível baixar o replay") para qualquer replay vindo da seed.
+
+**Esperado pelo frontend**: aceitar `:id` como UUID (ou `number | string`), consultar `replay` pelo id, retornar `{ data: { id, fileName, downloadUrl } }`.
+
+**Issue sugerida** (`pi2-backend`):
+
+```
+Título: GET /replays/:id/download rejeita UUIDs; permitir id da seed
+
+GET /replays já devolve ids UUID (ex.: 60000000-0000-0000-0000-000000000010) porque é esse o shape da seed em src/db/init/002_seed.sql. Mas o handler de /download valida o :id como numérico e retorna 400 { error: { message: "ID do replay inválido" } }.
+
+Repro:
+  curl http://localhost:3000/replays/60000000-0000-0000-0000-000000000010/download
+
+Esperado: aceitar UUID, buscar replay pelo id, devolver 200 { data: { id, fileName, downloadUrl } }.
+
+Impacto no frontend: a página /app/replays/:id (botão "Baixar replay") só funciona hoje se o replay tiver id numérico, o que não acontece com os dados seedados.
+```
+
+---
+
+## 6. `.env.example` do backend tem `POSTGRES_PORT=0000`
+
+**Estado atual**: `pi2-backend/.env.example` entrega `POSTGRES_PORT=0000`, que invalida o `docker-compose.yml` (ao mapear `"${POSTGRES_PORT}:5432"` o Docker rejeita a porta). Quem clona o repo e segue o README (`cp .env.example .env && docker compose up`) recebe erro no primeiro boot.
+
+**Esperado**: `POSTGRES_PORT=5432` (ou um comentário dizendo "escolha uma porta livre no host; o container sempre escuta em 5432 internamente").
+
+**Issue sugerida** (`pi2-backend`):
+
+```
+Título: .env.example quebra o docker compose (POSTGRES_PORT=0000)
+
+O arquivo .env.example define POSTGRES_PORT=0000. Como docker-compose.yml faz "${POSTGRES_PORT}:5432", o engine recusa a porta e o container tagravado-db não sobe.
+
+Sugestão:
+  POSTGRES_PORT=5432
+  # porta no host — mude se já tiver um Postgres rodando (ex.: 5433)
+  # o container escuta sempre em 5432 internamente
+
+Também incluir no README que, se a 5432 estiver ocupada, basta trocar a env para outra porta livre.
+```
+
+---
+
+## 7. CORS não registrado na API
+
+**Estado atual**: `src/app.ts` do backend não registra `@fastify/cors`. Em dev isso não é problema porque o Vite proxy do frontend (`vite.config.ts`) encaminha `/api/*` → `localhost:3000/*` e o browser enxerga mesma-origem. Mas qualquer consumo direto do backend por outro front (ou deploy em subdomínio separado) vai bater em `CORS error`.
+
+**Esperado**: registrar `@fastify/cors` com allowlist por ambiente.
+
+**Issue sugerida** (`pi2-backend`):
+
+```
+Título: Registrar @fastify/cors com allowlist por ambiente
+
+Hoje o frontend funciona em dev só porque o Vite proxy esconde o cross-origin. Em staging/produção, com o SPA servido de outro domínio, qualquer fetch direto para a API vai falhar por CORS.
+
+Tarefas:
+- adicionar @fastify/cors nas deps
+- em src/app.ts: await app.register(cors, { origin: <lista por env>, credentials: true })
+- allowlist mínima: http://localhost:5173 em dev, URL do SPA em staging/prod
+- 404/500 continuam retornando com os headers CORS corretos
+```
+
+---
+
 ## Dependência entre gaps
 
 ```
@@ -178,10 +262,39 @@ Tarefas:
 
 #4 JWT
   └── independente, mas bloqueia qualquer rota protegida que entrar depois
+
+#5 download aceita UUID
+  └── independente; afeta a tela /app/replays/:id hoje
+
+#6 .env.example inválido
+  └── independente; afeta primeiro boot de qualquer dev
+
+#7 CORS
+  └── independente em dev; bloqueia deploy em subdomínio separado
 ```
 
-Priorizar #1 primeiro para evitar re-trabalho de schema nas três issues de endpoint.
+Priorizar #1 primeiro para evitar re-trabalho de schema nas três issues de endpoint. #5 e #6 são correções pequenas e podem ir juntas em qualquer sprint.
 
 ## Progresso do frontend
 
-Enquanto os gaps não forem fechados, o frontend roda com `VITE_USE_MOCKS=true` (padrão). Trocar para `false` em `.env.local` liga as chamadas reais; as telas Arenas e Quadras vão exibir o estado de erro ("Confira se a API está no ar") até os gaps #2 e #3 serem fechados.
+- `VITE_USE_MOCKS=true` (default): tudo funciona offline com mocks locais em `src/lib/api/mocks/`.
+- `VITE_USE_MOCKS=false` + backend ligado (`docker compose up` no `pi2-backend`): login e lista de replays usam dados reais da seed (`src/db/init/002_seed.sql`); detalhe de replay carrega mas o botão "Baixar" cai no toast de erro por conta do gap #5; Arenas e Quadras exibem o `EmptyState` de erro de rede por conta dos gaps #2 e #3.
+
+Setup resumido para integração local (já validado em 2026-10-06):
+
+```bash
+# backend
+cd pi2-backend
+cp .env.example .env
+# editar: POSTGRES_PORT=5432 (ou outra porta livre no host) — ver gap #6
+docker compose up --build
+
+# frontend (worktree do pi2-frontend)
+cat > .env.local <<'EOF'
+VITE_API_URL="/api"
+VITE_USE_MOCKS="false"
+EOF
+npm run dev
+```
+
+Login no `http://localhost:5173/sign-in` com `teste@email.com` / `123456` (credencial hardcoded in-memory no backend — ver gap #4).
