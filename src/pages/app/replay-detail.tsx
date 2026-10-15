@@ -55,7 +55,15 @@ export function ReplayDetail() {
       toast.success('Download iniciado')
     },
     onError: (error) => {
-      toast.error(getApiErrorMessage(error, 'Não foi possível baixar o replay'))
+      toast.error(
+        getApiErrorMessage(error, 'Não foi possível baixar o replay'),
+        {
+          action: {
+            label: 'Tentar de novo',
+            onClick: () => downloadMutation.mutate(),
+          },
+        },
+      )
     },
   })
 

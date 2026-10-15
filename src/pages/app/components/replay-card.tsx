@@ -67,7 +67,15 @@ export function ReplayCard({ replay }: ReplayCardProps) {
       triggerDownload(file.url, file.fileName)
     },
     onError: (error) => {
-      toast.error(getApiErrorMessage(error, 'Não foi possível baixar o replay'))
+      toast.error(
+        getApiErrorMessage(error, 'Não foi possível baixar o replay'),
+        {
+          action: {
+            label: 'Tentar de novo',
+            onClick: () => downloadMutation.mutate(),
+          },
+        },
+      )
     },
   })
 
@@ -93,7 +101,8 @@ export function ReplayCard({ replay }: ReplayCardProps) {
         <Link
           to={detailHref}
           aria-label={`Abrir replay de ${title}`}
-          className="bg-tg-brand-blue/90 hover:bg-tg-brand-blue focus-visible:ring-ring/60 absolute inset-0 m-auto flex size-14 items-center justify-center rounded-full text-white opacity-0 shadow-lg transition-opacity duration-300 focus-visible:opacity-100 focus-visible:ring-4 focus-visible:outline-none group-hover:opacity-100"
+          // mobile: cta sempre visível (não há hover). md+: hover-reveal.
+          className="bg-tg-brand-blue/90 hover:bg-tg-brand-blue focus-visible:ring-ring/60 absolute inset-0 m-auto flex size-14 items-center justify-center rounded-full text-white opacity-100 shadow-lg transition-opacity duration-300 focus-visible:opacity-100 focus-visible:ring-4 focus-visible:outline-none md:opacity-0 md:group-hover:opacity-100"
         >
           <Play className="size-6 fill-current" />
         </Link>
