@@ -119,7 +119,7 @@ export function SearchCombobox({
                 setOpen(false)
                 inputRef.current?.focus()
               }}
-              className="text-muted-foreground hover:text-foreground"
+              className="text-muted-foreground hover:text-foreground hover:bg-muted focus-visible:ring-ring/40 -mr-1 inline-flex shrink-0 cursor-pointer items-center justify-center rounded-full p-1 transition-colors focus-visible:ring-2 focus-visible:outline-none active:scale-90"
             >
               <X className={size === 'hero' ? 'size-5' : 'size-4'} />
             </button>

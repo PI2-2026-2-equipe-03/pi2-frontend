@@ -197,7 +197,7 @@ export function Replays() {
             position: 'trailing',
             width: '11rem',
             control: (
-              <div className="border-border bg-background flex items-center gap-2 rounded-md border px-3 py-1.5">
+              <div className="border-border bg-background focus-within:border-tg-brand-blue/60 focus-within:ring-tg-brand-blue/20 flex items-center gap-2 rounded-md border px-3 py-1.5 transition-colors focus-within:ring-2">
                 <CalendarDays className="text-muted-foreground size-4 shrink-0" />
                 <Input
                   type="date"
