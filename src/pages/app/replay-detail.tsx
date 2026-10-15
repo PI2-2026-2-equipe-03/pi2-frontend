@@ -5,6 +5,7 @@ import {
   Download,
   Loader2,
   MapPin,
+  RefreshCw,
   VideoOff,
   WifiOff,
 } from 'lucide-react'
@@ -100,7 +101,12 @@ export function ReplayDetail() {
             <Button
               variant="brandOutline"
               onClick={() => void replaysQuery.refetch()}
+              disabled={replaysQuery.isRefetching}
+              aria-busy={replaysQuery.isRefetching}
             >
+              <RefreshCw
+                className={`size-4 ${replaysQuery.isRefetching ? 'animate-spin' : ''}`}
+              />
               Tentar novamente
             </Button>
           }
@@ -161,6 +167,7 @@ export function ReplayDetail() {
               <Button
                 variant="brand"
                 disabled={downloadMutation.isPending || isDeleted}
+                aria-busy={downloadMutation.isPending}
                 onClick={() => downloadMutation.mutate()}
               >
                 {downloadMutation.isPending ? (

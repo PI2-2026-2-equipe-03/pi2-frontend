@@ -504,8 +504,19 @@ export function Quadras() {
           title="Não foi possível carregar as quadras"
           description="Confira se a API está no ar e tente novamente."
           action={
-            <Button variant="brandOutline" onClick={refetchAll}>
-              <RefreshCw className="size-4" />
+            <Button
+              variant="brandOutline"
+              onClick={refetchAll}
+              disabled={arenasQuery.isRefetching || quadrasQuery.isRefetching}
+              aria-busy={arenasQuery.isRefetching || quadrasQuery.isRefetching}
+            >
+              <RefreshCw
+                className={`size-4 ${
+                  arenasQuery.isRefetching || quadrasQuery.isRefetching
+                    ? 'animate-spin'
+                    : ''
+                }`}
+              />
               Tentar novamente
             </Button>
           }

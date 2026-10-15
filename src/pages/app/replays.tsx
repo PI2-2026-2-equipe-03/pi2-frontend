@@ -235,8 +235,12 @@ export function Replays() {
             <Button
               variant="brandOutline"
               onClick={() => void replaysQuery.refetch()}
+              disabled={replaysQuery.isRefetching}
+              aria-busy={replaysQuery.isRefetching}
             >
-              <RefreshCw className="size-4" />
+              <RefreshCw
+                className={`size-4 ${replaysQuery.isRefetching ? 'animate-spin' : ''}`}
+              />
               Tentar novamente
             </Button>
           }

@@ -154,6 +154,7 @@ export function ReplayCard({ replay }: ReplayCardProps) {
               variant="ghost"
               size="icon-sm"
               aria-label={`Baixar replay de ${title}`}
+              aria-busy={downloadMutation.isPending}
               disabled={downloadMutation.isPending}
               onClick={() => downloadMutation.mutate()}
             >

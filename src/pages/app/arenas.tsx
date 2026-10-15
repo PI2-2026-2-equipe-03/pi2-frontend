@@ -188,8 +188,12 @@ export function Arenas() {
             <Button
               variant="brandOutline"
               onClick={() => void arenasQuery.refetch()}
+              disabled={arenasQuery.isRefetching}
+              aria-busy={arenasQuery.isRefetching}
             >
-              <RefreshCw className="size-4" />
+              <RefreshCw
+                className={`size-4 ${arenasQuery.isRefetching ? 'animate-spin' : ''}`}
+              />
               Tentar novamente
             </Button>
           }
