@@ -3,8 +3,8 @@ import * as mocks from '@/lib/api/mocks/quadras'
 import { customInstance } from '@/lib/api/mutator/axios-instance'
 
 export type QuadraDto = {
-  id: number
-  arenaId: number
+  id: string
+  arenaId: string
   nome: string
   disponivel: boolean
 }

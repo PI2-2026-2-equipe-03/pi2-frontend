@@ -1,17 +1,21 @@
 import { motion } from 'framer-motion'
+import { Link } from 'react-router-dom'
 
 import { useMotionSafe } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 
 type LogoProps = {
   className?: string
+  // destino opcional — quando presente, a logo vira link clicável.
+  // cada layout escolhe seu alvo (/sign-in nas telas de auth, /app no cliente, /admin no admin).
+  to?: string
 }
 
-// wordmark tagravado — "g" em amarelo (marca) com micro-wiggle no hover
-export function Logo({ className }: LogoProps) {
+// wordmark tagravado — "g" em amarelo (marca) com micro-wiggle no hover.
+export function Logo({ className, to }: LogoProps) {
   const { shouldReduce } = useMotionSafe()
 
-  return (
+  const wordmark = (
     <span className={cn('group font-bold tracking-tight', className)}>
       Ta
       <motion.span
@@ -29,5 +33,17 @@ export function Logo({ className }: LogoProps) {
       </motion.span>
       ravado
     </span>
+  )
+
+  if (!to) return wordmark
+
+  return (
+    <Link
+      to={to}
+      aria-label="Ir para a página inicial"
+      className="focus-visible:ring-tg-brand-yellow/60 inline-block rounded-sm transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:outline-none"
+    >
+      {wordmark}
+    </Link>
   )
 }

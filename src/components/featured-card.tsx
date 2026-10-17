@@ -3,6 +3,8 @@ import { ArrowRight, MapPin } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 import { ReplayExpiry } from '@/components/replay-expiry'
+import { ReplayThumb } from '@/components/replay-thumb'
+import { resolveMediaUrl } from '@/lib/api/mappers'
 import { motionTokens } from '@/lib/motion'
 import type { ReplayView } from '@/lib/types'
 
@@ -29,11 +31,9 @@ export function FeaturedCard({ replay }: FeaturedCardProps) {
       }}
       className="group relative aspect-[4/3] overflow-hidden rounded-2xl shadow-md md:aspect-[21/9]"
     >
-      {/* camada 1 — foto da arena */}
-      <img
-        src={replay.arena.fotoUrl}
-        alt=""
-        loading="eager"
+      {/* camada 1 — frame do próprio replay */}
+      <ReplayThumb
+        src={resolveMediaUrl(replay.arquivoUrl)}
         className="absolute inset-0 size-full object-cover transition-transform duration-500 group-hover:scale-105"
       />
 
@@ -44,12 +44,12 @@ export function FeaturedCard({ replay }: FeaturedCardProps) {
       {/* camada 3 — conteúdo */}
       <div className="relative flex h-full flex-col justify-between gap-4 p-5 text-white md:p-8">
         <div className="flex items-start justify-between gap-3">
-          <span className="bg-white/15 border-white/25 inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold tracking-wide uppercase backdrop-blur">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-white/25 bg-white/15 px-3 py-1 text-xs font-semibold tracking-wide uppercase backdrop-blur">
             Replay em destaque
           </span>
           <ReplayExpiry
             expiresAt={replay.expiresAt}
-            className="bg-white/15 border-white/25 text-white"
+            className="border-white/25 bg-white/15 text-white"
           />
         </div>
 
@@ -60,14 +60,14 @@ export function FeaturedCard({ replay }: FeaturedCardProps) {
           <h2 className="text-[clamp(1.5rem,3vw,2.5rem)] leading-tight font-bold tracking-tight">
             {replay.court.nome}
           </h2>
-          <p className="text-white/85 flex items-center gap-1.5 text-sm">
+          <p className="flex items-center gap-1.5 text-sm text-white/85">
             <MapPin className="size-4 shrink-0" aria-hidden />
             {replay.city} · {dateLabel}
           </p>
 
           <Link
             to={`/app/replays?court=${replay.court.id}`}
-            className="bg-tg-brand-yellow text-tg-brand-blue-dark hover:bg-tg-brand-yellow/90 focus-visible:ring-white/60 mt-4 inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md focus-visible:ring-2 focus-visible:outline-none"
+            className="bg-tg-brand-yellow text-tg-brand-blue-dark hover:bg-tg-brand-yellow/90 mt-4 inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:outline-none"
           >
             Ver replay
             <ArrowRight className="size-4" aria-hidden />

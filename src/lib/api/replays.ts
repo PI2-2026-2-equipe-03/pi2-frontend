@@ -3,8 +3,8 @@ import * as mocks from '@/lib/api/mocks/replays'
 import { customInstance } from '@/lib/api/mutator/axios-instance'
 
 export type ReplayDto = {
-  id: number | string
-  courtId: number | string
+  id: string
+  courtId: string
   downloadUrl: string | null
   recordingDate?: string
   recordingTime?: string
@@ -16,9 +16,11 @@ export type ReplayDto = {
   city?: string
 }
 
+// o backend responde só { id, downloadUrl }; o nome do arquivo fica por conta
+// de quem consome.
 export type ReplayDownloadDto = {
-  id: number | string
-  fileName: string
+  id: string
+  fileName?: string
   downloadUrl: string
 }
 
@@ -38,7 +40,7 @@ export function listReplays() {
   })
 }
 
-export function getReplayDownload(id: number | string) {
+export function getReplayDownload(id: string) {
   if (env.VITE_USE_MOCKS) return mocks.getReplayDownload(id)
   return customInstance<ReplayDownloadResponse>({
     url: `/replays/${id}/download`,

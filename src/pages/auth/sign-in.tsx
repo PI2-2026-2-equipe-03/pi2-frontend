@@ -1,10 +1,11 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@tanstack/react-query'
-import { Loader2, Lock, Mail } from 'lucide-react'
+import { Loader2, Mail } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 
+import { PasswordInput } from '@/components/password-input'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
@@ -16,49 +17,76 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { loginUser } from '@/lib/api/auth'
-import { getApiErrorMessage } from '@/lib/api/errors'
-import { saveSession } from '@/lib/auth/session'
+import { env } from '@/env'
+import { loginUser as mockLoginUser } from '@/lib/api/mocks/auth'
+import { authClient } from '@/lib/auth/client'
+import { saveMockSession } from '@/lib/auth/session'
+import { AuthRequestError, toAuthRequestError } from '@/lib/errors'
 import { type SignInInput, signInSchema } from '@/lib/schemas/sign-in-schema'
+
+async function performSignIn(input: SignInInput): Promise<void> {
+  if (env.VITE_USE_MOCKS) {
+    const response = await mockLoginUser(input)
+    saveMockSession({
+      id: response.data.id,
+      name: response.data.name,
+      email: response.data.email,
+      token: response.data.token,
+    })
+    return
+  }
+
+  const { error } = await authClient.signIn.email({
+    email: input.email,
+    password: input.password,
+    // rememberMe=false faz o Better Auth emitir cookie de sessão (sem maxAge),
+    // que o navegador descarta ao fechar. true usa o expiresIn do servidor.
+    rememberMe: input.rememberMe,
+  })
+
+  if (error) {
+    throw toAuthRequestError(error, 'Não foi possível entrar')
+  }
+
+  // garante que o atom reativo do Better Auth está populado antes do caller
+  // navegar — sem isso o useSession do guard pode retornar null-por-um-instante
+  // e disparar redirect de volta pra /sign-in no primeiro login.
+  await authClient.getSession()
+}
 
 export function SignIn() {
   const navigate = useNavigate()
 
   const form = useForm<SignInInput>({
     resolver: zodResolver(signInSchema),
-    defaultValues: { email: '', password: '' },
+    mode: 'onTouched',
+    reValidateMode: 'onChange',
+    defaultValues: { email: '', password: '', rememberMe: true },
   })
 
-  const loginMutation = useMutation({
-    mutationFn: loginUser,
+  const signInMutation = useMutation({
+    mutationFn: performSignIn,
   })
 
   async function onSubmit(data: SignInInput) {
     try {
-      const request = loginMutation.mutateAsync(data)
+      const request = signInMutation.mutateAsync(data)
       void toast.promise(request, {
         loading: 'Autenticando…',
         success: 'Login realizado com sucesso',
-        error: (error) =>
-          getApiErrorMessage(error, 'Não foi possível entrar'),
+        error: (error: Error) => error.message,
       })
-      const response = await request
-
-      saveSession({
-        id: response.data.id,
-        name: response.data.name,
-        email: response.data.email,
-        token: response.data.token,
-      })
+      await request
       navigate('/app', { replace: true })
     } catch (error) {
-      form.setError('password', {
-        message: getApiErrorMessage(error, 'E-mail ou senha inválidos'),
-      })
+      const message =
+        error instanceof Error ? error.message : 'E-mail ou senha inválidos'
+      const field = error instanceof AuthRequestError ? error.field : undefined
+      form.setError(field ?? 'root', { message })
     }
   }
 
-  const isSubmitting = loginMutation.isPending
+  const isSubmitting = signInMutation.isPending
 
   return (
     <div className="bg-card border-border w-full max-w-md rounded-xl border p-8 shadow-sm">
@@ -84,9 +112,12 @@ export function SignIn() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>E-mail</FormLabel>
-                <FormControl>
-                  <div className="relative">
-                    <Mail className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+                <div className="relative">
+                  <Mail
+                    className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
+                    aria-hidden
+                  />
+                  <FormControl>
                     <Input
                       type="email"
                       autoComplete="email"
@@ -94,8 +125,8 @@ export function SignIn() {
                       className="pl-9"
                       {...field}
                     />
-                  </div>
-                </FormControl>
+                  </FormControl>
+                </div>
                 <FormMessage />
               </FormItem>
             )}
@@ -110,40 +141,53 @@ export function SignIn() {
                   <FormLabel>Senha</FormLabel>
                   <Link
                     to="/forgot-password"
-                    className="text-primary rounded-sm text-sm hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-offset-2"
+                    className="text-primary focus-visible:ring-ring/50 rounded-sm text-sm hover:underline focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
                   >
                     Esqueci minha senha
                   </Link>
                 </div>
                 <FormControl>
-                  <div className="relative">
-                    <Lock className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
-                    <Input
-                      type="password"
-                      autoComplete="current-password"
-                      placeholder="••••••••"
-                      className="pl-9"
-                      {...field}
-                    />
-                  </div>
+                  <PasswordInput
+                    autoComplete="current-password"
+                    placeholder="••••••••"
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
 
-          <label className="text-muted-foreground flex items-center gap-2 text-sm">
-            <Checkbox
-              defaultChecked
-              className="data-[state=checked]:bg-tg-brand-blue data-[state=checked]:border-tg-brand-blue"
-            />
-            Lembrar de mim
-          </label>
+          <FormField
+            control={form.control}
+            name="rememberMe"
+            render={({ field }) => (
+              <label className="text-muted-foreground flex w-fit items-center gap-2 text-sm">
+                <Checkbox
+                  ref={field.ref}
+                  checked={field.value}
+                  onCheckedChange={(checked) =>
+                    field.onChange(checked === true)
+                  }
+                  onBlur={field.onBlur}
+                  className="data-[state=checked]:bg-tg-brand-blue data-[state=checked]:border-tg-brand-blue"
+                />
+                Lembrar de mim
+              </label>
+            )}
+          />
+
+          {form.formState.errors.root?.message ? (
+            <p role="alert" className="text-destructive text-sm">
+              {form.formState.errors.root.message}
+            </p>
+          ) : null}
 
           <Button
             type="submit"
             variant="brand"
             disabled={isSubmitting}
+            aria-busy={isSubmitting}
             className="w-full"
           >
             {isSubmitting ? (
@@ -160,7 +204,7 @@ export function SignIn() {
             Não possui uma conta?{' '}
             <Link
               to="/sign-up"
-              className="text-primary rounded-sm font-medium hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-offset-2"
+              className="text-primary focus-visible:ring-ring/50 rounded-sm font-medium hover:underline focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
             >
               Criar conta
             </Link>

@@ -85,7 +85,9 @@ export function ReplaysChart({ data }: ReplaysChartProps) {
                     className="flex h-full min-w-0 flex-1 flex-col items-center justify-end"
                   >
                     <motion.div
-                      initial={shouldReduce ? { height: barPct } : { height: 0 }}
+                      initial={
+                        shouldReduce ? { height: barPct } : { height: 0 }
+                      }
                       animate={{ height: barPct }}
                       transition={{
                         duration: motionTokens.durations.slow,

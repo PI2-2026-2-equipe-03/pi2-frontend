@@ -25,7 +25,7 @@ export function FilterChips<T extends string>({
       role="radiogroup"
       aria-label={ariaLabel}
       className={cn(
-        'flex gap-2 overflow-x-auto scrollbar-none -mx-1 px-1',
+        '-mx-1 flex scrollbar-none gap-2 overflow-x-auto px-1',
         className,
       )}
     >

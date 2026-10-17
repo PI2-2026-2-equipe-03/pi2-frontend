@@ -16,10 +16,7 @@ type HourlyChartProps = {
 // gráfico de uso por hora — 24 barras compactas verticais
 export function HourlyChart({ data }: HourlyChartProps) {
   const { shouldReduce } = useMotionSafe()
-  const max = useMemo(
-    () => Math.max(...data.map((d) => d.value), 1),
-    [data],
-  )
+  const max = useMemo(() => Math.max(...data.map((d) => d.value), 1), [data])
 
   return (
     <section className="bg-card border-border rounded-xl border p-5 md:p-6">

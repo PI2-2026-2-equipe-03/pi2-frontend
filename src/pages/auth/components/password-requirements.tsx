@@ -1,5 +1,6 @@
 import { Check, X } from 'lucide-react'
 
+import { evaluatePassword } from '@/lib/forms/password-rules'
 import { cn } from '@/lib/utils'
 
 type PasswordRequirementsProps = {
@@ -7,50 +8,30 @@ type PasswordRequirementsProps = {
   confirmPassword: string
 }
 
-type Requirement = {
-  label: string
-  isMet: boolean
-}
-
-// checklist visual da senha — feedback em tempo real enquanto o usuário digita
+// checklist visual da senha — feedback em tempo real enquanto o usuário digita.
+// delega os critérios ao helper em @/lib/forms/password-rules.
 export function PasswordRequirements({
   password,
   confirmPassword,
 }: PasswordRequirementsProps) {
-  const requirements: Requirement[] = [
-    {
-      label: 'Pelo menos 8 dígitos',
-      isMet: password.length >= 8,
-    },
-    {
-      label: 'Possui letras, números e símbolos',
-      isMet:
-        /[a-zA-Z]/.test(password) &&
-        /\d/.test(password) &&
-        /[^a-zA-Z0-9]/.test(password),
-    },
-    {
-      label: 'As senhas coincidem',
-      isMet: password.length > 0 && password === confirmPassword,
-    },
-  ]
+  const rules = evaluatePassword(password, confirmPassword)
 
   return (
     <ul className="space-y-1">
-      {requirements.map((requirement) => (
+      {rules.map((rule) => (
         <li
-          key={requirement.label}
+          key={rule.key}
           className={cn(
-            'flex items-center gap-2 text-xs',
-            requirement.isMet ? 'text-success' : 'text-muted-foreground',
+            'flex items-center gap-2 text-xs transition-colors duration-150',
+            rule.isMet ? 'text-success' : 'text-muted-foreground',
           )}
         >
-          {requirement.isMet ? (
-            <Check className="size-3.5" />
+          {rule.isMet ? (
+            <Check className="size-3.5" aria-hidden />
           ) : (
-            <X className="size-3.5" />
+            <X className="size-3.5" aria-hidden />
           )}
-          {requirement.label}
+          <span>{rule.label}</span>
         </li>
       ))}
     </ul>

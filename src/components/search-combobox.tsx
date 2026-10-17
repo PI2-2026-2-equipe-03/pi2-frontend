@@ -8,11 +8,7 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command'
-import {
-  Popover,
-  PopoverAnchor,
-  PopoverContent,
-} from '@/components/ui/popover'
+import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover'
 import type { Suggestion } from '@/lib/search'
 import { cn } from '@/lib/utils'
 
@@ -108,7 +104,7 @@ export function SearchCombobox({
             aria-expanded={open}
             aria-controls={listboxId}
             aria-autocomplete="list"
-            className="w-full flex-1 border-0 bg-transparent outline-none placeholder:text-muted-foreground"
+            className="placeholder:text-muted-foreground w-full flex-1 border-0 bg-transparent outline-none"
           />
           {value ? (
             <button
