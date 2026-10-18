@@ -184,16 +184,16 @@ export const REPLAYS: readonly Replay[] = REPLAY_SEEDS.map((seed) => {
 // mantendo os componentes agnósticos à estrutura relacional.
 // ------------------------------------------------------------
 
-export function getArenaById(id: number): Arena | undefined {
+export function getArenaById(id: number | string): Arena | undefined {
   return ARENAS.find((arena) => arena.id === id)
 }
 
-export function getQuadraById(id: number): Quadra | undefined {
+export function getQuadraById(id: number | string): Quadra | undefined {
   return QUADRAS.find((quadra) => quadra.id === id)
 }
 
 export function getSponsorForCourt(
-  courtId: number,
+  courtId: number | string,
 ): Patrocinador | undefined {
   const link = QUADRA_PATROCINADORES.find((qp) => qp.quadraId === courtId)
   if (!link) return undefined

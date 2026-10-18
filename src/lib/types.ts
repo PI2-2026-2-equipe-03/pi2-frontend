@@ -13,8 +13,8 @@ export type Usuario = {
 }
 
 export type Arena = {
-  id: number
-  clienteId: number
+  id: number | string
+  clienteId: number | string
   nome: string
   cidade: string
   endereco: string
@@ -22,8 +22,8 @@ export type Arena = {
 }
 
 export type Quadra = {
-  id: number
-  arenaId: number
+  id: number | string
+  arenaId: number | string
   nome: string
   disponivel: boolean
 }

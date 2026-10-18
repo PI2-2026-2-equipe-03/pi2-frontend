@@ -1,12 +1,13 @@
 import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
-import { CalendarDays, RefreshCw, VideoOff, WifiOff, X } from 'lucide-react'
+import { CalendarDays, VideoOff, X } from 'lucide-react'
 import { useQueryState } from 'nuqs'
-import { useMemo } from 'react'
+import { useCallback, useMemo } from 'react'
 
 import { EmptyState } from '@/components/empty-state'
 import { ListingToolbar } from '@/components/listing-toolbar'
 import { PaginationControl } from '@/components/pagination-control'
+import { QueryErrorState } from '@/components/query-error-state'
 import { SearchCombobox } from '@/components/search-combobox'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -19,10 +20,9 @@ import {
 } from '@/components/ui/select'
 import { toReplayView } from '@/lib/api/mappers'
 import { listReplays } from '@/lib/api/replays'
-import { ARENAS, QUADRAS } from '@/lib/mocks'
 import { motionTokens } from '@/lib/motion'
 import { usePagination } from '@/lib/pagination'
-import { courtSuggestions } from '@/lib/search'
+import { type CourtMatch, courtSuggestions } from '@/lib/search'
 
 import { ReplayCard } from './components/replay-card'
 import { ReplayCardSkeleton } from './components/replay-card-skeleton'
@@ -69,20 +69,35 @@ export function Replays() {
   const isError = replaysQuery.isError
 
   const cityOptions = useMemo(() => {
-    const fromApi = replays.map((replay) => replay.city).filter(Boolean)
-    const set = new Set(
-      fromApi.length > 0 ? fromApi : ARENAS.map((a) => a.cidade),
-    )
+    const set = new Set(replays.map((replay) => replay.city).filter(Boolean))
     return Array.from(set).sort((a, b) => a.localeCompare(b, 'pt-BR'))
   }, [replays])
 
+  // quadras distintas presentes nos replays — fonte da busca por quadra
+  const courts = useMemo(() => {
+    const byId = new Map<string, CourtMatch>()
+    for (const replay of replays) {
+      const key = String(replay.court.id)
+      if (byId.has(key)) continue
+      byId.set(key, {
+        quadra: replay.court,
+        arena: { ...replay.arena, cidade: replay.city },
+      })
+    }
+    return Array.from(byId.values())
+  }, [replays])
+
+  const fetchSuggestions = useCallback(
+    (query: string) => courtSuggestions(query, courts),
+    [courts],
+  )
+
   const selectedCourtName = useMemo(() => {
     if (!courtId) return ''
-    const quadra = QUADRAS.find((q) => q.id === Number(courtId))
-    if (!quadra) return ''
-    const arena = ARENAS.find((a) => a.id === quadra.arenaId)
-    return arena ? `${quadra.nome} — ${arena.nome}` : quadra.nome
-  }, [courtId])
+    const match = courts.find(({ quadra }) => String(quadra.id) === courtId)
+    if (!match) return ''
+    return `${match.quadra.nome} — ${match.arena.nome}`
+  }, [courtId, courts])
 
   const replaysFiltrados = useMemo(() => {
     return replays.filter((replay) => {
@@ -158,7 +173,7 @@ export function Replays() {
                 resetPage()
               }
             }}
-            fetchSuggestions={courtSuggestions}
+            fetchSuggestions={fetchSuggestions}
             placeholder="Buscar por quadra, arena ou cidade…"
             emptyMessage="Nenhuma correspondência."
           />
@@ -227,19 +242,10 @@ export function Replays() {
           ))}
         </ul>
       ) : isError ? (
-        <EmptyState
-          icon={WifiOff}
+        <QueryErrorState
           title="Não foi possível carregar os replays"
-          description="Confira se a API está no ar e tente novamente."
-          action={
-            <Button
-              variant="brandOutline"
-              onClick={() => void replaysQuery.refetch()}
-            >
-              <RefreshCw className="size-4" />
-              Tentar novamente
-            </Button>
-          }
+          error={replaysQuery.error}
+          onRetry={() => void replaysQuery.refetch()}
         />
       ) : replaysFiltrados.length === 0 ? (
         <EmptyState

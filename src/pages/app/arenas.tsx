@@ -1,13 +1,16 @@
+import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import { MapPinOff } from 'lucide-react'
 import { useQueryState } from 'nuqs'
-import { useMemo } from 'react'
+import { useCallback, useMemo } from 'react'
 
 import { EmptyState } from '@/components/empty-state'
 import { ListingToolbar } from '@/components/listing-toolbar'
 import { PaginationControl } from '@/components/pagination-control'
+import { QueryErrorState } from '@/components/query-error-state'
 import { SearchCombobox } from '@/components/search-combobox'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import {
   Select,
   SelectContent,
@@ -15,11 +18,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { ARENAS } from '@/lib/mocks'
+import { listArenas } from '@/lib/api/arenas'
+import { toArena } from '@/lib/api/mappers'
+import { listQuadras } from '@/lib/api/quadras'
 import { motionTokens } from '@/lib/motion'
 import { usePagination } from '@/lib/pagination'
 import { arenaSuggestions } from '@/lib/search'
-import { useFakeLoading } from '@/lib/use-fake-loading'
 
 import { ArenaCard } from './components/arena-card'
 import { ArenaCardSkeleton } from './components/arena-card-skeleton'
@@ -60,14 +64,47 @@ export function Arenas() {
     defaultValue: CITY_ANY,
   })
 
+  const arenasQuery = useQuery({
+    queryKey: ['arenas'],
+    queryFn: listArenas,
+  })
+
+  // só alimenta o badge de contagem; se falhar, os cards seguem sem o badge
+  const quadrasQuery = useQuery({
+    queryKey: ['quadras'],
+    queryFn: listQuadras,
+  })
+
+  const arenas = useMemo(
+    () => (arenasQuery.data?.data ?? []).map(toArena),
+    [arenasQuery.data],
+  )
+
+  const quadrasPorArena = useMemo(() => {
+    const counts = new Map<string, number>()
+    for (const quadra of quadrasQuery.data?.data ?? []) {
+      const key = String(quadra.arenaId)
+      counts.set(key, (counts.get(key) ?? 0) + 1)
+    }
+    return counts
+  }, [quadrasQuery.data])
+
+  const isLoading = arenasQuery.isPending
+  const isError = arenasQuery.isError
+
+  const fetchSuggestions = useCallback(
+    (query: string) => arenaSuggestions(query, arenas),
+    [arenas],
+  )
+
   const cidadesDisponiveis = useMemo(() => {
-    const set = new Set(ARENAS.map((a) => a.cidade))
+    const set = new Set(arenas.map((a) => a.cidade))
     return Array.from(set).sort((a, b) => a.localeCompare(b, 'pt-BR'))
-  }, [])
+  }, [arenas])
 
   const arenasFiltradas = useMemo(() => {
     const termo = normalize(q)
-    return ARENAS.filter((arena) => {
+    return arenas.filter((arena) => {
       const passaCidade = cidade === CITY_ANY || arena.cidade === cidade
       const passaBusca =
         !termo ||
@@ -75,14 +112,14 @@ export function Arenas() {
         normalize(arena.cidade).includes(termo)
       return passaCidade && passaBusca
     })
-  }, [cidade, q])
+  }, [arenas, cidade, q])
 
   const pagination = usePagination({
     items: arenasFiltradas,
     pageParam: 'page',
   })
 
-  const isLoading = useFakeLoading()
+  const hasActiveFilters = Boolean(q) || cidade !== CITY_ANY
 
   function resetPage() {
     pagination.setPage(1)
@@ -106,7 +143,7 @@ export function Arenas() {
           </p>
         </div>
         <Badge variant="outline" className="tabular-nums">
-          {arenasFiltradas.length} de {ARENAS.length}
+          {arenasFiltradas.length} de {arenas.length}
         </Badge>
       </header>
 
@@ -120,7 +157,7 @@ export function Arenas() {
               setQ(value || null)
               resetPage()
             }}
-            fetchSuggestions={arenaSuggestions}
+            fetchSuggestions={fetchSuggestions}
             placeholder="Buscar por arena ou cidade…"
             emptyMessage="Nenhuma arena encontrada."
           />
@@ -167,11 +204,28 @@ export function Arenas() {
             </li>
           ))}
         </ul>
+      ) : isError ? (
+        <QueryErrorState
+          title="Não foi possível carregar as arenas"
+          error={arenasQuery.error}
+          onRetry={() => void arenasQuery.refetch()}
+        />
       ) : arenasFiltradas.length === 0 ? (
         <EmptyState
           icon={MapPinOff}
           title="Nenhuma arena encontrada"
-          description="Ajuste os filtros para ver mais locais parceiros."
+          description={
+            hasActiveFilters
+              ? 'Ajuste os filtros para ver mais locais parceiros.'
+              : 'Nenhuma arena cadastrada no momento.'
+          }
+          action={
+            hasActiveFilters ? (
+              <Button variant="brandOutline" onClick={clearFilters}>
+                Limpar filtros
+              </Button>
+            ) : undefined
+          }
         />
       ) : (
         <>
@@ -184,7 +238,10 @@ export function Arenas() {
           >
             {pagination.pageItems.map((arena) => (
               <motion.li key={arena.id} variants={itemVariants}>
-                <ArenaCard arena={arena} />
+                <ArenaCard
+                  arena={arena}
+                  quadrasCount={quadrasPorArena.get(String(arena.id))}
+                />
               </motion.li>
             ))}
           </motion.ul>

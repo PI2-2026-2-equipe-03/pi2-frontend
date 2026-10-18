@@ -1,13 +1,15 @@
+import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import { ChevronRight, LayoutGrid, MapPin, X } from 'lucide-react'
 import { useQueryState } from 'nuqs'
-import { useMemo } from 'react'
+import { useCallback, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 
 import { EmptyState } from '@/components/empty-state'
 import { FilterChips } from '@/components/filter-chips'
 import { ListingToolbar } from '@/components/listing-toolbar'
 import { PaginationControl } from '@/components/pagination-control'
+import { QueryErrorState } from '@/components/query-error-state'
 import { ReplayExpiry } from '@/components/replay-expiry'
 import { SearchCombobox } from '@/components/search-combobox'
 import { Badge } from '@/components/ui/badge'
@@ -28,18 +30,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import {
-  ARENAS,
-  QUADRAS,
-  REPLAY_VIEWS,
-  getArenaById,
-  getSponsorForCourt,
-} from '@/lib/mocks'
+import { Skeleton } from '@/components/ui/skeleton'
+import { listArenas } from '@/lib/api/arenas'
+import { getApiErrorMessage } from '@/lib/api/errors'
+import { toArena, toQuadra, toReplayView } from '@/lib/api/mappers'
+import { listQuadras } from '@/lib/api/quadras'
+import { listReplays } from '@/lib/api/replays'
 import { motionTokens } from '@/lib/motion'
 import { usePagination } from '@/lib/pagination'
 import { arenaSuggestions } from '@/lib/search'
-import type { Quadra } from '@/lib/types'
-import { useFakeLoading } from '@/lib/use-fake-loading'
+import type { Arena, Quadra } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
 import { QuadraCardSkeleton } from './components/quadra-card-skeleton'
@@ -78,13 +78,84 @@ const STATUS_OPTIONS: ReadonlyArray<{ value: StatusFilter; label: string }> = [
   { value: 'indisponivel', label: 'Indisponíveis' },
 ]
 
-function QuadraCard({ quadra }: { quadra: Quadra }) {
-  const arena = getArenaById(quadra.arenaId)
-  const sponsor = getSponsorForCourt(quadra.id)
-  const replaysDaQuadra = REPLAY_VIEWS.filter(
-    (r) => r.court.id === quadra.id,
+const RECENT_REPLAYS_LIMIT = 3
+
+// montado só com o dialog aberto: reaproveita o cache de ['replays'] da tela
+// de replays e só dispara a request quando o usuário abre a quadra.
+function CourtRecentReplays({ courtId }: { courtId: Quadra['id'] }) {
+  const replaysQuery = useQuery({
+    queryKey: ['replays'],
+    queryFn: listReplays,
+  })
+
+  const replaysDaQuadra = useMemo(
+    () =>
+      (replaysQuery.data?.data ?? [])
+        .filter((dto) => String(dto.courtId) === String(courtId))
+        .slice(0, RECENT_REPLAYS_LIMIT)
+        .map(toReplayView),
+    [courtId, replaysQuery.data],
   )
 
+  if (replaysQuery.isPending) {
+    return (
+      <ul aria-busy="true" className="-mx-1 flex gap-3 overflow-hidden px-1">
+        {Array.from({ length: RECENT_REPLAYS_LIMIT }).map((_, i) => (
+          <li key={i} className="w-40 shrink-0 space-y-1.5 sm:w-44">
+            <Skeleton className="h-24 w-full rounded-md sm:h-[6.25rem]" />
+            <Skeleton className="h-3 w-12" />
+          </li>
+        ))}
+      </ul>
+    )
+  }
+
+  if (replaysQuery.isError) {
+    return (
+      <p className="text-muted-foreground text-sm">
+        {getApiErrorMessage(
+          replaysQuery.error,
+          'Não foi possível carregar os replays desta quadra.',
+        )}
+      </p>
+    )
+  }
+
+  if (replaysDaQuadra.length === 0) {
+    return (
+      <p className="text-muted-foreground text-sm">
+        Ainda não há replays gravados nesta quadra.
+      </p>
+    )
+  }
+
+  return (
+    <ul className="-mx-1 flex gap-3 overflow-x-auto px-1 pb-1">
+      {replaysDaQuadra.map((replay) => (
+        <li key={replay.id} className="w-40 shrink-0 sm:w-44">
+          <div className="relative h-24 w-full overflow-hidden rounded-md sm:h-[6.25rem]">
+            <img
+              src={replay.arena.fotoUrl}
+              alt=""
+              className="size-full object-cover"
+            />
+            <span className="bg-background/90 text-foreground absolute right-1.5 bottom-1.5 rounded-md px-1.5 py-0.5 text-[10px] tabular-nums backdrop-blur">
+              {replay.duration}s
+            </span>
+            <div className="absolute top-1.5 left-1.5">
+              <ReplayExpiry expiresAt={replay.expiresAt} withIcon={false} />
+            </div>
+          </div>
+          <p className="text-muted-foreground mt-1.5 text-xs">
+            {dateFormatter.format(new Date(replay.recordedAt))}
+          </p>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+function QuadraCard({ quadra, arena }: { quadra: Quadra; arena?: Arena }) {
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -172,62 +243,11 @@ function QuadraCard({ quadra }: { quadra: Quadra }) {
 
         {/* zona 3 — conteúdo denso, com overflow-y-auto apenas aqui */}
         <div className="flex min-h-0 flex-col gap-4 overflow-y-auto p-5 sm:p-6">
-          {sponsor ? (
-            <div className="bg-tg-brand-yellow/15 border-tg-brand-yellow/40 flex items-center gap-3 rounded-xl border p-3">
-              <img
-                src={sponsor.fotoUrl}
-                alt=""
-                className="size-10 shrink-0 rounded-full object-cover"
-              />
-              <div className="min-w-0 flex-1">
-                <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
-                  Patrocínio oficial
-                </p>
-                <p className="text-foreground truncate font-semibold">
-                  {sponsor.nome}
-                </p>
-              </div>
-            </div>
-          ) : null}
-
           <div>
             <p className="text-foreground mb-2 text-sm font-semibold">
               Últimos replays
             </p>
-            {replaysDaQuadra.length === 0 ? (
-              <p className="text-muted-foreground text-sm">
-                Ainda não há replays gravados nesta quadra.
-              </p>
-            ) : (
-              <ul className="-mx-1 flex gap-3 overflow-x-auto px-1 pb-1">
-                {replaysDaQuadra.slice(0, 3).map((replay) => (
-                  <li
-                    key={replay.id}
-                    className="w-40 shrink-0 sm:w-44"
-                  >
-                    <div className="relative h-24 w-full overflow-hidden rounded-md sm:h-[6.25rem]">
-                      <img
-                        src={replay.arena.fotoUrl}
-                        alt=""
-                        className="size-full object-cover"
-                      />
-                      <span className="bg-background/90 text-foreground absolute right-1.5 bottom-1.5 rounded-md px-1.5 py-0.5 text-[10px] tabular-nums backdrop-blur">
-                        {replay.duration}s
-                      </span>
-                      <div className="absolute top-1.5 left-1.5">
-                        <ReplayExpiry
-                          expiresAt={replay.expiresAt}
-                          withIcon={false}
-                        />
-                      </div>
-                    </div>
-                    <p className="text-muted-foreground mt-1.5 text-xs">
-                      {dateFormatter.format(new Date(replay.recordedAt))}
-                    </p>
-                  </li>
-                ))}
-              </ul>
-            )}
+            <CourtRecentReplays courtId={quadra.id} />
           </div>
 
           <Button
@@ -259,22 +279,56 @@ export function Quadras() {
   const [arenaQ, setArenaQ] = useQueryState('q', { defaultValue: '' })
   const [from, setFrom] = useQueryState('from', { defaultValue: '' })
 
-  const arenaSelecionada = useMemo(
-    () =>
-      arenaId ? ARENAS.find((a) => a.id === Number(arenaId)) : undefined,
-    [arenaId],
+  const arenasQuery = useQuery({
+    queryKey: ['arenas'],
+    queryFn: listArenas,
+  })
+
+  const quadrasQuery = useQuery({
+    queryKey: ['quadras'],
+    queryFn: listQuadras,
+  })
+
+  const arenas = useMemo(
+    () => (arenasQuery.data?.data ?? []).map(toArena),
+    [arenasQuery.data],
   )
 
+  const quadras = useMemo(
+    () => (quadrasQuery.data?.data ?? []).map(toQuadra),
+    [quadrasQuery.data],
+  )
+
+  const arenasPorId = useMemo(
+    () => new Map(arenas.map((arena) => [String(arena.id), arena])),
+    [arenas],
+  )
+
+  const isLoading = arenasQuery.isPending || quadrasQuery.isPending
+  const isError = arenasQuery.isError || quadrasQuery.isError
+
+  function retry() {
+    if (arenasQuery.isError) void arenasQuery.refetch()
+    if (quadrasQuery.isError) void quadrasQuery.refetch()
+  }
+
+  const fetchSuggestions = useCallback(
+    (query: string) => arenaSuggestions(query, arenas),
+    [arenas],
+  )
+
+  const arenaSelecionada = arenaId ? arenasPorId.get(arenaId) : undefined
+
   const cityOptions = useMemo(() => {
-    const set = new Set(ARENAS.map((a) => a.cidade))
+    const set = new Set(arenas.map((a) => a.cidade))
     return Array.from(set).sort((a, b) => a.localeCompare(b, 'pt-BR'))
-  }, [])
+  }, [arenas])
 
   const quadrasFiltradas = useMemo(() => {
-    return QUADRAS.filter((quadra) => {
-      const arena = getArenaById(quadra.arenaId)
+    return quadras.filter((quadra) => {
+      const arena = arenasPorId.get(String(quadra.arenaId))
       if (!arena) return false
-      const passaArena = !arenaId || quadra.arenaId === Number(arenaId)
+      const passaArena = !arenaId || String(quadra.arenaId) === arenaId
       const passaCidade = cidade === CITY_ANY || arena.cidade === cidade
       const passaStatus =
         status === STATUS_ANY ||
@@ -282,14 +336,12 @@ export function Quadras() {
         (status === 'indisponivel' && !quadra.disponivel)
       return passaArena && passaCidade && passaStatus
     })
-  }, [arenaId, cidade, status])
+  }, [arenaId, arenasPorId, cidade, quadras, status])
 
   const pagination = usePagination({
     items: quadrasFiltradas,
     pageParam: 'page',
   })
-
-  const isLoading = useFakeLoading()
 
   function resetPage() {
     pagination.setPage(1)
@@ -393,7 +445,7 @@ export function Quadras() {
                 resetPage()
               }
             }}
-            fetchSuggestions={arenaSuggestions}
+            fetchSuggestions={fetchSuggestions}
             placeholder="Filtrar por arena ou cidade…"
             emptyMessage="Nenhuma arena."
           />
@@ -459,6 +511,12 @@ export function Quadras() {
             </li>
           ))}
         </ul>
+      ) : isError ? (
+        <QueryErrorState
+          title="Não foi possível carregar as quadras"
+          error={arenasQuery.error ?? quadrasQuery.error}
+          onRetry={retry}
+        />
       ) : quadrasFiltradas.length === 0 ? (
         <EmptyState
           icon={LayoutGrid}
@@ -491,7 +549,10 @@ export function Quadras() {
           >
             {pagination.pageItems.map((quadra) => (
               <motion.li key={quadra.id} variants={itemVariants}>
-                <QuadraCard quadra={quadra} />
+                <QuadraCard
+                  quadra={quadra}
+                  arena={arenasPorId.get(String(quadra.arenaId))}
+                />
               </motion.li>
             ))}
           </motion.ul>

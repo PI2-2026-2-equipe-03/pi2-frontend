@@ -2,19 +2,16 @@ import { LayoutGrid, MapPin } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 import { Card } from '@/components/ui/card'
-import { QUADRAS } from '@/lib/mocks'
 import type { Arena } from '@/lib/types'
 
 type ArenaCardProps = {
   arena: Arena
+  // projeção da UI: contagem de quadras por arena, calculada pela página a
+  // partir de GET /quadras. não é campo da entidade.
+  quadrasCount?: number
 }
 
-export function ArenaCard({ arena }: ArenaCardProps) {
-  // projeção da UI: contagem de quadras por arena. não é campo da entidade;
-  // no dia que o backend expuser GET /arenas com quadrasCount embutido, troca
-  // essa linha pela propriedade do payload.
-  const quadrasCount = QUADRAS.filter((q) => q.arenaId === arena.id).length
-
+export function ArenaCard({ arena, quadrasCount = 0 }: ArenaCardProps) {
   return (
     <Link
       to={`/app/quadras?arena=${arena.id}&from=arena`}

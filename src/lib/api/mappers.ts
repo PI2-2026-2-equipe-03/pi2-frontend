@@ -1,6 +1,35 @@
+import type { ArenaDto } from '@/lib/api/arenas'
+import type { QuadraDto } from '@/lib/api/quadras'
 import type { ReplayDto } from '@/lib/api/replays'
-import { REPLAY_THUMB } from '@/lib/assets'
-import { REPLAY_DURATION_SECONDS, type ReplayStatus, type ReplayView } from '@/lib/types'
+import { ARENA_COVERS, REPLAY_THUMB } from '@/lib/assets'
+import {
+  type Arena,
+  type Quadra,
+  REPLAY_DURATION_SECONDS,
+  type ReplayStatus,
+  type ReplayView,
+} from '@/lib/types'
+
+export function toArena(dto: ArenaDto): Arena {
+  return {
+    id: dto.id,
+    clienteId: dto.clienteId,
+    nome: dto.nome,
+    cidade: dto.cidade,
+    endereco: dto.endereco,
+    // foto_url é opcional no banco: cai pra capa padrão quando vier nula
+    fotoUrl: dto.fotoUrl ? resolveMediaUrl(dto.fotoUrl) : ARENA_COVERS.soccerAction,
+  }
+}
+
+export function toQuadra(dto: QuadraDto): Quadra {
+  return {
+    id: dto.id,
+    arenaId: dto.arenaId,
+    nome: dto.nome,
+    disponivel: dto.disponivel,
+  }
+}
 
 function mapReplayStatus(status: string): ReplayStatus {
   const normalized = status.trim().toLowerCase()

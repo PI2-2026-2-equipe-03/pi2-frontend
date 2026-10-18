@@ -1,12 +1,16 @@
 // busca unificada: a query casa contra nome da quadra, da arena ou da cidade.
 // o resultado SEMPRE é uma lista de quadras (ou de arenas no suggestArenas),
 // com prioridade quadra > arena > cidade quando o termo é ambíguo.
-// módulo puro — testável quando o harness entrar.
+// módulo puro — a fonte de dados entra por parâmetro (default: mocks, usados
+// pela home enquanto ela não é integrada).
 
 import { ARENAS, getArenaById, QUADRAS } from '@/lib/mocks'
 import type { Arena, Quadra } from '@/lib/types'
 
-export type CourtMatch = { quadra: Quadra; arena: Arena }
+export type CourtMatch = {
+  quadra: Pick<Quadra, 'id' | 'nome'>
+  arena: Pick<Arena, 'id' | 'nome' | 'cidade' | 'fotoUrl'>
+}
 
 export type Suggestion = {
   id: string
@@ -31,6 +35,11 @@ const ARENA_PRIORITY: Record<ArenaMatchKind, number> = {
   city: 1,
 }
 
+const MOCK_COURTS: readonly CourtMatch[] = QUADRAS.flatMap((quadra) => {
+  const arena = getArenaById(quadra.arenaId)
+  return arena ? [{ quadra, arena }] : []
+})
+
 function normalize(value: string): string {
   return value
     .normalize('NFD')
@@ -39,19 +48,16 @@ function normalize(value: string): string {
     .trim()
 }
 
-export async function suggestCourts(rawQuery: string): Promise<CourtMatch[]> {
+export async function suggestCourts(
+  rawQuery: string,
+  courts: readonly CourtMatch[] = MOCK_COURTS,
+): Promise<CourtMatch[]> {
   const q = normalize(rawQuery)
   if (!q) return []
 
-  const scored: Array<{
-    quadra: Quadra
-    arena: Arena
-    matchedBy: CourtMatchKind
-  }> = []
+  const scored: Array<CourtMatch & { matchedBy: CourtMatchKind }> = []
 
-  for (const quadra of QUADRAS) {
-    const arena = getArenaById(quadra.arenaId)
-    if (!arena) continue
+  for (const { quadra, arena } of courts) {
     let matchedBy: CourtMatchKind | null = null
     if (normalize(quadra.nome).includes(q)) matchedBy = 'court'
     else if (normalize(arena.nome).includes(q)) matchedBy = 'arena'
@@ -68,13 +74,16 @@ export async function suggestCourts(rawQuery: string): Promise<CourtMatch[]> {
   return scored.map(({ quadra, arena }) => ({ quadra, arena }))
 }
 
-export async function suggestArenas(rawQuery: string): Promise<Arena[]> {
+export async function suggestArenas(
+  rawQuery: string,
+  arenas: readonly Arena[] = ARENAS,
+): Promise<Arena[]> {
   const q = normalize(rawQuery)
   if (!q) return []
 
   const scored: Array<{ arena: Arena; matchedBy: ArenaMatchKind }> = []
 
-  for (const arena of ARENAS) {
+  for (const arena of arenas) {
     let matchedBy: ArenaMatchKind | null = null
     if (normalize(arena.nome).includes(q)) matchedBy = 'name'
     else if (normalize(arena.cidade).includes(q)) matchedBy = 'city'
@@ -94,18 +103,24 @@ export async function suggestArenas(rawQuery: string): Promise<Arena[]> {
 // `subtitle` é o único campo que carrega contexto adicional (Arena · Cidade).
 // nenhum campo expõe pro UI qual critério bateu — o fallback é implícito.
 
-export async function courtSuggestions(query: string): Promise<Suggestion[]> {
-  const matches = await suggestCourts(query)
+export async function courtSuggestions(
+  query: string,
+  courts?: readonly CourtMatch[],
+): Promise<Suggestion[]> {
+  const matches = await suggestCourts(query, courts)
   return matches.map(({ quadra, arena }) => ({
     id: `court-${quadra.id}`,
     label: quadra.nome,
-    subtitle: `${arena.nome} · ${arena.cidade}`,
+    subtitle: [arena.nome, arena.cidade].filter(Boolean).join(' · '),
     payload: { kind: 'court', value: quadra.id },
   }))
 }
 
-export async function arenaSuggestions(query: string): Promise<Suggestion[]> {
-  const matches = await suggestArenas(query)
+export async function arenaSuggestions(
+  query: string,
+  arenas?: readonly Arena[],
+): Promise<Suggestion[]> {
+  const matches = await suggestArenas(query, arenas)
   return matches.map((arena) => ({
     id: `arena-${arena.id}`,
     label: arena.nome,
