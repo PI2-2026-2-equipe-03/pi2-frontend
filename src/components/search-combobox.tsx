@@ -8,11 +8,7 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command'
-import {
-  Popover,
-  PopoverAnchor,
-  PopoverContent,
-} from '@/components/ui/popover'
+import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover'
 import type { Suggestion } from '@/lib/search'
 import { cn } from '@/lib/utils'
 
@@ -108,7 +104,7 @@ export function SearchCombobox({
             aria-expanded={open}
             aria-controls={listboxId}
             aria-autocomplete="list"
-            className="w-full flex-1 border-0 bg-transparent outline-none placeholder:text-muted-foreground"
+            className="placeholder:text-muted-foreground w-full flex-1 border-0 bg-transparent outline-none"
           />
           {value ? (
             <button
@@ -119,7 +115,7 @@ export function SearchCombobox({
                 setOpen(false)
                 inputRef.current?.focus()
               }}
-              className="text-muted-foreground hover:text-foreground"
+              className="text-muted-foreground hover:text-foreground hover:bg-muted focus-visible:ring-ring/40 -mr-1 inline-flex shrink-0 cursor-pointer items-center justify-center rounded-full p-1 transition-colors focus-visible:ring-2 focus-visible:outline-none active:scale-90"
             >
               <X className={size === 'hero' ? 'size-5' : 'size-4'} />
             </button>

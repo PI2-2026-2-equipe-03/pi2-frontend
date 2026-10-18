@@ -25,6 +25,8 @@ export function ForgotPassword() {
 
   const form = useForm<ForgotPasswordInput>({
     resolver: zodResolver(forgotPasswordSchema),
+    mode: 'onTouched',
+    reValidateMode: 'onChange',
     defaultValues: { email: '' },
   })
 
@@ -65,9 +67,12 @@ export function ForgotPassword() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>E-mail</FormLabel>
-                <FormControl>
-                  <div className="relative">
-                    <Mail className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+                <div className="relative">
+                  <Mail
+                    className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
+                    aria-hidden
+                  />
+                  <FormControl>
                     <Input
                       type="email"
                       autoComplete="email"
@@ -75,8 +80,8 @@ export function ForgotPassword() {
                       className="pl-9"
                       {...field}
                     />
-                  </div>
-                </FormControl>
+                  </FormControl>
+                </div>
                 <FormMessage />
               </FormItem>
             )}
@@ -86,6 +91,7 @@ export function ForgotPassword() {
             type="submit"
             variant="brand"
             disabled={isSubmitting}
+            aria-busy={isSubmitting}
             className="w-full"
           >
             {isSubmitting ? (
@@ -102,7 +108,7 @@ export function ForgotPassword() {
             Lembrou sua senha?{' '}
             <Link
               to="/sign-in"
-              className="text-primary rounded-sm font-medium hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-offset-2"
+              className="text-primary focus-visible:ring-ring/50 rounded-sm font-medium hover:underline focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
             >
               Entrar
             </Link>

@@ -1,10 +1,10 @@
 import { motion } from 'framer-motion'
 import { Outlet } from 'react-router-dom'
 
+import authBg from '@/assets/auth-bg.webp'
 import { Logo } from '@/components/logo'
 import { RouteTransition } from '@/components/route-transition'
 import { ThemeToggle } from '@/components/theme/theme-toggle'
-import { AUTH_BG } from '@/lib/assets'
 import { motionTokens, useMotionSafe } from '@/lib/motion'
 
 // layout usado nas telas públicas de autenticação (login / criar conta)
@@ -16,7 +16,7 @@ export function AuthLayout() {
       <aside
         className="relative hidden flex-1 flex-col justify-between overflow-hidden bg-cover bg-center p-10 md:flex"
         style={{
-          backgroundImage: `linear-gradient(135deg, color-mix(in oklab, var(--tg-brand-blue-dark) 85%, transparent) 0%, color-mix(in oklab, var(--tg-brand-blue) 60%, transparent) 60%, color-mix(in oklab, var(--tg-brand-blue) 35%, transparent) 100%), url('${AUTH_BG}')`,
+          backgroundImage: `linear-gradient(135deg, color-mix(in oklab, var(--tg-brand-blue-dark) 85%, transparent) 0%, color-mix(in oklab, var(--tg-brand-blue) 60%, transparent) 60%, color-mix(in oklab, var(--tg-brand-blue) 35%, transparent) 100%), url('${authBg}')`,
         }}
       >
         <motion.div
@@ -27,7 +27,7 @@ export function AuthLayout() {
             ease: motionTokens.ease.out,
           }}
         >
-          <Logo className="text-3xl drop-shadow-md" />
+          <Logo to="/sign-in" className="text-3xl drop-shadow-md" />
         </motion.div>
 
         <motion.div
@@ -57,8 +57,10 @@ export function AuthLayout() {
         </RouteTransition>
       </main>
 
+      {/* flutua sobre o painel claro, não sobre o aside azul: sem cor própria
+          herdaria o text-white do wrapper e sumiria no fundo */}
       <div className="absolute top-4 right-4">
-        <ThemeToggle />
+        <ThemeToggle className="text-foreground" />
       </div>
     </div>
   )

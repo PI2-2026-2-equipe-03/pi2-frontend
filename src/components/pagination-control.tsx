@@ -89,9 +89,7 @@ export function PaginationControl({
             }}
             aria-disabled={page === totalPages}
             className={
-              page === totalPages
-                ? 'pointer-events-none opacity-50'
-                : undefined
+              page === totalPages ? 'pointer-events-none opacity-50' : undefined
             }
           />
         </PaginationItem>
@@ -126,9 +124,7 @@ export function PaginationControl({
             }}
             aria-disabled={page === totalPages}
             className={
-              page === totalPages
-                ? 'pointer-events-none opacity-50'
-                : undefined
+              page === totalPages ? 'pointer-events-none opacity-50' : undefined
             }
           />
         </PaginationItem>

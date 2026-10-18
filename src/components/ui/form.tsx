@@ -113,7 +113,8 @@ const FormControl = forwardRef<
   ElementRef<typeof Slot>,
   ComponentPropsWithoutRef<typeof Slot>
 >(({ ...props }, ref) => {
-  const { error, formItemId, formDescriptionId, formMessageId } = useFormField()
+  const { error, isDirty, formItemId, formDescriptionId, formMessageId } =
+    useFormField()
 
   return (
     <Slot
@@ -125,6 +126,9 @@ const FormControl = forwardRef<
           : `${formDescriptionId} ${formMessageId}`
       }
       aria-invalid={!!error}
+      // só confirma visualmente depois que o usuário digitou algo: campo
+      // vazio e intocado não deve aparecer como aprovado.
+      data-valid={!error && isDirty ? true : undefined}
       {...props}
     />
   )
@@ -163,6 +167,7 @@ const FormMessage = forwardRef<
     <p
       ref={ref}
       id={formMessageId}
+      aria-live="polite"
       className={cn('text-destructive text-sm font-medium', className)}
       {...props}
     >

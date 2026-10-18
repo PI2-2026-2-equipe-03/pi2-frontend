@@ -1,26 +1,19 @@
-import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import { MapPinOff, RefreshCw, WifiOff } from 'lucide-react'
 import { useQueryState } from 'nuqs'
 import { useMemo } from 'react'
 
+import { CityCombobox } from '@/components/city-combobox'
 import { EmptyState } from '@/components/empty-state'
 import { ListingToolbar } from '@/components/listing-toolbar'
 import { PaginationControl } from '@/components/pagination-control'
 import { SearchCombobox } from '@/components/search-combobox'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { listArenas } from '@/lib/api/arenas'
+import { citiesFromArenas, useArenas, useQuadras } from '@/lib/api/queries'
 import { motionTokens } from '@/lib/motion'
 import { usePagination } from '@/lib/pagination'
-import { arenaSuggestions } from '@/lib/search'
+import { createArenaSuggestions } from '@/lib/search'
 
 import { ArenaCard } from './components/arena-card'
 import { ArenaCardSkeleton } from './components/arena-card-skeleton'
@@ -61,23 +54,29 @@ export function Arenas() {
     defaultValue: CITY_ANY,
   })
 
-  const arenasQuery = useQuery({
-    queryKey: ['arenas'],
-    queryFn: listArenas,
-  })
+  const arenasQuery = useArenas()
+  const quadrasQuery = useQuadras()
 
-  const arenas = useMemo(
-    () => arenasQuery.data?.data ?? [],
-    [arenasQuery.data],
-  )
+  const arenas = useMemo(() => arenasQuery.data ?? [], [arenasQuery.data])
+  const quadras = useMemo(() => quadrasQuery.data ?? [], [quadrasQuery.data])
 
   const isLoading = arenasQuery.isPending
   const isError = arenasQuery.isError
 
-  const cidadesDisponiveis = useMemo(() => {
-    const set = new Set(arenas.map((a) => a.cidade))
-    return Array.from(set).sort((a, b) => a.localeCompare(b, 'pt-BR'))
-  }, [arenas])
+  const cidadesDisponiveis = useMemo(() => citiesFromArenas(arenas), [arenas])
+
+  const fetchSuggestions = useMemo(
+    () => createArenaSuggestions(arenas),
+    [arenas],
+  )
+
+  const quadrasByArena = useMemo(() => {
+    const counts = new Map<string, number>()
+    for (const quadra of quadras) {
+      counts.set(quadra.arenaId, (counts.get(quadra.arenaId) ?? 0) + 1)
+    }
+    return counts
+  }, [quadras])
 
   const arenasFiltradas = useMemo(() => {
     const termo = normalize(q)
@@ -132,7 +131,7 @@ export function Arenas() {
               setQ(value || null)
               resetPage()
             }}
-            fetchSuggestions={arenaSuggestions}
+            fetchSuggestions={fetchSuggestions}
             placeholder="Buscar por arena ou cidade…"
             emptyMessage="Nenhuma arena encontrada."
           />
@@ -143,25 +142,15 @@ export function Arenas() {
             label: 'Cidade',
             active: cidade !== CITY_ANY,
             control: (
-              <Select
+              <CityCombobox
                 value={cidade}
                 onValueChange={(v) => {
-                  setCidade(v || null)
+                  setCidade(v === CITY_ANY ? null : v)
                   resetPage()
                 }}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Cidade" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={CITY_ANY}>Todas as cidades</SelectItem>
-                  {cidadesDisponiveis.map((c) => (
-                    <SelectItem key={c} value={c}>
-                      {c}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                cities={cidadesDisponiveis}
+                anyValue={CITY_ANY}
+              />
             ),
           },
         ]}
@@ -188,8 +177,12 @@ export function Arenas() {
             <Button
               variant="brandOutline"
               onClick={() => void arenasQuery.refetch()}
+              disabled={arenasQuery.isRefetching}
+              aria-busy={arenasQuery.isRefetching}
             >
-              <RefreshCw className="size-4" />
+              <RefreshCw
+                className={`size-4 ${arenasQuery.isRefetching ? 'animate-spin' : ''}`}
+              />
               Tentar novamente
             </Button>
           }
@@ -211,7 +204,10 @@ export function Arenas() {
           >
             {pagination.pageItems.map((arena) => (
               <motion.li key={arena.id} variants={itemVariants}>
-                <ArenaCard arena={arena} />
+                <ArenaCard
+                  arena={arena}
+                  quadrasCount={quadrasByArena.get(arena.id) ?? 0}
+                />
               </motion.li>
             ))}
           </motion.ul>

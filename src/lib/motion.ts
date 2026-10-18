@@ -1,4 +1,4 @@
-import { type Transition,useReducedMotion } from 'framer-motion'
+import { type Transition, useReducedMotion } from 'framer-motion'
 
 // tokens de motion espelhados em JS para consumo pelo framer-motion.
 // mantidos em sincronia com --motion-* de src/style.css.

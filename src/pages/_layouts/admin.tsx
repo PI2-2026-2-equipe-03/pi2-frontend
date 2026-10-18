@@ -13,6 +13,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet'
+import { signOut } from '@/lib/auth/session'
 import { cn } from '@/lib/utils'
 
 // itens do menu lateral — painel admin (dashboard / câmeras / quadras / usuários / replays)
@@ -72,15 +73,20 @@ function AdminNav({
 function AdminFooter({ onNavigate }: { onNavigate?: () => void }) {
   const navigate = useNavigate()
 
+  async function handleLogout() {
+    onNavigate?.()
+    await signOut()
+    navigate('/sign-in', { replace: true })
+  }
+
   return (
     <div className="px-3">
       <button
         type="button"
         onClick={() => {
-          onNavigate?.()
-          navigate('/sign-in')
+          void handleLogout()
         }}
-        className="text-sidebar-foreground/90 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground flex items-center gap-2 rounded-md px-5 py-2 text-left text-base font-medium"
+        className="text-sidebar-foreground/90 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground flex items-center gap-2 rounded-md px-5 py-2 text-left text-base font-medium transition-colors"
       >
         <LogOut className="size-4" />
         Sair
@@ -95,7 +101,7 @@ function AdminFooter({ onNavigate }: { onNavigate?: () => void }) {
 export function AdminLayout() {
   return (
     <div className="bg-tg-brand-bg text-foreground flex min-h-svh flex-col">
-      <header className="bg-tg-brand-blue sticky top-0 z-sticky flex h-16 shrink-0 items-center justify-between px-4 text-white shadow-sm md:px-6">
+      <header className="bg-tg-brand-blue z-sticky sticky top-0 flex h-16 shrink-0 items-center justify-between px-4 text-white shadow-sm md:px-6">
         <div className="flex items-center gap-2">
           <Sheet>
             <SheetTrigger asChild>
@@ -116,7 +122,7 @@ export function AdminLayout() {
               <div>
                 <SheetHeader className="border-sidebar-border/40 border-b">
                   <SheetTitle className="text-sidebar-foreground">
-                    <Logo />
+                    <Logo to="/admin" />
                   </SheetTitle>
                 </SheetHeader>
                 <div className="py-4">
@@ -128,7 +134,7 @@ export function AdminLayout() {
               </div>
             </SheetContent>
           </Sheet>
-          <Logo className="text-2xl" />
+          <Logo to="/admin" className="text-2xl" />
         </div>
 
         <div className="flex items-center gap-3">
