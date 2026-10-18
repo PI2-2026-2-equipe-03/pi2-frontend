@@ -19,19 +19,30 @@ import { Input } from '@/components/ui/input'
 import { env } from '@/env'
 import { registerUser as mockRegisterUser } from '@/lib/api/mocks/auth'
 import { authClient } from '@/lib/auth/client'
+import { saveMockSession } from '@/lib/auth/session'
 import { AuthRequestError, toAuthRequestError } from '@/lib/errors'
 import { formatPhone } from '@/lib/forms/phone-mask'
 import { type SignUpInput, signUpSchema } from '@/lib/schemas/sign-up-schema'
 import { PasswordRequirements } from '@/pages/auth/components/password-requirements'
 
+// o cadastro já deixa o usuário autenticado: o Better Auth tem autoSignIn
+// ligado por padrão e emite a cookie de sessão junto com o 200 do sign-up.
+// por isso a tela segue direto pra /app — mandar pra /sign-in forçaria um
+// segundo login e abandonaria a sessão recém-criada, que ficaria órfã no banco
+// até expirar.
 async function performSignUp(input: SignUpInput): Promise<void> {
   if (env.VITE_USE_MOCKS) {
-    await mockRegisterUser({
+    const response = await mockRegisterUser({
       name: input.fullName,
       email: input.email,
       password: input.password,
       confirmPassword: input.confirmPassword,
       phone: input.phone,
+    })
+    saveMockSession({
+      id: response.data.id,
+      name: response.data.name,
+      email: response.data.email,
     })
     return
   }
@@ -45,6 +56,10 @@ async function performSignUp(input: SignUpInput): Promise<void> {
   if (error) {
     throw toAuthRequestError(error, 'Não foi possível criar a conta')
   }
+
+  // mesmo motivo do sign-in: popula o atom reativo antes de navegar, senão o
+  // guard do AppLayout vê null por um instante e devolve pra /sign-in.
+  await authClient.getSession()
 }
 
 export function SignUp() {
@@ -85,7 +100,7 @@ export function SignUp() {
         error: (error: Error) => error.message,
       })
       await request
-      navigate('/sign-in', { replace: true })
+      navigate('/app', { replace: true })
     } catch (error) {
       const message =
         error instanceof Error
