@@ -17,6 +17,8 @@ const NETWORK_MESSAGE =
   'Sem conexão com o servidor. Verifique sua rede e tente novamente.'
 const SERVER_MESSAGE =
   'O servidor não respondeu. Tente novamente em alguns instantes.'
+const TOO_MANY_ATTEMPTS_MESSAGE =
+  'Muitas tentativas seguidas. Aguarde alguns minutos e tente novamente.'
 
 const AUTH_MESSAGES: Record<string, string> = {
   INVALID_EMAIL_OR_PASSWORD: 'E-mail ou senha inválidos',
@@ -66,6 +68,10 @@ export function getAuthErrorMessage(
   if (mapped) return mapped
   // status ausente/zero = a request nunca chegou ao servidor
   if (!failure.status) return NETWORK_MESSAGE
+  // o bloqueio por tentativas (RN-03) e o rate limit da lib chegam os dois como
+  // 429 sem `code`. sem este ramo cairiam no fallback "e-mail ou senha
+  // inválidos" e o usuário insistiria, estendendo o próprio bloqueio.
+  if (failure.status === 429) return TOO_MANY_ATTEMPTS_MESSAGE
   if (failure.status >= 500) return SERVER_MESSAGE
   return fallback
 }
