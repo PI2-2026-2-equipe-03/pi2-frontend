@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { CalendarDays, RefreshCw, VideoOff, WifiOff, X } from 'lucide-react'
+import { CalendarDays, VideoOff, X } from 'lucide-react'
 import { useQueryState } from 'nuqs'
 import { useMemo } from 'react'
 
@@ -7,6 +7,7 @@ import { CityCombobox } from '@/components/city-combobox'
 import { EmptyState } from '@/components/empty-state'
 import { ListingToolbar } from '@/components/listing-toolbar'
 import { PaginationControl } from '@/components/pagination-control'
+import { QueryErrorState } from '@/components/query-error-state'
 import { SearchCombobox } from '@/components/search-combobox'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -45,10 +46,24 @@ const itemVariants = {
 }
 
 const CITY_ANY = 'all'
+const HOUR_ANY = 'all'
+
+// recordedAt é iso em utc; data e hora do filtro valem no fuso do usuário
+// (gravação às 22h em brasília não pode cair no dia seguinte)
+function localDateKey(date: Date): string {
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${date.getFullYear()}-${month}-${day}`
+}
+
+function localHourKey(date: Date): string {
+  return `${String(date.getHours()).padStart(2, '0')}:00`
+}
 
 export function Replays() {
   const [city, setCity] = useQueryState('city', { defaultValue: CITY_ANY })
   const [date, setDate] = useQueryState('date', { defaultValue: '' })
+  const [hour, setHour] = useQueryState('hour', { defaultValue: HOUR_ANY })
   const [courtId, setCourtId] = useQueryState('court', { defaultValue: '' })
   const [courtQ, setCourtQ] = useQueryState('q', { defaultValue: '' })
 
@@ -71,6 +86,14 @@ export function Replays() {
 
   const cityOptions = useMemo(() => citiesFromArenas(arenas), [arenas])
 
+  // só oferece os horários que têm gravação, em faixas de 1h ("16:00" = 16:00–16:59)
+  const hourOptions = useMemo(() => {
+    const set = new Set(
+      replays.map((replay) => localHourKey(new Date(replay.recordedAt))),
+    )
+    return Array.from(set).sort()
+  }, [replays])
+
   const selectedCourtName = useMemo(() => {
     if (!courtId) return ''
     const quadra = quadras.find((q) => q.id === courtId)
@@ -81,12 +104,14 @@ export function Replays() {
 
   const replaysFiltrados = useMemo(() => {
     return replays.filter((replay) => {
+      const recordedAt = new Date(replay.recordedAt)
       const passaCity = city === CITY_ANY || replay.city === city
       const passaCourt = !courtId || replay.court.id === courtId
-      const passaDate = !date || replay.recordedAt.startsWith(date)
-      return passaCity && passaCourt && passaDate
+      const passaDate = !date || localDateKey(recordedAt) === date
+      const passaHour = hour === HOUR_ANY || localHourKey(recordedAt) === hour
+      return passaCity && passaCourt && passaDate && passaHour
     })
-  }, [city, courtId, date, replays])
+  }, [city, courtId, date, hour, replays])
 
   const pagination = usePagination({
     items: replaysFiltrados,
@@ -94,7 +119,7 @@ export function Replays() {
   })
 
   const hasActiveFilters = Boolean(
-    (city && city !== CITY_ANY) || date || courtId,
+    (city && city !== CITY_ANY) || date || hour !== HOUR_ANY || courtId,
   )
 
   function resetPage() {
@@ -104,6 +129,7 @@ export function Replays() {
   function clearFilters() {
     setCity(null)
     setDate(null)
+    setHour(null)
     setCourtId(null)
     setCourtQ(null)
     resetPage()
@@ -131,7 +157,10 @@ export function Replays() {
 
       <ListingToolbar
         activeCount={
-          (city !== CITY_ANY ? 1 : 0) + (date ? 1 : 0) + (courtId ? 1 : 0)
+          (city !== CITY_ANY ? 1 : 0) +
+          (date ? 1 : 0) +
+          (hour !== HOUR_ANY ? 1 : 0) +
+          (courtId ? 1 : 0)
         }
         onClearAll={clearFilters}
         search={
@@ -194,6 +223,28 @@ export function Replays() {
               </div>
             ),
           },
+          {
+            id: 'hour',
+            label: 'Horário',
+            active: hour !== HOUR_ANY,
+            position: 'trailing',
+            width: '10rem',
+            control: (
+              <CityCombobox
+                value={hour}
+                onValueChange={(v) => {
+                  setHour(v === HOUR_ANY ? null : v)
+                  resetPage()
+                }}
+                cities={hourOptions}
+                anyValue={HOUR_ANY}
+                anyLabel="Todos os horários"
+                placeholder="Horário"
+                searchPlaceholder="Buscar horário…"
+                emptyMessage="Nenhum horário com replay."
+              />
+            ),
+          },
         ]}
       />
 
@@ -210,23 +261,11 @@ export function Replays() {
           ))}
         </ul>
       ) : isError ? (
-        <EmptyState
-          icon={WifiOff}
+        <QueryErrorState
           title="Não foi possível carregar os replays"
-          description="Confira se a API está no ar e tente novamente."
-          action={
-            <Button
-              variant="brandOutline"
-              onClick={() => void replaysQuery.refetch()}
-              disabled={replaysQuery.isRefetching}
-              aria-busy={replaysQuery.isRefetching}
-            >
-              <RefreshCw
-                className={`size-4 ${replaysQuery.isRefetching ? 'animate-spin' : ''}`}
-              />
-              Tentar novamente
-            </Button>
-          }
+          error={replaysQuery.error}
+          onRetry={() => void replaysQuery.refetch()}
+          isRetrying={replaysQuery.isRefetching}
         />
       ) : replaysFiltrados.length === 0 ? (
         <EmptyState

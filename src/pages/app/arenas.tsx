@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { MapPinOff, RefreshCw, WifiOff } from 'lucide-react'
+import { MapPinOff } from 'lucide-react'
 import { useQueryState } from 'nuqs'
 import { useMemo } from 'react'
 
@@ -7,6 +7,7 @@ import { CityCombobox } from '@/components/city-combobox'
 import { EmptyState } from '@/components/empty-state'
 import { ListingToolbar } from '@/components/listing-toolbar'
 import { PaginationControl } from '@/components/pagination-control'
+import { QueryErrorState } from '@/components/query-error-state'
 import { SearchCombobox } from '@/components/search-combobox'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -99,6 +100,8 @@ export function Arenas() {
     pagination.setPage(1)
   }
 
+  const hasActiveFilters = Boolean(q) || cidade !== CITY_ANY
+
   function clearFilters() {
     setQ(null)
     setCidade(null)
@@ -169,29 +172,28 @@ export function Arenas() {
           ))}
         </ul>
       ) : isError ? (
-        <EmptyState
-          icon={WifiOff}
+        <QueryErrorState
           title="Não foi possível carregar as arenas"
-          description="Confira se a API está no ar e tente novamente."
-          action={
-            <Button
-              variant="brandOutline"
-              onClick={() => void arenasQuery.refetch()}
-              disabled={arenasQuery.isRefetching}
-              aria-busy={arenasQuery.isRefetching}
-            >
-              <RefreshCw
-                className={`size-4 ${arenasQuery.isRefetching ? 'animate-spin' : ''}`}
-              />
-              Tentar novamente
-            </Button>
-          }
+          error={arenasQuery.error}
+          onRetry={() => void arenasQuery.refetch()}
+          isRetrying={arenasQuery.isRefetching}
         />
       ) : arenasFiltradas.length === 0 ? (
         <EmptyState
           icon={MapPinOff}
           title="Nenhuma arena encontrada"
-          description="Ajuste os filtros para ver mais locais parceiros."
+          description={
+            hasActiveFilters
+              ? 'Ajuste os filtros para ver mais locais parceiros.'
+              : 'Nenhuma arena cadastrada no momento.'
+          }
+          action={
+            hasActiveFilters ? (
+              <Button variant="brandOutline" onClick={clearFilters}>
+                Limpar filtros
+              </Button>
+            ) : undefined
+          }
         />
       ) : (
         <>
