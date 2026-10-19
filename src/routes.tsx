@@ -6,6 +6,8 @@ import { AdminLayout } from '@/pages/_layouts/admin'
 import { AppLayout } from '@/pages/_layouts/app'
 import { AuthLayout } from '@/pages/_layouts/auth'
 import { Dashboard } from '@/pages/admin/dashboard'
+import { AdminPatrocinadores } from '@/pages/admin/patrocinadores'
+import { AdminQuadras } from '@/pages/admin/quadras'
 import { Arenas } from '@/pages/app/arenas'
 import { Home } from '@/pages/app/home'
 import { Quadras } from '@/pages/app/quadras'
@@ -53,7 +55,11 @@ export const router = createBrowserRouter([
       {
         path: '/admin',
         element: <AdminLayout />,
-        children: [{ index: true, element: <Dashboard /> }],
+        children: [
+          { index: true, element: <Dashboard /> },
+          { path: 'quadras', element: <AdminQuadras /> },
+          { path: 'patrocinadores', element: <AdminPatrocinadores /> },
+        ],
       },
       { path: '*', element: <Navigate to="/sign-in" replace /> },
     ],

@@ -3,6 +3,7 @@
 import { ARENA_COVERS } from '@/lib/assets'
 import type {
   Arena,
+  Camera,
   Id,
   Patrocinador,
   Quadra,
@@ -96,6 +97,29 @@ export const QUADRAS: readonly Quadra[] = [
   { id: '107', arenaId: '4', nome: 'Principal', disponivel: true },
   { id: '108', arenaId: '5', nome: 'Padel 01', disponivel: true },
   { id: '109', arenaId: '5', nome: 'Padel 02', disponivel: false },
+] as const
+
+// uma câmera por quadra, como no seed do backend. a 109 fica sem câmera de
+// propósito, para a gestão exibir o caso "sem câmera".
+export const CAMERAS: readonly Camera[] = [
+  { id: '501', quadraId: '101', identificador: 'CAM-RER-01', status: 'ativa' },
+  { id: '502', quadraId: '102', identificador: 'CAM-RER-02', status: 'ativa' },
+  { id: '503', quadraId: '103', identificador: 'CAM-VILA-A', status: 'ativa' },
+  {
+    id: '504',
+    quadraId: '104',
+    identificador: 'CAM-VILA-B',
+    status: 'inativa',
+  },
+  { id: '505', quadraId: '105', identificador: 'CAM-CHA-01', status: 'ativa' },
+  {
+    id: '506',
+    quadraId: '106',
+    identificador: 'CAM-CHA-02',
+    status: 'manutencao',
+  },
+  { id: '507', quadraId: '107', identificador: 'CAM-CEN-01', status: 'ativa' },
+  { id: '508', quadraId: '108', identificador: 'CAM-PAD-01', status: 'ativa' },
 ] as const
 
 export const PATROCINADORES: readonly Patrocinador[] = [

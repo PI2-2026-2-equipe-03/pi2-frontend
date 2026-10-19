@@ -23,6 +23,7 @@ const NAV_ITEMS: readonly NavItem[] = [
   { label: 'Dashboard', to: '/admin', end: true },
   { label: 'Câmeras', to: '/admin/cameras' },
   { label: 'Quadras', to: '/admin/quadras' },
+  { label: 'Patrocinadores', to: '/admin/patrocinadores' },
   { label: 'Usuários', to: '/admin/usuarios' },
   { label: 'Replays', to: '/admin/replays' },
 ]
@@ -142,7 +143,8 @@ export function AdminLayout() {
             <span className="flex size-8 items-center justify-center rounded-full bg-white/15">
               <User className="size-4" />
             </span>
-            <span className="text-sm font-medium">Admin</span>
+            {/* em 375px o rótulo encostava na logo; o avatar já identifica */}
+            <span className="hidden text-sm font-medium sm:inline">Admin</span>
           </div>
           <ThemeToggle />
         </div>

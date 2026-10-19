@@ -1,17 +1,37 @@
 // ponto único de leitura de cada domínio. as telas consomem estes hooks em vez
 // de montar useQuery à mão — assim ligar um endpoint novo não deixa consumidor
 // para trás, e nenhuma página precisa saber do toggle de mocks.
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { listArenas } from '@/lib/api/arenas'
-import { toArena, toQuadra, toReplayView } from '@/lib/api/mappers'
-import { listQuadras } from '@/lib/api/quadras'
+import { deleteCamera, listCameras } from '@/lib/api/cameras'
+import {
+  toArena,
+  toCamera,
+  toPatrocinador,
+  toQuadra,
+  toReplayView,
+} from '@/lib/api/mappers'
+import {
+  deletePatrocinador,
+  listPatrocinadores,
+} from '@/lib/api/patrocinadores'
+import { deleteQuadra, listQuadras } from '@/lib/api/quadras'
 import { listReplays } from '@/lib/api/replays'
-import type { Arena, Id, Quadra, ReplayView } from '@/lib/types'
+import type {
+  Arena,
+  Camera,
+  Id,
+  PatrocinadorView,
+  Quadra,
+  ReplayView,
+} from '@/lib/types'
 
 export const queryKeys = {
   arenas: ['arenas'] as const,
   quadras: ['quadras'] as const,
+  cameras: ['cameras'] as const,
+  patrocinadores: ['patrocinadores'] as const,
   replays: ['replays'] as const,
 }
 
@@ -31,11 +51,64 @@ export function useQuadras() {
   })
 }
 
+export function useCameras() {
+  return useQuery({
+    queryKey: queryKeys.cameras,
+    queryFn: listCameras,
+    select: (response): Camera[] => response.data.map(toCamera),
+  })
+}
+
+export function usePatrocinadores() {
+  return useQuery({
+    queryKey: queryKeys.patrocinadores,
+    queryFn: listPatrocinadores,
+    select: (response): PatrocinadorView[] => response.data.map(toPatrocinador),
+  })
+}
+
 export function useReplays() {
   return useQuery({
     queryKey: queryKeys.replays,
     queryFn: listReplays,
     select: (response): ReplayView[] => response.data.map(toReplayView),
+  })
+}
+
+// onSuccess devolve a promise do refetch: a mutation só termina quando a
+// lista já voltou sem o item, então o modal não fecha mostrando a linha antiga.
+export function useDeleteQuadra() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (id: Id) => deleteQuadra(id),
+    // o cascade do banco leva junto câmeras, vínculos de patrocínio e replays
+    onSuccess: () =>
+      Promise.all(
+        [
+          queryKeys.quadras,
+          queryKeys.cameras,
+          queryKeys.patrocinadores,
+          queryKeys.replays,
+        ].map((queryKey) => queryClient.invalidateQueries({ queryKey })),
+      ),
+  })
+}
+
+export function useDeleteCamera() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (id: Id) => deleteCamera(id),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: queryKeys.cameras }),
+  })
+}
+
+export function useDeletePatrocinador() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (id: Id) => deletePatrocinador(id),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: queryKeys.patrocinadores }),
   })
 }
 
