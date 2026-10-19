@@ -22,6 +22,15 @@ export type Quadra = {
   disponivel: boolean
 }
 
+export type CameraStatus = 'ativa' | 'inativa' | 'manutencao'
+
+export type Camera = {
+  id: Id
+  quadraId: Id
+  identificador: string
+  status: CameraStatus
+}
+
 export type ReplayStatus = 'pending' | 'available' | 'deleted'
 
 // entidade crua do replay (reflete a linha da tabela)
@@ -43,6 +52,13 @@ export type Patrocinador = {
   fotoUrl: string
   duracao: number
   valor: number
+}
+
+// view-model da gestão: o patrocinador já com as quadras em que aparece.
+// fotoUrl nullable porque a coluna foto_url aceita null no banco.
+export type PatrocinadorView = Omit<Patrocinador, 'fotoUrl'> & {
+  fotoUrl: string | null
+  quadraIds: Id[]
 }
 
 export type QuadraPatrocinador = {

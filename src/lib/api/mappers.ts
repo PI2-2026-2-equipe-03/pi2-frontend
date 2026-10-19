@@ -1,8 +1,13 @@
 import type { ArenaDto } from '@/lib/api/arenas'
+import type { CameraDto } from '@/lib/api/cameras'
+import type { PatrocinadorDto } from '@/lib/api/patrocinadores'
 import type { QuadraDto } from '@/lib/api/quadras'
 import type { ReplayDto } from '@/lib/api/replays'
 import {
   type Arena,
+  type Camera,
+  type CameraStatus,
+  type PatrocinadorView,
   type Quadra,
   REPLAY_DURATION_SECONDS,
   type ReplayStatus,
@@ -26,6 +31,33 @@ export function toQuadra(dto: QuadraDto): Quadra {
     arenaId: dto.arenaId,
     nome: dto.nome,
     disponivel: dto.disponivel,
+  }
+}
+
+function mapCameraStatus(status: string): CameraStatus {
+  const normalized = status.trim().toLowerCase()
+  if (normalized === 'ativa' || normalized === 'manutencao') return normalized
+  return 'inativa'
+}
+
+export function toCamera(dto: CameraDto): Camera {
+  return {
+    id: dto.id,
+    quadraId: dto.quadraId,
+    identificador: dto.identificador,
+    status: mapCameraStatus(dto.status),
+  }
+}
+
+export function toPatrocinador(dto: PatrocinadorDto): PatrocinadorView {
+  return {
+    id: dto.id,
+    gestorId: dto.gestorId,
+    nome: dto.nome,
+    fotoUrl: dto.fotoUrl,
+    duracao: dto.duracao,
+    valor: Number(dto.valor),
+    quadraIds: dto.quadraIds,
   }
 }
 
