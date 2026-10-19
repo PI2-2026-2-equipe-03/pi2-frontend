@@ -16,7 +16,13 @@ export function Logo({ className, to }: LogoProps) {
   const { shouldReduce } = useMotionSafe()
 
   const wordmark = (
-    <span className={cn('group font-bold tracking-tight', className)}>
+    // nowrap: no header estreito do admin o flex encolhia a logo até "TaG / ravado"
+    <span
+      className={cn(
+        'group font-bold tracking-tight whitespace-nowrap',
+        className,
+      )}
+    >
       Ta
       <motion.span
         className="text-tg-brand-yellow inline-block"
