@@ -3,12 +3,13 @@ import * as mocks from '@/lib/api/mocks/arenas'
 import { customInstance } from '@/lib/api/mutator/axios-instance'
 
 export type ArenaDto = {
-  id: number
-  clienteId: number
+  id: string
+  clienteId: string
   nome: string
   cidade: string
   endereco: string
-  fotoUrl: string
+  // backend ainda não popula foto de arena
+  fotoUrl: string | null
 }
 
 type ListArenasResponse = {

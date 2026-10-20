@@ -1,6 +1,65 @@
+import type { ArenaDto } from '@/lib/api/arenas'
+import type { CameraDto } from '@/lib/api/cameras'
+import type { PatrocinadorDto } from '@/lib/api/patrocinadores'
+import type { QuadraDto } from '@/lib/api/quadras'
 import type { ReplayDto } from '@/lib/api/replays'
-import { REPLAY_THUMB } from '@/lib/assets'
-import { REPLAY_DURATION_SECONDS, type ReplayStatus, type ReplayView } from '@/lib/types'
+import {
+  type Arena,
+  type Camera,
+  type CameraStatus,
+  type PatrocinadorView,
+  type Quadra,
+  REPLAY_DURATION_SECONDS,
+  type ReplayStatus,
+  type ReplayView,
+} from '@/lib/types'
+
+export function toArena(dto: ArenaDto): Arena {
+  return {
+    id: dto.id,
+    clienteId: dto.clienteId,
+    nome: dto.nome,
+    cidade: dto.cidade,
+    endereco: dto.endereco,
+    fotoUrl: dto.fotoUrl,
+  }
+}
+
+export function toQuadra(dto: QuadraDto): Quadra {
+  return {
+    id: dto.id,
+    arenaId: dto.arenaId,
+    nome: dto.nome,
+    disponivel: dto.disponivel,
+  }
+}
+
+function mapCameraStatus(status: string): CameraStatus {
+  const normalized = status.trim().toLowerCase()
+  if (normalized === 'ativa' || normalized === 'manutencao') return normalized
+  return 'inativa'
+}
+
+export function toCamera(dto: CameraDto): Camera {
+  return {
+    id: dto.id,
+    quadraId: dto.quadraId,
+    identificador: dto.identificador,
+    status: mapCameraStatus(dto.status),
+  }
+}
+
+export function toPatrocinador(dto: PatrocinadorDto): PatrocinadorView {
+  return {
+    id: dto.id,
+    gestorId: dto.gestorId,
+    nome: dto.nome,
+    fotoUrl: dto.fotoUrl,
+    duracao: dto.duracao,
+    valor: Number(dto.valor),
+    quadraIds: dto.quadraIds,
+  }
+}
 
 function mapReplayStatus(status: string): ReplayStatus {
   const normalized = status.trim().toLowerCase()
@@ -34,11 +93,7 @@ export function toReplayView(dto: ReplayDto): ReplayView {
   return {
     id: dto.id,
     court: { id: dto.courtId, nome: dto.courtName ?? `Quadra ${dto.courtId}` },
-    arena: {
-      id: dto.courtId,
-      nome: dto.arenaName ?? 'Arena',
-      fotoUrl: REPLAY_THUMB,
-    },
+    arena: { id: dto.courtId, nome: dto.arenaName ?? 'Arena' },
     city: dto.city ?? '',
     recordedAt: toIsoDateTime(
       dto.recordingDate,

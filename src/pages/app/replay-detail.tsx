@@ -1,10 +1,11 @@
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation } from '@tanstack/react-query'
 import {
   ArrowLeft,
   Calendar,
   Download,
   Loader2,
   MapPin,
+  RefreshCw,
   VideoOff,
   WifiOff,
 } from 'lucide-react'
@@ -12,12 +13,15 @@ import { Link, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import { EmptyState } from '@/components/empty-state'
+import { ReplayExpiry } from '@/components/replay-expiry'
+import { ReplayPlayer } from '@/components/replay-player'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
-import { getApiErrorMessage } from '@/lib/api/errors'
-import { resolveMediaUrl, toReplayView } from '@/lib/api/mappers'
-import { getReplayDownload, listReplays } from '@/lib/api/replays'
+import { resolveMediaUrl } from '@/lib/api/mappers'
+import { useReplays } from '@/lib/api/queries'
+import { getReplayDownload } from '@/lib/api/replays'
+import { getApiErrorMessage } from '@/lib/errors'
 
 const dateFormatter = new Intl.DateTimeFormat('pt-BR', {
   day: '2-digit',
@@ -30,32 +34,39 @@ const timeFormatter = new Intl.DateTimeFormat('pt-BR', {
   minute: '2-digit',
 })
 
+// a tela cabe no slot que o AppLayout deixa: 4rem de header + o padding do main
+// (p-4 no mobile, p-8 no md+). sem isso o conteúdo gera scroll de página.
+// abaixo de 36rem de altura (celular deitado) travar a altura espremeria o
+// player a ponto de esconder o botão de download: ali o scroll normal é melhor.
+const SHELL =
+  'mx-auto flex h-[calc(100svh-6rem)] w-full max-w-6xl flex-col gap-3 md:h-[calc(100svh-8rem)] md:gap-4 [@media(max-height:36rem)]:h-auto'
+
 export function ReplayDetail() {
   const { id } = useParams<{ id: string }>()
 
-  const replaysQuery = useQuery({
-    queryKey: ['replays'],
-    queryFn: listReplays,
-  })
-
-  const replay = replaysQuery.data?.data.find((r) => String(r.id) === id)
-  const view = replay ? toReplayView(replay) : undefined
+  const replaysQuery = useReplays()
+  const view = replaysQuery.data?.find((r) => r.id === id)
 
   const downloadMutation = useMutation({
     mutationFn: async () => {
       if (!id) throw new Error('Replay sem identificador')
       const response = await getReplayDownload(id)
-      return {
-        url: resolveMediaUrl(response.data.downloadUrl),
-        fileName: response.data.fileName,
-      }
+      return resolveMediaUrl(response.data.downloadUrl)
     },
-    onSuccess: (file) => {
-      window.open(file.url, '_blank', 'noopener,noreferrer')
+    onSuccess: (url) => {
+      window.open(url, '_blank', 'noopener,noreferrer')
       toast.success('Download iniciado')
     },
     onError: (error) => {
-      toast.error(getApiErrorMessage(error, 'Não foi possível baixar o replay'))
+      toast.error(
+        getApiErrorMessage(error, 'Não foi possível baixar o replay'),
+        {
+          action: {
+            label: 'Tentar de novo',
+            onClick: () => downloadMutation.mutate(),
+          },
+        },
+      )
     },
   })
 
@@ -65,8 +76,8 @@ export function ReplayDetail() {
   const isDeleted = view?.status === 'deleted'
 
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-6">
-      <Button asChild variant="ghost" size="sm" className="self-start">
+    <div className={SHELL}>
+      <Button asChild variant="ghost" size="sm" className="shrink-0 self-start">
         <Link to="/app/replays">
           <ArrowLeft className="size-4" />
           Voltar para replays
@@ -74,9 +85,9 @@ export function ReplayDetail() {
       </Button>
 
       {isLoading ? (
-        <Card className="shadow-card overflow-hidden rounded-2xl py-0">
-          <Skeleton className="aspect-video w-full" />
-          <div className="space-y-3 p-6">
+        <Card className="shadow-card grid min-h-0 flex-1 grid-rows-[minmax(11rem,1fr)_auto] overflow-hidden rounded-2xl py-0 lg:grid-cols-[minmax(0,1fr)_22rem] lg:grid-rows-1">
+          <Skeleton className="size-full rounded-none" />
+          <div className="space-y-3 p-5 md:p-6">
             <Skeleton className="h-6 w-2/3" />
             <Skeleton className="h-4 w-1/2" />
             <Skeleton className="h-4 w-1/3" />
@@ -84,56 +95,68 @@ export function ReplayDetail() {
           </div>
         </Card>
       ) : isError ? (
-        <EmptyState
-          icon={WifiOff}
-          title="Não foi possível carregar o replay"
-          description="Confira se a API está no ar e tente novamente."
-          action={
-            <Button
-              variant="brandOutline"
-              onClick={() => void replaysQuery.refetch()}
-            >
-              Tentar novamente
-            </Button>
-          }
-        />
+        <div className="grid min-h-0 flex-1 place-content-center">
+          <EmptyState
+            icon={WifiOff}
+            title="Não foi possível carregar o replay"
+            description="Confira se a API está no ar e tente novamente."
+            action={
+              <Button
+                variant="brandOutline"
+                onClick={() => void replaysQuery.refetch()}
+                disabled={replaysQuery.isRefetching}
+                aria-busy={replaysQuery.isRefetching}
+              >
+                <RefreshCw
+                  className={`size-4 ${replaysQuery.isRefetching ? 'animate-spin' : ''}`}
+                />
+                Tentar novamente
+              </Button>
+            }
+          />
+        </div>
       ) : notFound ? (
-        <EmptyState
-          icon={VideoOff}
-          title="Replay não encontrado"
-          description="O replay pode ter expirado ou sido removido."
-          action={
-            <Button asChild variant="brandOutline">
-              <Link to="/app/replays">Voltar à lista</Link>
-            </Button>
-          }
-        />
+        <div className="grid min-h-0 flex-1 place-content-center">
+          <EmptyState
+            icon={VideoOff}
+            title="Replay não encontrado"
+            description="O replay pode ter expirado ou sido removido."
+            action={
+              <Button asChild variant="brandOutline">
+                <Link to="/app/replays">Voltar à lista</Link>
+              </Button>
+            }
+          />
+        </div>
       ) : view ? (
-        <Card className="shadow-card overflow-hidden rounded-2xl py-0">
-          <div className="relative aspect-video overflow-hidden">
-            <img
-              src={view.arena.fotoUrl}
-              alt={`Pré-visualização do replay de ${view.arena.nome}`}
-              loading="lazy"
-              className="size-full object-cover"
+        <Card className="shadow-card grid min-h-0 flex-1 grid-rows-[minmax(11rem,1fr)_auto] overflow-hidden rounded-2xl py-0 lg:grid-cols-[minmax(0,1fr)_22rem] lg:grid-rows-1">
+          <div className="relative min-h-0 overflow-hidden bg-black">
+            <ReplayPlayer
+              src={resolveMediaUrl(view.arquivoUrl)}
+              label={`Replay de ${view.court.nome} — ${view.arena.nome}`}
+              className="size-full object-contain"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-            <span className="bg-background/90 text-foreground absolute right-3 bottom-3 rounded-md px-2 py-0.5 text-xs tabular-nums backdrop-blur">
+            {/* badges fora do caminho dos controls nativos (barra inferior) */}
+            <ReplayExpiry
+              expiresAt={view.expiresAt}
+              className="pointer-events-none absolute top-3 left-3"
+            />
+            <span className="bg-background/90 text-foreground pointer-events-none absolute top-3 right-3 rounded-md px-2 py-0.5 text-xs tabular-nums backdrop-blur">
               {view.duration}s
             </span>
           </div>
 
-          <div className="space-y-4 p-6">
+          <div className="flex min-h-0 flex-col gap-4 overflow-y-auto p-5 md:p-6">
             <div>
               <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
                 {view.arena.nome}
               </p>
-              <h1 className="text-tg-brand-blue text-[clamp(1.25rem,2.5vw,1.75rem)] font-bold">
+              <h1 className="text-tg-brand-blue text-[clamp(1.25rem,2.5vw,1.75rem)] leading-tight font-bold">
                 {view.court.nome}
               </h1>
             </div>
 
-            <dl className="text-muted-foreground grid gap-2 text-sm sm:grid-cols-2">
+            <dl className="text-muted-foreground grid gap-2 text-sm">
               <div className="flex items-center gap-2">
                 <MapPin className="size-4 shrink-0" aria-hidden />
                 <dt className="sr-only">Cidade</dt>
@@ -149,10 +172,13 @@ export function ReplayDetail() {
               </div>
             </dl>
 
-            <div className="flex flex-col gap-2 pt-2 sm:flex-row sm:items-center">
+            {/* ação primária ancorada no fim da coluna em telas largas */}
+            <div className="flex flex-col gap-2 lg:mt-auto">
               <Button
                 variant="brand"
+                className="w-full"
                 disabled={downloadMutation.isPending || isDeleted}
+                aria-busy={downloadMutation.isPending}
                 onClick={() => downloadMutation.mutate()}
               >
                 {downloadMutation.isPending ? (

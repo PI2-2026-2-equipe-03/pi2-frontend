@@ -1,22 +1,18 @@
-import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
-import {
-  ChevronRight,
-  LayoutGrid,
-  MapPin,
-  RefreshCw,
-  WifiOff,
-  X,
-} from 'lucide-react'
+import { ChevronRight, LayoutGrid, MapPin, RefreshCw, X } from 'lucide-react'
 import { useQueryState } from 'nuqs'
 import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 
+import { CityCombobox } from '@/components/city-combobox'
 import { EmptyState } from '@/components/empty-state'
 import { FilterChips } from '@/components/filter-chips'
 import { ListingToolbar } from '@/components/listing-toolbar'
+import { MediaThumb } from '@/components/media-thumb'
 import { PaginationControl } from '@/components/pagination-control'
+import { QueryErrorState } from '@/components/query-error-state'
 import { ReplayExpiry } from '@/components/replay-expiry'
+import { ReplayThumb } from '@/components/replay-thumb'
 import { SearchCombobox } from '@/components/search-combobox'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -29,21 +25,19 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
+import { Skeleton } from '@/components/ui/skeleton'
+import { resolveMediaUrl } from '@/lib/api/mappers'
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import type { ArenaDto } from '@/lib/api/arenas'
-import { listArenas } from '@/lib/api/arenas'
-import type { QuadraDto } from '@/lib/api/quadras'
-import { listQuadras } from '@/lib/api/quadras'
-import { getSponsorForCourt,REPLAY_VIEWS } from '@/lib/mocks'
+  citiesFromArenas,
+  useArenas,
+  useQuadras,
+  useReplays,
+} from '@/lib/api/queries'
+import { getApiErrorMessage } from '@/lib/errors'
 import { motionTokens } from '@/lib/motion'
 import { usePagination } from '@/lib/pagination'
-import { arenaSuggestions } from '@/lib/search'
+import { createArenaSuggestions } from '@/lib/search'
+import type { Arena, Quadra } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
 import { QuadraCardSkeleton } from './components/quadra-card-skeleton'
@@ -82,17 +76,104 @@ const STATUS_OPTIONS: ReadonlyArray<{ value: StatusFilter; label: string }> = [
   { value: 'indisponivel', label: 'Indisponíveis' },
 ]
 
+const RECENT_REPLAYS_LIMIT = 3
+
+// montado só com o dialog aberto: a request de replays sai quando o usuário
+// abre a quadra (ou reaproveita o cache de useReplays da tela de replays).
+function CourtRecentReplays({ courtId }: { courtId: Quadra['id'] }) {
+  const replaysQuery = useReplays()
+
+  const replaysDaQuadra = useMemo(
+    () =>
+      (replaysQuery.data ?? [])
+        .filter((replay) => replay.court.id === courtId)
+        .slice(0, RECENT_REPLAYS_LIMIT),
+    [courtId, replaysQuery.data],
+  )
+
+  if (replaysQuery.isPending) {
+    return (
+      <ul aria-busy="true" className="-mx-1 flex gap-3 overflow-hidden px-1">
+        {Array.from({ length: RECENT_REPLAYS_LIMIT }).map((_, i) => (
+          <li key={i} className="w-40 shrink-0 space-y-1.5 sm:w-44">
+            <Skeleton className="h-24 w-full rounded-md sm:h-[6.25rem]" />
+            <Skeleton className="h-3 w-12" />
+          </li>
+        ))}
+      </ul>
+    )
+  }
+
+  if (replaysQuery.isError) {
+    return (
+      <div className="flex flex-wrap items-center gap-3">
+        <p className="text-muted-foreground text-sm">
+          {getApiErrorMessage(
+            replaysQuery.error,
+            'Não foi possível carregar os replays desta quadra.',
+          )}
+        </p>
+        <Button
+          variant="brandOutline"
+          size="sm"
+          onClick={() => void replaysQuery.refetch()}
+          disabled={replaysQuery.isRefetching}
+          aria-busy={replaysQuery.isRefetching}
+        >
+          <RefreshCw
+            className={cn(
+              'size-4',
+              replaysQuery.isRefetching && 'animate-spin',
+            )}
+          />
+          Tentar novamente
+        </Button>
+      </div>
+    )
+  }
+
+  if (replaysDaQuadra.length === 0) {
+    return (
+      <p className="text-muted-foreground text-sm">
+        Ainda não há replays gravados nesta quadra.
+      </p>
+    )
+  }
+
+  return (
+    <ul className="-mx-1 flex gap-3 overflow-x-auto px-1 pb-1">
+      {replaysDaQuadra.map((replay) => (
+        <li key={replay.id} className="w-40 shrink-0 sm:w-44">
+          <div className="relative h-24 w-full overflow-hidden rounded-md sm:h-[6.25rem]">
+            <ReplayThumb
+              src={resolveMediaUrl(replay.arquivoUrl)}
+              className="size-full object-cover"
+            />
+            <span className="bg-background/90 text-foreground absolute right-1.5 bottom-1.5 rounded-md px-1.5 py-0.5 text-[10px] tabular-nums backdrop-blur">
+              {replay.duration}s
+            </span>
+            <div className="absolute top-1.5 left-1.5">
+              <ReplayExpiry expiresAt={replay.expiresAt} withIcon={false} />
+            </div>
+          </div>
+          <p className="text-muted-foreground mt-1.5 text-xs">
+            {dateFormatter.format(new Date(replay.recordedAt))}
+          </p>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
 function QuadraCard({
   quadra,
   arena,
 }: {
-  quadra: QuadraDto
-  arena: ArenaDto | undefined
+  quadra: Quadra
+  arena: Arena | undefined
 }) {
-  const sponsor = getSponsorForCourt(quadra.id)
-  const replaysDaQuadra = REPLAY_VIEWS.filter(
-    (r) => r.court.id === quadra.id,
-  )
+  // a quadra não tem foto própria no MER; herda a da arena quando existir.
+  const cover = arena?.fotoUrl ?? null
 
   return (
     <Dialog>
@@ -103,13 +184,16 @@ function QuadraCard({
           className="group border-border/60 shadow-card hover:border-tg-brand-blue/40 hover:shadow-card-hover focus-visible:ring-ring/40 cursor-pointer overflow-hidden rounded-2xl py-0 text-left transition-all duration-200 hover:-translate-y-0.5 focus-visible:ring-4 focus-visible:outline-none"
         >
           <div className="relative h-28 overflow-hidden">
-            <img
-              src={arena?.fotoUrl ?? ''}
+            <MediaThumb
+              src={cover}
               alt={`Foto da ${quadra.nome}`}
-              loading="lazy"
+              kind="quadra"
               className="size-full object-cover transition-transform duration-500 group-hover:scale-110"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+            {/* vinheta só faz sentido sobre foto; no placeholder vira borrão sujo */}
+            {cover ? (
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+            ) : null}
             <Badge
               variant={quadra.disponivel ? 'success' : 'destructive'}
               className="absolute top-2 right-2 backdrop-blur"
@@ -134,10 +218,10 @@ function QuadraCard({
       >
         {/* hero reveal — imagem como capa, título sobreposto, close button flutuante */}
         <div className="relative h-48 w-full shrink-0 overflow-hidden md:h-56">
-          <img
-            src={arena?.fotoUrl ?? ''}
+          <MediaThumb
+            src={cover}
             alt={`Foto da ${quadra.nome}`}
-            loading="lazy"
+            kind="quadra"
             className="size-full object-cover"
           />
           {/* gradient overlay para contraste do texto */}
@@ -157,7 +241,7 @@ function QuadraCard({
 
           <DialogClose
             aria-label="Fechar"
-            className="focus-visible:ring-white/80 absolute top-3 right-3 inline-flex size-9 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur transition-colors hover:bg-black/60 focus-visible:ring-2 focus-visible:outline-none"
+            className="absolute top-3 right-3 inline-flex size-9 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur transition-colors hover:bg-black/60 focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:outline-none"
           >
             <X className="size-5" />
           </DialogClose>
@@ -181,62 +265,11 @@ function QuadraCard({
 
         {/* zona 3 — conteúdo denso, com overflow-y-auto apenas aqui */}
         <div className="flex min-h-0 flex-col gap-4 overflow-y-auto p-5 sm:p-6">
-          {sponsor ? (
-            <div className="bg-tg-brand-yellow/15 border-tg-brand-yellow/40 flex items-center gap-3 rounded-xl border p-3">
-              <img
-                src={sponsor.fotoUrl}
-                alt=""
-                className="size-10 shrink-0 rounded-full object-cover"
-              />
-              <div className="min-w-0 flex-1">
-                <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
-                  Patrocínio oficial
-                </p>
-                <p className="text-foreground truncate font-semibold">
-                  {sponsor.nome}
-                </p>
-              </div>
-            </div>
-          ) : null}
-
           <div>
             <p className="text-foreground mb-2 text-sm font-semibold">
               Últimos replays
             </p>
-            {replaysDaQuadra.length === 0 ? (
-              <p className="text-muted-foreground text-sm">
-                Ainda não há replays gravados nesta quadra.
-              </p>
-            ) : (
-              <ul className="-mx-1 flex gap-3 overflow-x-auto px-1 pb-1">
-                {replaysDaQuadra.slice(0, 3).map((replay) => (
-                  <li
-                    key={replay.id}
-                    className="w-40 shrink-0 sm:w-44"
-                  >
-                    <div className="relative h-24 w-full overflow-hidden rounded-md sm:h-[6.25rem]">
-                      <img
-                        src={replay.arena.fotoUrl}
-                        alt=""
-                        className="size-full object-cover"
-                      />
-                      <span className="bg-background/90 text-foreground absolute right-1.5 bottom-1.5 rounded-md px-1.5 py-0.5 text-[10px] tabular-nums backdrop-blur">
-                        {replay.duration}s
-                      </span>
-                      <div className="absolute top-1.5 left-1.5">
-                        <ReplayExpiry
-                          expiresAt={replay.expiresAt}
-                          withIcon={false}
-                        />
-                      </div>
-                    </div>
-                    <p className="text-muted-foreground mt-1.5 text-xs">
-                      {dateFormatter.format(new Date(replay.recordedAt))}
-                    </p>
-                  </li>
-                ))}
-              </ul>
-            )}
+            <CourtRecentReplays courtId={quadra.id} />
           </div>
 
           <Button
@@ -268,26 +301,14 @@ export function Quadras() {
   const [arenaQ, setArenaQ] = useQueryState('q', { defaultValue: '' })
   const [from, setFrom] = useQueryState('from', { defaultValue: '' })
 
-  const arenasQuery = useQuery({
-    queryKey: ['arenas'],
-    queryFn: listArenas,
-  })
-  const quadrasQuery = useQuery({
-    queryKey: ['quadras'],
-    queryFn: listQuadras,
-  })
+  const arenasQuery = useArenas()
+  const quadrasQuery = useQuadras()
 
-  const arenas = useMemo(
-    () => arenasQuery.data?.data ?? [],
-    [arenasQuery.data],
-  )
-  const quadras = useMemo(
-    () => quadrasQuery.data?.data ?? [],
-    [quadrasQuery.data],
-  )
+  const arenas = useMemo(() => arenasQuery.data ?? [], [arenasQuery.data])
+  const quadras = useMemo(() => quadrasQuery.data ?? [], [quadrasQuery.data])
 
   const arenaById = useMemo(() => {
-    const map = new Map<number, ArenaDto>()
+    const map = new Map<string, Arena>()
     for (const arena of arenas) map.set(arena.id, arena)
     return map
   }, [arenas])
@@ -296,21 +317,22 @@ export function Quadras() {
   const isError = arenasQuery.isError || quadrasQuery.isError
 
   const arenaSelecionada = useMemo(
-    () =>
-      arenaId ? arenas.find((a) => a.id === Number(arenaId)) : undefined,
-    [arenaId, arenas],
+    () => (arenaId ? arenaById.get(arenaId) : undefined),
+    [arenaId, arenaById],
   )
 
-  const cityOptions = useMemo(() => {
-    const set = new Set(arenas.map((a) => a.cidade))
-    return Array.from(set).sort((a, b) => a.localeCompare(b, 'pt-BR'))
-  }, [arenas])
+  const cityOptions = useMemo(() => citiesFromArenas(arenas), [arenas])
+
+  const fetchSuggestions = useMemo(
+    () => createArenaSuggestions(arenas),
+    [arenas],
+  )
 
   const quadrasFiltradas = useMemo(() => {
     return quadras.filter((quadra) => {
       const arena = arenaById.get(quadra.arenaId)
       if (!arena) return false
-      const passaArena = !arenaId || quadra.arenaId === Number(arenaId)
+      const passaArena = !arenaId || quadra.arenaId === arenaId
       const passaCidade = cidade === CITY_ANY || arena.cidade === cidade
       const passaStatus =
         status === STATUS_ANY ||
@@ -325,9 +347,10 @@ export function Quadras() {
     pageParam: 'page',
   })
 
-  function refetchAll() {
-    void arenasQuery.refetch()
-    void quadrasQuery.refetch()
+  // refaz só o que falhou: a outra query já está em cache
+  function retry() {
+    if (arenasQuery.isError) void arenasQuery.refetch()
+    if (quadrasQuery.isError) void quadrasQuery.refetch()
   }
 
   function resetPage() {
@@ -432,7 +455,7 @@ export function Quadras() {
                 resetPage()
               }
             }}
-            fetchSuggestions={arenaSuggestions}
+            fetchSuggestions={fetchSuggestions}
             placeholder="Filtrar por arena ou cidade…"
             emptyMessage="Nenhuma arena."
           />
@@ -443,26 +466,16 @@ export function Quadras() {
             label: 'Cidade',
             active: cidade !== CITY_ANY,
             control: (
-              <Select
+              <CityCombobox
                 value={cidade}
                 onValueChange={(v) => {
-                  setCidade(v || null)
+                  setCidade(v === CITY_ANY ? null : v)
                   markManual()
                   resetPage()
                 }}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Cidade" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={CITY_ANY}>Todas as cidades</SelectItem>
-                  {cityOptions.map((c) => (
-                    <SelectItem key={c} value={c}>
-                      {c}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                cities={cityOptions}
+                anyValue={CITY_ANY}
+              />
             ),
           },
           {
@@ -499,16 +512,11 @@ export function Quadras() {
           ))}
         </ul>
       ) : isError ? (
-        <EmptyState
-          icon={WifiOff}
+        <QueryErrorState
           title="Não foi possível carregar as quadras"
-          description="Confira se a API está no ar e tente novamente."
-          action={
-            <Button variant="brandOutline" onClick={refetchAll}>
-              <RefreshCw className="size-4" />
-              Tentar novamente
-            </Button>
-          }
+          error={arenasQuery.error ?? quadrasQuery.error}
+          onRetry={retry}
+          isRetrying={arenasQuery.isRefetching || quadrasQuery.isRefetching}
         />
       ) : quadrasFiltradas.length === 0 ? (
         <EmptyState

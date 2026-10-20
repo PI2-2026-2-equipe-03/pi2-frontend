@@ -1,9 +1,10 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Loader2, Lock } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 import { useForm, useWatch } from 'react-hook-form'
 import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 
+import { PasswordInput } from '@/components/password-input'
 import { Button } from '@/components/ui/button'
 import {
   Form,
@@ -13,7 +14,6 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
 import {
   type ResetPasswordInput,
   resetPasswordSchema,
@@ -26,6 +26,8 @@ export function ResetPassword() {
 
   const form = useForm<ResetPasswordInput>({
     resolver: zodResolver(resetPasswordSchema),
+    mode: 'onTouched',
+    reValidateMode: 'onChange',
     defaultValues: { password: '', confirmPassword: '' },
   })
 
@@ -72,16 +74,11 @@ export function ResetPassword() {
               <FormItem>
                 <FormLabel>Senha</FormLabel>
                 <FormControl>
-                  <div className="relative">
-                    <Lock className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
-                    <Input
-                      type="password"
-                      autoComplete="new-password"
-                      placeholder="••••••••"
-                      className="pl-9"
-                      {...field}
-                    />
-                  </div>
+                  <PasswordInput
+                    autoComplete="new-password"
+                    placeholder="••••••••"
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -95,16 +92,11 @@ export function ResetPassword() {
               <FormItem>
                 <FormLabel>Confirmar senha</FormLabel>
                 <FormControl>
-                  <div className="relative">
-                    <Lock className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
-                    <Input
-                      type="password"
-                      autoComplete="new-password"
-                      placeholder="••••••••"
-                      className="pl-9"
-                      {...field}
-                    />
-                  </div>
+                  <PasswordInput
+                    autoComplete="new-password"
+                    placeholder="••••••••"
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -121,6 +113,7 @@ export function ResetPassword() {
             type="submit"
             variant="brand"
             disabled={isSubmitting}
+            aria-busy={isSubmitting}
             className="w-full"
           >
             {isSubmitting ? (
@@ -137,7 +130,7 @@ export function ResetPassword() {
             Lembrou sua senha?{' '}
             <Link
               to="/sign-in"
-              className="text-primary rounded-sm font-medium hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-offset-2"
+              className="text-primary focus-visible:ring-ring/50 rounded-sm font-medium hover:underline focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
             >
               Entrar
             </Link>

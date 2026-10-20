@@ -1,20 +1,22 @@
 // busca unificada: a query casa contra nome da quadra, da arena ou da cidade.
 // o resultado SEMPRE é uma lista de quadras (ou de arenas no suggestArenas),
 // com prioridade quadra > arena > cidade quando o termo é ambíguo.
-// módulo puro — testável quando o harness entrar.
+// módulo puro: recebe o dataset por parâmetro, não conhece a origem dos dados.
 
-import { ARENAS, getArenaById, QUADRAS } from '@/lib/mocks'
-import type { Arena, Quadra } from '@/lib/types'
+import type { Arena, Id, Quadra } from '@/lib/types'
 
 export type CourtMatch = { quadra: Quadra; arena: Arena }
+
+export type SearchDataset = {
+  arenas: readonly Arena[]
+  quadras: readonly Quadra[]
+}
 
 export type Suggestion = {
   id: string
   label: string
   subtitle?: string
-  payload:
-    | { kind: 'court'; value: number | string }
-    | { kind: 'arena'; value: number | string }
+  payload: { kind: 'court'; value: Id } | { kind: 'arena'; value: Id }
 }
 
 type CourtMatchKind = 'court' | 'arena' | 'city'
@@ -39,9 +41,14 @@ function normalize(value: string): string {
     .trim()
 }
 
-export async function suggestCourts(rawQuery: string): Promise<CourtMatch[]> {
+export function suggestCourts(
+  { arenas, quadras }: SearchDataset,
+  rawQuery: string,
+): CourtMatch[] {
   const q = normalize(rawQuery)
   if (!q) return []
+
+  const arenasById = new Map(arenas.map((arena) => [arena.id, arena]))
 
   const scored: Array<{
     quadra: Quadra
@@ -49,8 +56,8 @@ export async function suggestCourts(rawQuery: string): Promise<CourtMatch[]> {
     matchedBy: CourtMatchKind
   }> = []
 
-  for (const quadra of QUADRAS) {
-    const arena = getArenaById(quadra.arenaId)
+  for (const quadra of quadras) {
+    const arena = arenasById.get(quadra.arenaId)
     if (!arena) continue
     let matchedBy: CourtMatchKind | null = null
     if (normalize(quadra.nome).includes(q)) matchedBy = 'court'
@@ -68,13 +75,16 @@ export async function suggestCourts(rawQuery: string): Promise<CourtMatch[]> {
   return scored.map(({ quadra, arena }) => ({ quadra, arena }))
 }
 
-export async function suggestArenas(rawQuery: string): Promise<Arena[]> {
+export function suggestArenas(
+  arenas: readonly Arena[],
+  rawQuery: string,
+): Arena[] {
   const q = normalize(rawQuery)
   if (!q) return []
 
   const scored: Array<{ arena: Arena; matchedBy: ArenaMatchKind }> = []
 
-  for (const arena of ARENAS) {
+  for (const arena of arenas) {
     let matchedBy: ArenaMatchKind | null = null
     if (normalize(arena.nome).includes(q)) matchedBy = 'name'
     else if (normalize(arena.cidade).includes(q)) matchedBy = 'city'
@@ -90,26 +100,30 @@ export async function suggestArenas(rawQuery: string): Promise<Arena[]> {
   return scored.map((m) => m.arena)
 }
 
-// adaptadores pro SearchCombobox: transformam o shape de match em Suggestion.
-// `subtitle` é o único campo que carrega contexto adicional (Arena · Cidade).
+// fábricas de adaptador pro SearchCombobox, que espera
+// `(query: string) => Promise<Suggestion[]>`. ligam o dataset vindo da API à
+// assinatura assíncrona do componente.
+// `subtitle` é o único campo que carrega contexto adicional (Arena · Cidade);
 // nenhum campo expõe pro UI qual critério bateu — o fallback é implícito.
 
-export async function courtSuggestions(query: string): Promise<Suggestion[]> {
-  const matches = await suggestCourts(query)
-  return matches.map(({ quadra, arena }) => ({
-    id: `court-${quadra.id}`,
-    label: quadra.nome,
-    subtitle: `${arena.nome} · ${arena.cidade}`,
-    payload: { kind: 'court', value: quadra.id },
-  }))
+export function createCourtSuggestions(dataset: SearchDataset) {
+  return async function courtSuggestions(query: string): Promise<Suggestion[]> {
+    return suggestCourts(dataset, query).map(({ quadra, arena }) => ({
+      id: `court-${quadra.id}`,
+      label: quadra.nome,
+      subtitle: `${arena.nome} · ${arena.cidade}`,
+      payload: { kind: 'court', value: quadra.id },
+    }))
+  }
 }
 
-export async function arenaSuggestions(query: string): Promise<Suggestion[]> {
-  const matches = await suggestArenas(query)
-  return matches.map((arena) => ({
-    id: `arena-${arena.id}`,
-    label: arena.nome,
-    subtitle: arena.cidade,
-    payload: { kind: 'arena', value: arena.id },
-  }))
+export function createArenaSuggestions(arenas: readonly Arena[]) {
+  return async function arenaSuggestions(query: string): Promise<Suggestion[]> {
+    return suggestArenas(arenas, query).map((arena) => ({
+      id: `arena-${arena.id}`,
+      label: arena.nome,
+      subtitle: arena.cidade,
+      payload: { kind: 'arena', value: arena.id },
+    }))
+  }
 }

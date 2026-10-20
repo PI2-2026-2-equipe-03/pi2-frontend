@@ -1,18 +1,12 @@
 import type { AxiosError, AxiosRequestConfig } from 'axios'
 import Axios from 'axios'
 
-import { getSession } from '@/lib/auth/session'
-
+// withCredentials: true inclui a cookie da sessão (Better Auth) em toda chamada.
+// em dev as calls vão para /api/* via proxy do vite — same-origin, cookie HttpOnly
+// chega sem precisar de CORS. em prod exige CORS com credentials no backend.
 export const axiosInstance = Axios.create({
   baseURL: import.meta.env.VITE_API_URL ?? '/api',
-})
-
-axiosInstance.interceptors.request.use((config) => {
-  const token = getSession()?.token
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`
-  }
-  return config
+  withCredentials: true,
 })
 
 export const customInstance = <T>(
@@ -27,8 +21,6 @@ export const customInstance = <T>(
   }).then(({ data }) => data)
 
   // orval espera uma promise cancelável quando react-query usa signal
-  // encaixa o cancel no .cancel pra integrar com AbortController do react-query v5
-  // vi na documentação
   ;(promise as Promise<T> & { cancel: () => void }).cancel = () => {
     source.cancel('Query was cancelled')
   }

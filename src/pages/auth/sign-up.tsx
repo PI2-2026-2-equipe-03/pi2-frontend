@@ -1,10 +1,11 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@tanstack/react-query'
-import { Loader2, Lock, Mail, Phone, User } from 'lucide-react'
+import { Loader2, Mail, Phone, User } from 'lucide-react'
 import { useForm, useWatch } from 'react-hook-form'
 import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 
+import { PasswordInput } from '@/components/password-input'
 import { Button } from '@/components/ui/button'
 import {
   Form,
@@ -15,16 +16,62 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { registerUser } from '@/lib/api/auth'
-import { getApiErrorMessage } from '@/lib/api/errors'
+import { env } from '@/env'
+import { registerUser as mockRegisterUser } from '@/lib/api/mocks/auth'
+import { authClient } from '@/lib/auth/client'
+import { saveMockSession } from '@/lib/auth/session'
+import { AuthRequestError, toAuthRequestError } from '@/lib/errors'
+import { formatPhone } from '@/lib/forms/phone-mask'
 import { type SignUpInput, signUpSchema } from '@/lib/schemas/sign-up-schema'
 import { PasswordRequirements } from '@/pages/auth/components/password-requirements'
+
+// o cadastro já deixa o usuário autenticado: o Better Auth tem autoSignIn
+// ligado por padrão e emite a cookie de sessão junto com o 200 do sign-up.
+// por isso a tela segue direto pra /app — mandar pra /sign-in forçaria um
+// segundo login e abandonaria a sessão recém-criada, que ficaria órfã no banco
+// até expirar.
+async function performSignUp(input: SignUpInput): Promise<void> {
+  if (env.VITE_USE_MOCKS) {
+    const response = await mockRegisterUser({
+      name: input.fullName,
+      email: input.email,
+      password: input.password,
+      confirmPassword: input.confirmPassword,
+      phone: input.phone,
+    })
+    saveMockSession({
+      id: response.data.id,
+      name: response.data.name,
+      email: response.data.email,
+    })
+    return
+  }
+
+  const { error } = await authClient.signUp.email({
+    name: input.fullName,
+    email: input.email,
+    password: input.password,
+  })
+
+  if (error) {
+    throw toAuthRequestError(error, 'Não foi possível criar a conta')
+  }
+
+  // mesmo motivo do sign-in: popula o atom reativo antes de navegar, senão o
+  // guard do AppLayout vê null por um instante e devolve pra /sign-in.
+  await authClient.getSession()
+}
 
 export function SignUp() {
   const navigate = useNavigate()
 
   const form = useForm<SignUpInput>({
     resolver: zodResolver(signUpSchema),
+    // onTouched: só mostra erro depois do primeiro blur; a partir daí
+    // revalida a cada tecla. padrão UX moderno (menos agressivo que onChange
+    // from zero mas ainda assim reativo).
+    mode: 'onTouched',
+    reValidateMode: 'onChange',
     defaultValues: {
       fullName: '',
       email: '',
@@ -40,41 +87,31 @@ export function SignUp() {
     name: 'confirmPassword',
   })
 
-  const registerMutation = useMutation({
-    mutationFn: registerUser,
+  const signUpMutation = useMutation({
+    mutationFn: performSignUp,
   })
 
   async function onSubmit(data: SignUpInput) {
     try {
-      const request = registerMutation.mutateAsync({
-        name: data.fullName,
-        email: data.email,
-        password: data.password,
-        confirmPassword: data.confirmPassword,
-        phone: data.phone,
-      })
+      const request = signUpMutation.mutateAsync(data)
       void toast.promise(request, {
         loading: 'Criando conta…',
         success: 'Conta criada com sucesso',
-        error: (error) =>
-          getApiErrorMessage(error, 'Não foi possível criar a conta'),
+        error: (error: Error) => error.message,
       })
       await request
-      navigate('/sign-in', { replace: true })
+      navigate('/app', { replace: true })
     } catch (error) {
-      const message = getApiErrorMessage(
-        error,
-        'Não foi possível criar a conta',
-      )
-      if (/e-mail|já cadastrado/i.test(message)) {
-        form.setError('email', { message })
-      } else {
-        form.setError('root', { message })
-      }
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'Não foi possível criar a conta'
+      const field = error instanceof AuthRequestError ? error.field : undefined
+      form.setError(field ?? 'root', { message })
     }
   }
 
-  const isSubmitting = registerMutation.isPending
+  const isSubmitting = signUpMutation.isPending
 
   return (
     <div className="bg-card border-border w-full max-w-md rounded-xl border p-8 shadow-sm">
@@ -100,9 +137,12 @@ export function SignUp() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Nome completo</FormLabel>
-                <FormControl>
-                  <div className="relative">
-                    <User className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+                <div className="relative">
+                  <User
+                    className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
+                    aria-hidden
+                  />
+                  <FormControl>
                     <Input
                       type="text"
                       autoComplete="name"
@@ -110,8 +150,8 @@ export function SignUp() {
                       className="pl-9"
                       {...field}
                     />
-                  </div>
-                </FormControl>
+                  </FormControl>
+                </div>
                 <FormMessage />
               </FormItem>
             )}
@@ -123,9 +163,12 @@ export function SignUp() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>E-mail</FormLabel>
-                <FormControl>
-                  <div className="relative">
-                    <Mail className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+                <div className="relative">
+                  <Mail
+                    className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
+                    aria-hidden
+                  />
+                  <FormControl>
                     <Input
                       type="email"
                       autoComplete="email"
@@ -133,8 +176,8 @@ export function SignUp() {
                       className="pl-9"
                       {...field}
                     />
-                  </div>
-                </FormControl>
+                  </FormControl>
+                </div>
                 <FormMessage />
               </FormItem>
             )}
@@ -146,18 +189,28 @@ export function SignUp() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Telefone</FormLabel>
-                <FormControl>
-                  <div className="relative">
-                    <Phone className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+                <div className="relative">
+                  <Phone
+                    className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
+                    aria-hidden
+                  />
+                  <FormControl>
                     <Input
                       type="tel"
                       autoComplete="tel"
+                      inputMode="numeric"
                       placeholder="(00) 00000-0000"
                       className="pl-9"
-                      {...field}
+                      name={field.name}
+                      ref={field.ref}
+                      value={field.value}
+                      onBlur={field.onBlur}
+                      onChange={(event) =>
+                        field.onChange(formatPhone(event.target.value))
+                      }
                     />
-                  </div>
-                </FormControl>
+                  </FormControl>
+                </div>
                 <FormMessage />
               </FormItem>
             )}
@@ -170,16 +223,11 @@ export function SignUp() {
               <FormItem>
                 <FormLabel>Senha</FormLabel>
                 <FormControl>
-                  <div className="relative">
-                    <Lock className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
-                    <Input
-                      type="password"
-                      autoComplete="new-password"
-                      placeholder="••••••••"
-                      className="pl-9"
-                      {...field}
-                    />
-                  </div>
+                  <PasswordInput
+                    autoComplete="new-password"
+                    placeholder="••••••••"
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -193,16 +241,11 @@ export function SignUp() {
               <FormItem>
                 <FormLabel>Confirmar senha</FormLabel>
                 <FormControl>
-                  <div className="relative">
-                    <Lock className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
-                    <Input
-                      type="password"
-                      autoComplete="new-password"
-                      placeholder="••••••••"
-                      className="pl-9"
-                      {...field}
-                    />
-                  </div>
+                  <PasswordInput
+                    autoComplete="new-password"
+                    placeholder="••••••••"
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -225,6 +268,7 @@ export function SignUp() {
             type="submit"
             variant="brand"
             disabled={isSubmitting}
+            aria-busy={isSubmitting}
             className="w-full"
           >
             {isSubmitting ? (
@@ -241,7 +285,7 @@ export function SignUp() {
             Já possui uma conta?{' '}
             <Link
               to="/sign-in"
-              className="text-primary rounded-sm font-medium hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-offset-2"
+              className="text-primary focus-visible:ring-ring/50 rounded-sm font-medium hover:underline focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
             >
               Entrar
             </Link>

@@ -55,12 +55,10 @@ export function ListingToolbar({
       data-slot="listing-toolbar"
       data-active-count={activeCount}
       className={cn(
-        'bg-background/85 border-border/60 grid grid-cols-1 gap-3 rounded-xl border p-3 shadow-sm backdrop-blur-md md:items-center md:grid-cols-[var(--listing-toolbar-cols)]',
+        'bg-background/85 border-border/60 grid grid-cols-1 gap-3 rounded-xl border p-3 shadow-sm backdrop-blur-md md:grid-cols-[var(--listing-toolbar-cols)] md:items-center',
         className,
       )}
-      style={
-        { '--listing-toolbar-cols': desktopCols } as CSSProperties
-      }
+      style={{ '--listing-toolbar-cols': desktopCols } as CSSProperties}
     >
       {leading.map((filter) => (
         <div
@@ -135,10 +133,7 @@ export function ListingToolbar({
                   <span className="text-foreground text-sm font-medium">
                     {filter.label}
                   </span>
-                  <div
-                    data-filter-id={filter.id}
-                    data-active={filter.active}
-                  >
+                  <div data-filter-id={filter.id} data-active={filter.active}>
                     {filter.control}
                   </div>
                 </div>

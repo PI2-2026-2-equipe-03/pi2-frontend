@@ -1,4 +1,5 @@
 import path from 'node:path'
+import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 
 import tailwindcss from '@tailwindcss/vite'
@@ -23,12 +24,19 @@ export default defineConfig({
       usePolling: true,
     },
     proxy: {
+      // Better Auth vive em /api/auth/* no backend; mantém o prefixo intacto.
+      // match mais longo tem precedência no proxy do vite, então essa regra
+      // precisa aparecer antes de `/api`.
+      '/api/auth': {
+        target: process.env.API_PROXY_TARGET ?? 'http://127.0.0.1:3000',
+        changeOrigin: true,
+      },
       '/api': {
         // no host: 127.0.0.1 evita IPv6/localhost no Windows.
         // no docker: API_PROXY_TARGET=http://host.docker.internal:3000
         target: process.env.API_PROXY_TARGET ?? 'http://127.0.0.1:3000',
         changeOrigin: true,
-        // api do backend vive na raiz (/login, /replays); o spa chama /api/*
+        // api do backend vive na raiz (/arenas, /quadras, /replays); o spa chama /api/*
         rewrite: (path) => path.replace(/^\/api/, ''),
       },
     },

@@ -4,12 +4,13 @@ import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import { ReplayExpiry } from '@/components/replay-expiry'
+import { ReplayThumb } from '@/components/replay-thumb'
 import { SponsorBadge } from '@/components/sponsor-badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { getApiErrorMessage } from '@/lib/api/errors'
 import { resolveMediaUrl } from '@/lib/api/mappers'
 import { getReplayDownload } from '@/lib/api/replays'
+import { getApiErrorMessage } from '@/lib/errors'
 import type { ReplayView } from '@/lib/types'
 
 type ReplayCardProps = {
@@ -46,28 +47,27 @@ export function ReplayCard({ replay }: ReplayCardProps) {
 
   const downloadMutation = useMutation({
     mutationFn: async () => {
-      try {
-        const response = await getReplayDownload(replay.id)
-        return {
-          url: resolveMediaUrl(response.data.downloadUrl),
-          fileName: response.data.fileName,
-        }
-      } catch (error) {
-        // backend atual só aceita id numérico no /download; usa o url da listagem
-        if (replay.arquivoUrl) {
-          return {
-            url: resolveMediaUrl(replay.arquivoUrl),
-            fileName: `replay-${replay.id}.mp4`,
-          }
-        }
-        throw error
+      // o /download revalida expiração e autorização: um erro aqui precisa
+      // chegar ao usuário em vez de cair no url da listagem.
+      const response = await getReplayDownload(replay.id)
+      return {
+        url: resolveMediaUrl(response.data.downloadUrl),
+        fileName: response.data.fileName ?? `replay-${replay.id}.mp4`,
       }
     },
     onSuccess: (file) => {
       triggerDownload(file.url, file.fileName)
     },
     onError: (error) => {
-      toast.error(getApiErrorMessage(error, 'Não foi possível baixar o replay'))
+      toast.error(
+        getApiErrorMessage(error, 'Não foi possível baixar o replay'),
+        {
+          action: {
+            label: 'Tentar de novo',
+            onClick: () => downloadMutation.mutate(),
+          },
+        },
+      )
     },
   })
 
@@ -80,23 +80,28 @@ export function ReplayCard({ replay }: ReplayCardProps) {
   }
 
   return (
-    <Card className="group border-border/60 shadow-card hover:border-tg-brand-blue/40 hover:shadow-card-hover overflow-hidden rounded-2xl py-0 transition-all duration-200 hover:-translate-y-0.5">
+    <Card className="group border-border/60 shadow-card hover:border-tg-brand-blue/40 hover:shadow-card-hover has-focus-visible:ring-ring/40 relative cursor-pointer overflow-hidden rounded-2xl py-0 transition-all duration-200 hover:-translate-y-0.5 has-focus-visible:ring-4">
+      {/* stretched link: o card inteiro navega sem aninhar os botões num anchor */}
+      <Link
+        to={detailHref}
+        aria-label={`Abrir replay de ${title}`}
+        className="absolute inset-0 z-10 focus-visible:outline-none"
+      />
+
       <div className="relative aspect-video overflow-hidden">
-        <img
-          src={replay.arena.fotoUrl}
-          alt={`Pré-visualização do replay de ${title}`}
-          loading="lazy"
+        <ReplayThumb
+          src={watchUrl}
           className="size-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
 
-        <Link
-          to={detailHref}
-          aria-label={`Abrir replay de ${title}`}
-          className="bg-tg-brand-blue/90 hover:bg-tg-brand-blue focus-visible:ring-ring/60 absolute inset-0 m-auto flex size-14 items-center justify-center rounded-full text-white opacity-0 shadow-lg transition-opacity duration-300 focus-visible:opacity-100 focus-visible:ring-4 focus-visible:outline-none group-hover:opacity-100"
+        <span
+          aria-hidden
+          // mobile: cta sempre visível (não há hover). md+: hover-reveal.
+          className="bg-tg-brand-blue/90 group-hover:bg-tg-brand-blue pointer-events-none absolute inset-0 m-auto flex size-14 items-center justify-center rounded-full text-white opacity-100 shadow-lg transition-opacity duration-300 md:opacity-0 md:group-hover:opacity-100"
         >
           <Play className="size-6 fill-current" />
-        </Link>
+        </span>
 
         <span className="bg-background/90 text-foreground absolute right-2 bottom-2 rounded-md px-2 py-0.5 text-xs tabular-nums backdrop-blur">
           {replay.duration}s
@@ -116,12 +121,9 @@ export function ReplayCard({ replay }: ReplayCardProps) {
       </div>
 
       <div className="space-y-2 p-4">
-        <Link
-          to={detailHref}
-          className="text-foreground group-hover:text-tg-brand-blue line-clamp-1 block font-semibold tracking-tight transition-colors hover:underline"
-        >
+        <p className="text-foreground group-hover:text-tg-brand-blue line-clamp-1 font-semibold tracking-tight transition-colors">
           {title}
-        </Link>
+        </p>
         <div className="text-muted-foreground flex flex-col gap-1 text-xs">
           <span className="flex items-center gap-1">
             <MapPin className="size-3 shrink-0" />
@@ -134,17 +136,20 @@ export function ReplayCard({ replay }: ReplayCardProps) {
         </div>
 
         <div className="flex items-center justify-between pt-2">
-          <Button asChild variant="ghost" size="sm">
-            <Link to={detailHref}>
-              <Play className="size-3.5" />
-              Ver
-            </Link>
-          </Button>
-          <div className="flex gap-1">
+          <span
+            aria-hidden
+            className="text-muted-foreground group-hover:text-tg-brand-blue flex items-center gap-1.5 text-xs font-medium transition-colors"
+          >
+            <Play className="size-3.5" />
+            Ver replay
+          </span>
+          {/* z acima do stretched link pra que as ações recebam o clique */}
+          <div className="relative z-20 flex gap-1">
             <Button
               variant="ghost"
               size="icon-sm"
               aria-label={`Baixar replay de ${title}`}
+              aria-busy={downloadMutation.isPending}
               disabled={downloadMutation.isPending}
               onClick={() => downloadMutation.mutate()}
             >
