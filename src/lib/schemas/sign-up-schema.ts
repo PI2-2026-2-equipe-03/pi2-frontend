@@ -10,7 +10,7 @@ export const signUpSchema = z
     phone: z
       .string()
       .trim()
-      .regex(/^[0-9()+\-\s]{8,20}$/, 'Telefone inválido'),
+      .regex(/^[0-9()+\-\s]{15}$/, 'Telefone inválido'),
     password: z
       .string()
       .min(8, 'A senha deve ter pelo menos 8 dígitos')
