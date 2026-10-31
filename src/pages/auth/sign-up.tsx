@@ -31,27 +31,25 @@ import { PasswordRequirements } from '@/pages/auth/components/password-requireme
 // segundo login e abandonaria a sessão recém-criada, que ficaria órfã no banco
 // até expirar.
 async function performSignUp(input: SignUpInput): Promise<void> {
+  const data = {
+    name: input.fullName,
+    email: input.email,
+    password: input.password,
+    confirmPassword: input.confirmPassword,
+    phone: input.phone,
+  }
+
   if (env.VITE_USE_MOCKS) {
-    const response = await mockRegisterUser({
-      name: input.fullName,
-      email: input.email,
-      password: input.password,
-      confirmPassword: input.confirmPassword,
-      phone: input.phone,
-    })
+    const response = await mockRegisterUser(data)
     saveMockSession({
       id: response.data.id,
       name: response.data.name,
       email: response.data.email,
     })
-    return
+    return;
   }
 
-  const { error } = await authClient.signUp.email({
-    name: input.fullName,
-    email: input.email,
-    password: input.password,
-  })
+  const { error } = await authClient.signUp.email(data)
 
   if (error) {
     throw toAuthRequestError(error, 'Não foi possível criar a conta')
