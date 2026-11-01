@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@tanstack/react-query'
 import { Loader2, Mail } from 'lucide-react'
 import { useForm } from 'react-hook-form'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import { PasswordInput } from '@/components/password-input'
@@ -18,10 +18,17 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { env } from '@/env'
+import { getMe } from '@/lib/api/me'
 import { loginUser as mockLoginUser } from '@/lib/api/mocks/auth'
+import { queryKeys } from '@/lib/api/queries'
 import { authClient } from '@/lib/auth/client'
 import { saveMockSession } from '@/lib/auth/session'
-import { AuthRequestError, toAuthRequestError } from '@/lib/errors'
+import {
+  AuthRequestError,
+  SESSION_EXPIRED_MESSAGE,
+  toAuthRequestError,
+} from '@/lib/errors'
+import { queryClient } from '@/lib/react-query'
 import { type SignInInput, signInSchema } from '@/lib/schemas/sign-in-schema'
 
 async function performSignIn(input: SignInInput): Promise<void> {
@@ -32,6 +39,7 @@ async function performSignIn(input: SignInInput): Promise<void> {
       name: response.data.name,
       email: response.data.email,
       token: response.data.token,
+      role: response.data.role,
     })
     return
   }
@@ -54,8 +62,25 @@ async function performSignIn(input: SignInInput): Promise<void> {
   await authClient.getSession()
 }
 
+// falha ao ler o perfil não invalida o login: /app atende qualquer perfil.
+// staleTime 0 porque a conta pode ter acabado de mudar nesta aba.
+async function homePathAfterSignIn(): Promise<string> {
+  try {
+    const { data } = await queryClient.fetchQuery({
+      queryKey: queryKeys.me,
+      queryFn: getMe,
+      staleTime: 0,
+    })
+    return data.role === 'ADM' ? '/admin' : '/app'
+  } catch {
+    return '/app'
+  }
+}
+
 export function SignIn() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const sessionExpired = searchParams.get('reason') === 'session-expired'
 
   const form = useForm<SignInInput>({
     resolver: zodResolver(signInSchema),
@@ -77,10 +102,10 @@ export function SignIn() {
         error: (error: Error) => error.message,
       })
       await request
-      navigate('/app', { replace: true })
+      navigate(await homePathAfterSignIn(), { replace: true })
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : 'E-mail ou senha inválidos'
+        error instanceof Error ? error.message : 'Usuário ou senha inválidos'
       const field = error instanceof AuthRequestError ? error.field : undefined
       form.setError(field ?? 'root', { message })
     }
@@ -98,6 +123,15 @@ export function SignIn() {
           Acesse para baixar seus replays da arena.
         </p>
       </div>
+
+      {sessionExpired ? (
+        <p
+          role="status"
+          className="bg-muted text-foreground border-border mb-5 rounded-md border p-3 text-sm"
+        >
+          {SESSION_EXPIRED_MESSAGE}
+        </p>
+      ) : null}
 
       <Form {...form}>
         <form

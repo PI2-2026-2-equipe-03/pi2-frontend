@@ -12,6 +12,7 @@ import {
   toQuadra,
   toReplayView,
 } from '@/lib/api/mappers'
+import { getMe } from '@/lib/api/me'
 import {
   deletePatrocinador,
   listPatrocinadores,
@@ -28,11 +29,21 @@ import type {
 } from '@/lib/types'
 
 export const queryKeys = {
+  me: ['me'] as const,
   arenas: ['arenas'] as const,
   quadras: ['quadras'] as const,
   cameras: ['cameras'] as const,
   patrocinadores: ['patrocinadores'] as const,
   replays: ['replays'] as const,
+}
+
+export function useCurrentUser(enabled = true) {
+  return useQuery({
+    queryKey: queryKeys.me,
+    queryFn: getMe,
+    enabled,
+    select: (response) => response.data,
+  })
 }
 
 export function useArenas() {

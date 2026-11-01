@@ -1,8 +1,10 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 import { env } from '@/env'
 import { authClient } from '@/lib/auth/client'
 import { queryClient } from '@/lib/react-query'
+import type { UserRole } from '@/lib/types'
 
 // sessão em localStorage usada APENAS no modo mocks (VITE_USE_MOCKS=true).
 // no modo real a sessão vive na cookie HttpOnly do Better Auth e é resolvida
@@ -14,6 +16,7 @@ export type MockSession = {
   name: string
   email: string
   token?: string
+  role?: UserRole
 }
 
 export function getMockSession(): MockSession | null {
@@ -33,6 +36,7 @@ export function getMockSession(): MockSession | null {
       name: parsed.name,
       email: parsed.email,
       token: typeof parsed.token === 'string' ? parsed.token : undefined,
+      role: parsed.role,
     }
   } catch {
     return null
@@ -128,10 +132,54 @@ export function useAuthSession(): AuthSessionState {
 // também limpa o cache do react-query pra evitar vazamento de dados da sessão
 // anterior pro próximo usuário que logar na mesma aba.
 export async function signOut(): Promise<void> {
+  signingOut = true
   if (env.VITE_USE_MOCKS) {
     clearMockSession()
   } else {
     await authClient.signOut()
   }
   queryClient.clear()
+}
+
+const SESSION_EXPIRED_PATH = '/sign-in?reason=session-expired'
+
+// distingue o "sair" voluntário da sessão que sumiu sozinha
+let signingOut = false
+let expiring = false
+
+// vários 401 simultâneos chegam aqui: só o primeiro age. a recarga completa zera
+// o cache em memória; o sign-out garante que o cookie não ressuscite a sessão.
+// durante o logout voluntário, um 401 tardio é esperado e não é expiração.
+export function expireSession(): void {
+  if (expiring || signingOut) return
+  expiring = true
+  void authClient.signOut().finally(() => {
+    window.location.assign(SESSION_EXPIRED_PATH)
+  })
+}
+
+// guard das áreas autenticadas: sessão ausente volta para o login, com aviso de
+// expiração quando havia sessão e o usuário não pediu para sair.
+export function useSessionGuard(): AuthSessionState {
+  const state = useAuthSession()
+  const navigate = useNavigate()
+  const hadSession = useRef(false)
+
+  useEffect(() => {
+    signingOut = false
+  }, [])
+
+  useEffect(() => {
+    if (state.data) {
+      hadSession.current = true
+      return
+    }
+    if (state.isPending) return
+    navigate(
+      hadSession.current && !signingOut ? SESSION_EXPIRED_PATH : '/sign-in',
+      { replace: true },
+    )
+  }, [state.data, state.isPending, navigate])
+
+  return state
 }

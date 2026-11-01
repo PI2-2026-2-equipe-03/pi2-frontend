@@ -4,6 +4,9 @@
 // o backend emite UUID em toda entidade — nada de id numérico no front.
 export type Id = string
 
+// códigos da tabela perfil, os mesmos que o backend usa para autorizar
+export type UserRole = 'ADM' | 'CLI' | 'USR'
+
 export type Arena = {
   id: Id
   clienteId: Id

@@ -3,6 +3,7 @@ import type { LucideIcon } from 'lucide-react'
 import {
   Film,
   Home,
+  LayoutDashboard,
   LayoutGrid,
   LogOut,
   MapPin,
@@ -11,7 +12,7 @@ import {
   User,
   X,
 } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 
 import { Logo } from '@/components/logo'
@@ -38,18 +39,33 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
-import { signOut, useAuthSession } from '@/lib/auth/session'
+import { useCurrentUser } from '@/lib/api/queries'
+import { signOut, useSessionGuard } from '@/lib/auth/session'
 import { useMotionSafe } from '@/lib/motion'
+import type { UserRole } from '@/lib/types'
 import { useScrolled } from '@/lib/use-scrolled'
 import { cn } from '@/lib/utils'
 
-type NavItem = { label: string; to: string; icon: LucideIcon; end?: boolean }
+type NavItem = {
+  label: string
+  to: string
+  icon: LucideIcon
+  end?: boolean
+  // sem roles: visível para qualquer perfil
+  roles?: readonly UserRole[]
+}
 
 const NAV_ITEMS: readonly NavItem[] = [
   { label: 'Início', to: '/app', icon: Home, end: true },
   { label: 'Replays', to: '/app/replays', icon: Film },
   { label: 'Arenas', to: '/app/arenas', icon: MapPin },
   { label: 'Quadras', to: '/app/quadras', icon: LayoutGrid },
+  {
+    label: 'Gestão',
+    to: '/admin',
+    icon: LayoutDashboard,
+    roles: ['ADM', 'CLI'],
+  },
 ]
 
 function NavItems({
@@ -59,9 +75,15 @@ function NavItems({
   onNavigate?: () => void
   pillId?: string
 }) {
+  const { data: currentUser } = useCurrentUser()
+  const items = NAV_ITEMS.filter(
+    (item) =>
+      !item.roles || (currentUser && item.roles.includes(currentUser.role)),
+  )
+
   return (
     <nav className="flex flex-col gap-1 px-3">
-      {NAV_ITEMS.map((item) => {
+      {items.map((item) => {
         const Icon = item.icon
         return (
           <NavLink
@@ -138,17 +160,10 @@ const headerIconClasses =
 
 export function AppLayout() {
   const navigate = useNavigate()
-  const { data: session, isPending } = useAuthSession()
+  const { data: session, isPending } = useSessionGuard()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const motionSafe = useMotionSafe()
   const scrolled = useScrolled(8)
-
-  // guard: sessão ausente após o fetch inicial => volta para /sign-in.
-  useEffect(() => {
-    if (!isPending && !session) {
-      navigate('/sign-in', { replace: true })
-    }
-  }, [isPending, session, navigate])
 
   function closeMobileMenu() {
     setMobileMenuOpen(false)

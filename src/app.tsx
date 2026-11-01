@@ -2,6 +2,7 @@ import { QueryClientProvider } from '@tanstack/react-query'
 import { MotionConfig } from 'framer-motion'
 import { RouterProvider } from 'react-router-dom'
 
+import { ForbiddenDialog } from '@/components/forbidden-dialog'
 import { ThemeProvider } from '@/components/theme/theme-provider'
 import { Toaster } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
@@ -18,6 +19,7 @@ export function App() {
         <TooltipProvider>
           <MotionConfig reducedMotion="user">
             <RouterProvider router={router} />
+            <ForbiddenDialog />
             <Toaster position="top-right" richColors closeButton expand />
           </MotionConfig>
         </TooltipProvider>

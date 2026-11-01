@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
-import { LogOut, Menu, User } from 'lucide-react'
-import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { ArrowLeft, LogOut, Menu, User } from 'lucide-react'
+import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
 
 import { Logo } from '@/components/logo'
 import { RouteTransition } from '@/components/route-transition'
@@ -13,18 +13,26 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet'
+import { useCurrentUser } from '@/lib/api/queries'
 import { signOut } from '@/lib/auth/session'
+import type { UserRole } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
 // itens do menu lateral — painel admin (dashboard / câmeras / quadras / usuários / replays)
-type NavItem = { label: string; to: string; end?: boolean }
+type NavItem = {
+  label: string
+  to: string
+  end?: boolean
+  // sem roles: visível para qualquer perfil da área de gestão
+  roles?: readonly UserRole[]
+}
 
 const NAV_ITEMS: readonly NavItem[] = [
   { label: 'Dashboard', to: '/admin', end: true },
   { label: 'Câmeras', to: '/admin/cameras' },
   { label: 'Quadras', to: '/admin/quadras' },
   { label: 'Patrocinadores', to: '/admin/patrocinadores' },
-  { label: 'Usuários', to: '/admin/usuarios' },
+  { label: 'Usuários', to: '/admin/usuarios', roles: ['ADM'] },
   { label: 'Replays', to: '/admin/replays' },
 ]
 
@@ -35,9 +43,15 @@ function AdminNav({
   onNavigate?: () => void
   pillId?: string
 }) {
+  const { data: currentUser } = useCurrentUser()
+  const items = NAV_ITEMS.filter(
+    (item) =>
+      !item.roles || (currentUser && item.roles.includes(currentUser.role)),
+  )
+
   return (
     <nav className="flex flex-col gap-2 px-3">
-      {NAV_ITEMS.map((item) => (
+      {items.map((item) => (
         <NavLink
           key={item.to}
           to={item.to}
@@ -81,7 +95,15 @@ function AdminFooter({ onNavigate }: { onNavigate?: () => void }) {
   }
 
   return (
-    <div className="px-3">
+    <div className="flex flex-col gap-1 px-3">
+      <Link
+        to="/app"
+        onClick={onNavigate}
+        className="text-sidebar-foreground/90 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground flex items-center gap-2 rounded-md px-5 py-2 text-left text-base font-medium transition-colors"
+      >
+        <ArrowLeft className="size-4" />
+        Voltar ao app
+      </Link>
       <button
         type="button"
         onClick={() => {
@@ -100,6 +122,8 @@ function AdminFooter({ onNavigate }: { onNavigate?: () => void }) {
 // container tem altura fixa da viewport (h-screen); scroll acontece dentro do <main>,
 // para header e sidebar ficarem sempre ancorados independentemente do tamanho do conteúdo.
 export function AdminLayout() {
+  const { data: currentUser } = useCurrentUser()
+
   return (
     <div className="bg-tg-brand-bg text-foreground flex min-h-svh flex-col">
       <header className="bg-tg-brand-blue z-sticky sticky top-0 flex h-16 shrink-0 items-center justify-between px-4 text-white shadow-sm md:px-6">
@@ -144,7 +168,9 @@ export function AdminLayout() {
               <User className="size-4" />
             </span>
             {/* em 375px o rótulo encostava na logo; o avatar já identifica */}
-            <span className="hidden text-sm font-medium sm:inline">Admin</span>
+            <span className="hidden max-w-48 truncate text-sm font-medium sm:inline">
+              {currentUser?.name}
+            </span>
           </div>
           <ThemeToggle />
         </div>

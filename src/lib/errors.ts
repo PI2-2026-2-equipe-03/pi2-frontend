@@ -9,7 +9,13 @@ export type AuthFailure = {
   code?: string
   message?: string
   status?: number
+  // o backend reembala os erros do Better Auth em { error: { code, message } }
+  error?: { code?: string }
 }
+
+export const FORBIDDEN_MESSAGE =
+  'Você não possui permissão para acessar este recurso'
+export const SESSION_EXPIRED_MESSAGE = 'Sua sessão expirou. Entre novamente.'
 
 export type AuthField = 'email' | 'password'
 
@@ -21,8 +27,8 @@ const TOO_MANY_ATTEMPTS_MESSAGE =
   'Muitas tentativas seguidas. Aguarde alguns minutos e tente novamente.'
 
 const AUTH_MESSAGES: Record<string, string> = {
-  INVALID_EMAIL_OR_PASSWORD: 'E-mail ou senha inválidos',
-  INVALID_PASSWORD: 'E-mail ou senha inválidos',
+  INVALID_EMAIL_OR_PASSWORD: 'Usuário ou senha inválidos',
+  INVALID_PASSWORD: 'Usuário ou senha inválidos',
   EMAIL_NOT_VERIFIED: 'Confirme seu e-mail antes de entrar',
   USER_NOT_FOUND: 'Conta não encontrada',
   USER_ALREADY_EXISTS: 'E-mail já cadastrado no sistema',
@@ -30,7 +36,7 @@ const AUTH_MESSAGES: Record<string, string> = {
   INVALID_EMAIL: 'E-mail inválido',
   PASSWORD_TOO_SHORT: 'A senha é muito curta',
   PASSWORD_TOO_LONG: 'A senha é muito longa',
-  SESSION_EXPIRED: 'Sua sessão expirou. Entre novamente.',
+  SESSION_EXPIRED: SESSION_EXPIRED_MESSAGE,
   FAILED_TO_CREATE_USER: 'Não foi possível criar a conta',
   FAILED_TO_CREATE_SESSION: 'Não foi possível iniciar a sessão',
 }
@@ -58,13 +64,18 @@ export class AuthRequestError extends Error {
   }
 }
 
+function authFailureCode(failure: AuthFailure): string | undefined {
+  return failure.code ?? failure.error?.code
+}
+
 // traduz a falha do authClient. mensagens não mapeadas caem no fallback do
 // chamador em vez de vazar o texto em inglês da biblioteca para a tela.
 export function getAuthErrorMessage(
   failure: AuthFailure,
   fallback: string,
 ): string {
-  const mapped = failure.code ? AUTH_MESSAGES[failure.code] : undefined
+  const code = authFailureCode(failure)
+  const mapped = code ? AUTH_MESSAGES[code] : undefined
   if (mapped) return mapped
   // status ausente/zero = a request nunca chegou ao servidor
   if (!failure.status) return NETWORK_MESSAGE
@@ -80,9 +91,10 @@ export function toAuthRequestError(
   failure: AuthFailure,
   fallback: string,
 ): AuthRequestError {
+  const code = authFailureCode(failure)
   return new AuthRequestError(
     getAuthErrorMessage(failure, fallback),
-    failure.code ? AUTH_FIELDS[failure.code] : undefined,
+    code ? AUTH_FIELDS[code] : undefined,
   )
 }
 
@@ -93,14 +105,24 @@ export function getApiErrorMessage(error: unknown, fallback: string): string {
       : fallback
   }
 
+  // textos neutros de propósito: o motivo detalhado do backend não vai para a tela
+  if (error.response?.status === 401) return SESSION_EXPIRED_MESSAGE
+  if (error.response?.status === 403) return FORBIDDEN_MESSAGE
+
   const data = error.response?.data
   if (data?.message?.trim()) return data.message
   if (data?.error?.message?.trim()) return data.error.message
   if (!error.response) return NETWORK_MESSAGE
   if (error.response.status >= 500) return SERVER_MESSAGE
-  if (error.response.status === 401) {
-    return 'Sua sessão expirou. Entre novamente.'
-  }
 
   return fallback
+}
+
+export function isForbiddenError(error: unknown): boolean {
+  return Axios.isAxiosError(error) && error.response?.status === 403
+}
+
+export function isClientError(error: unknown): boolean {
+  if (!Axios.isAxiosError(error) || !error.response) return false
+  return error.response.status >= 400 && error.response.status < 500
 }

@@ -21,7 +21,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { resolveMediaUrl } from '@/lib/api/mappers'
 import { useReplays } from '@/lib/api/queries'
 import { getReplayDownload } from '@/lib/api/replays'
-import { getApiErrorMessage } from '@/lib/errors'
+import { getApiErrorMessage, isForbiddenError } from '@/lib/errors'
 
 const dateFormatter = new Intl.DateTimeFormat('pt-BR', {
   day: '2-digit',
@@ -58,6 +58,8 @@ export function ReplayDetail() {
       toast.success('Download iniciado')
     },
     onError: (error) => {
+      // o modal global de 403 já informou
+      if (isForbiddenError(error)) return
       toast.error(
         getApiErrorMessage(error, 'Não foi possível baixar o replay'),
         {

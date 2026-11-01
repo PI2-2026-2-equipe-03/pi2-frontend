@@ -2,6 +2,7 @@
 import { NuqsAdapter } from 'nuqs/adapters/react-router/v7'
 import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom'
 
+import { RequireRole } from '@/components/require-role'
 import { AdminLayout } from '@/pages/_layouts/admin'
 import { AppLayout } from '@/pages/_layouts/app'
 import { AuthLayout } from '@/pages/_layouts/auth'
@@ -54,7 +55,11 @@ export const router = createBrowserRouter([
       },
       {
         path: '/admin',
-        element: <AdminLayout />,
+        element: (
+          <RequireRole roles={['ADM', 'CLI']}>
+            <AdminLayout />
+          </RequireRole>
+        ),
         children: [
           { index: true, element: <Dashboard /> },
           { path: 'quadras', element: <AdminQuadras /> },
