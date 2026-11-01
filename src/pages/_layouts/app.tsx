@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import type { LucideIcon } from 'lucide-react'
 import {
+  Briefcase,
   Film,
   Home,
   LayoutDashboard,
@@ -13,7 +14,7 @@ import {
   X,
 } from 'lucide-react'
 import { useState } from 'react'
-import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
 
 import { Logo } from '@/components/logo'
 import { RouteTransition } from '@/components/route-transition'
@@ -60,6 +61,12 @@ const NAV_ITEMS: readonly NavItem[] = [
   { label: 'Replays', to: '/app/replays', icon: Film },
   { label: 'Arenas', to: '/app/arenas', icon: MapPin },
   { label: 'Quadras', to: '/app/quadras', icon: LayoutGrid },
+  {
+    label: 'Solicitar gestão',
+    to: '/app/solicitar-gestor',
+    icon: Briefcase,
+    roles: ['USR'],
+  },
   {
     label: 'Gestão',
     to: '/admin',
@@ -131,15 +138,14 @@ function NavFooter({ onNavigate }: { onNavigate?: () => void }) {
 
   return (
     <div className="flex flex-col gap-1 px-3">
-      {/* perfil ainda não tem tela; desabilitado pra não parecer clicável */}
-      <button
-        type="button"
-        disabled
-        className="text-sidebar-foreground/90 flex items-center gap-2 rounded-md px-3 py-2 text-left text-sm font-medium opacity-50"
+      <Link
+        to="/app/perfil"
+        onClick={onNavigate}
+        className="text-sidebar-foreground/90 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground flex items-center gap-2 rounded-md px-3 py-2 text-left text-sm font-medium transition-colors"
       >
         <User className="size-4" />
         Perfil
-      </button>
+      </Link>
       <button
         type="button"
         onClick={() => {
@@ -273,9 +279,11 @@ export function AppLayout() {
                 </span>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem disabled>
-                <User className="size-4" />
-                Meu perfil
+              <DropdownMenuItem asChild>
+                <Link to="/app/perfil">
+                  <User className="size-4" />
+                  Meu perfil
+                </Link>
               </DropdownMenuItem>
               <DropdownMenuItem disabled>
                 <Settings className="size-4" />
