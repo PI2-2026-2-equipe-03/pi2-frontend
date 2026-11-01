@@ -6,6 +6,10 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { listArenas } from '@/lib/api/arenas'
 import { deleteCamera, listCameras } from '@/lib/api/cameras'
 import {
+  createManagerRequest,
+  type ManagerRequestBody,
+} from '@/lib/api/manager-requests'
+import {
   toArena,
   toCamera,
   toPatrocinador,
@@ -13,6 +17,7 @@ import {
   toReplayView,
 } from '@/lib/api/mappers'
 import { getMe } from '@/lib/api/me'
+import { getAdminMetrics, getManagerMetrics } from '@/lib/api/metrics'
 import {
   deletePatrocinador,
   listPatrocinadores,
@@ -35,6 +40,8 @@ export const queryKeys = {
   cameras: ['cameras'] as const,
   patrocinadores: ['patrocinadores'] as const,
   replays: ['replays'] as const,
+  adminMetrics: ['metrics', 'admin'] as const,
+  managerMetrics: ['metrics', 'manager'] as const,
 }
 
 export function useCurrentUser(enabled = true) {
@@ -83,6 +90,29 @@ export function useReplays() {
     queryKey: queryKeys.replays,
     queryFn: listReplays,
     select: (response): ReplayView[] => response.data.map(toReplayView),
+  })
+}
+
+// cada rota só aceita o seu perfil: disparar a outra abriria o modal de 403
+export function useAdminMetrics(enabled: boolean) {
+  return useQuery({
+    queryKey: queryKeys.adminMetrics,
+    queryFn: getAdminMetrics,
+    enabled,
+  })
+}
+
+export function useManagerMetrics(enabled: boolean) {
+  return useQuery({
+    queryKey: queryKeys.managerMetrics,
+    queryFn: getManagerMetrics,
+    enabled,
+  })
+}
+
+export function useCreateManagerRequest() {
+  return useMutation({
+    mutationFn: (body: ManagerRequestBody) => createManagerRequest(body),
   })
 }
 

@@ -11,9 +11,11 @@ import { AdminPatrocinadores } from '@/pages/admin/patrocinadores'
 import { AdminQuadras } from '@/pages/admin/quadras'
 import { Arenas } from '@/pages/app/arenas'
 import { Home } from '@/pages/app/home'
+import { Perfil } from '@/pages/app/perfil'
 import { Quadras } from '@/pages/app/quadras'
 import { ReplayDetail } from '@/pages/app/replay-detail'
 import { Replays } from '@/pages/app/replays'
+import { SolicitarGestor } from '@/pages/app/solicitar-gestor'
 import { ForgotPassword } from '@/pages/auth/forgot-password'
 import { ResetPassword } from '@/pages/auth/reset-password'
 import { SignIn } from '@/pages/auth/sign-in'
@@ -51,6 +53,15 @@ export const router = createBrowserRouter([
           { path: 'replays/:id', element: <ReplayDetail /> },
           { path: 'arenas', element: <Arenas /> },
           { path: 'quadras', element: <Quadras /> },
+          { path: 'perfil', element: <Perfil /> },
+          {
+            path: 'solicitar-gestor',
+            element: (
+              <RequireRole roles={['USR']}>
+                <SolicitarGestor />
+              </RequireRole>
+            ),
+          },
         ],
       },
       {
