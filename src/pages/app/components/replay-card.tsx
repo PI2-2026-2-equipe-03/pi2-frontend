@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { resolveMediaUrl } from '@/lib/api/mappers'
 import { getReplayDownload } from '@/lib/api/replays'
-import { getApiErrorMessage } from '@/lib/errors'
+import { getApiErrorMessage, isForbiddenError } from '@/lib/errors'
 import type { ReplayView } from '@/lib/types'
 
 type ReplayCardProps = {
@@ -59,6 +59,8 @@ export function ReplayCard({ replay }: ReplayCardProps) {
       triggerDownload(file.url, file.fileName)
     },
     onError: (error) => {
+      // o modal global de 403 já informou
+      if (isForbiddenError(error)) return
       toast.error(
         getApiErrorMessage(error, 'Não foi possível baixar o replay'),
         {

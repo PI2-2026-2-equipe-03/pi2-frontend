@@ -2,7 +2,7 @@ import { RefreshCw, WifiOff } from 'lucide-react'
 
 import { EmptyState } from '@/components/empty-state'
 import { Button } from '@/components/ui/button'
-import { getApiErrorMessage } from '@/lib/errors'
+import { getApiErrorMessage, isForbiddenError } from '@/lib/errors'
 import { cn } from '@/lib/utils'
 
 type QueryErrorStateProps = {
@@ -27,16 +27,19 @@ export function QueryErrorState({
         error,
         'Confira se a API está no ar e tente novamente.',
       )}
+      // tentar de novo não muda a permissão de ninguém
       action={
-        <Button
-          variant="brandOutline"
-          onClick={onRetry}
-          disabled={isRetrying}
-          aria-busy={isRetrying}
-        >
-          <RefreshCw className={cn('size-4', isRetrying && 'animate-spin')} />
-          Tentar novamente
-        </Button>
+        isForbiddenError(error) ? undefined : (
+          <Button
+            variant="brandOutline"
+            onClick={onRetry}
+            disabled={isRetrying}
+            aria-busy={isRetrying}
+          >
+            <RefreshCw className={cn('size-4', isRetrying && 'animate-spin')} />
+            Tentar novamente
+          </Button>
+        )
       }
     />
   )

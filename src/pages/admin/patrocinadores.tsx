@@ -22,7 +22,7 @@ import {
   usePatrocinadores,
   useQuadras,
 } from '@/lib/api/queries'
-import { getApiErrorMessage } from '@/lib/errors'
+import { getApiErrorMessage, isForbiddenError } from '@/lib/errors'
 import type { Id, PatrocinadorView, Quadra } from '@/lib/types'
 
 import { AdminPageHeader } from './components/admin-page-header'
@@ -119,6 +119,11 @@ export function AdminPatrocinadores() {
         toast.success('Patrocinador excluído')
       },
       onError: (error) => {
+        // o modal global de 403 assume daqui: excluir de novo não adiantaria
+        if (isForbiddenError(error)) {
+          setDialogOpen(false)
+          return
+        }
         toast.error('Não foi possível excluir', {
           description: getApiErrorMessage(error, 'Tente novamente.'),
         })
