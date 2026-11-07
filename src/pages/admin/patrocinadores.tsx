@@ -89,7 +89,7 @@ function DeleteButton({
   )
 }
 
-// tela de gestão de patrocinadores — consulta + exclusão (F3-03, RF-07)
+// tela de gestão de patrocinadores: consulta + exclusão (F3-03, RF-07)
 export function AdminPatrocinadores() {
   const patrocinadoresQuery = usePatrocinadores()
   // só usado nos rótulos: falha em /quadras não pode esconder os patrocinadores

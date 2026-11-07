@@ -4,9 +4,8 @@ import Axios from 'axios'
 import { showForbidden } from '@/lib/auth/forbidden-signal'
 import { expireSession } from '@/lib/auth/session'
 
-// withCredentials: true inclui a cookie da sessão (Better Auth) em toda chamada.
-// em dev as calls vão para /api/* via proxy do vite — same-origin, cookie HttpOnly
-// chega sem precisar de CORS. em prod exige CORS com credentials no backend.
+// withCredentials inclui a cookie de sessão (Better Auth) em toda chamada.
+// em dev o proxy do vite resolve same-origin; em prod exige CORS com credentials.
 export const axiosInstance = Axios.create({
   baseURL: import.meta.env.VITE_API_URL ?? '/api',
   withCredentials: true,

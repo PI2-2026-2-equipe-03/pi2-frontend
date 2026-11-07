@@ -13,9 +13,7 @@ type MediaPlaceholderProps = {
   className?: string
 }
 
-// ausência de mídia é estado legítimo, não buraco a tapar com foto de terceiro:
-// uma quadra aleatória no lugar da real passaria por conteúdo verdadeiro.
-// local e vetorial — sem rede, sem licença, e acompanha o tema.
+// placeholder local e vetorial, sem rede e sem licença
 export function MediaPlaceholder({ kind, className }: MediaPlaceholderProps) {
   const Icon = ICONS[kind]
 

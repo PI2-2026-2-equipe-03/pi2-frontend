@@ -7,8 +7,7 @@ import type { Arena } from '@/lib/types'
 
 type ArenaCardProps = {
   arena: Arena
-  // contagem é projeção da UI, não campo da entidade — quem renderiza já tem a
-  // lista de quadras carregada e passa o número pronto.
+  // quem renderiza passa o número pronto (não é campo da entidade)
   quadrasCount?: number
 }
 

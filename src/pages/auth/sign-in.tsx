@@ -56,9 +56,8 @@ async function performSignIn(input: SignInInput): Promise<void> {
     throw toAuthRequestError(error, 'Não foi possível entrar')
   }
 
-  // garante que o atom reativo do Better Auth está populado antes do caller
-  // navegar — sem isso o useSession do guard pode retornar null-por-um-instante
-  // e disparar redirect de volta pra /sign-in no primeiro login.
+  // garante que o atom do Better Auth está populado antes de navegar,
+  // senão o guard pode retornar null e redirecionar de volta.
   await authClient.getSession()
 }
 

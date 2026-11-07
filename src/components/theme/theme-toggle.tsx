@@ -12,7 +12,7 @@ type ThemeToggleProps = {
   className?: string
 }
 
-// alterna tema claro/escuro — atende rnf-01
+// alterna tema claro/escuro (rnf-01)
 export function ThemeToggle({ className }: ThemeToggleProps) {
   const { resolvedTheme, setTheme } = useTheme()
   const isDark = resolvedTheme === 'dark'

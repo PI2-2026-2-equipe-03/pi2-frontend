@@ -10,7 +10,7 @@ type StatCardProps = {
   hintVariant?: 'success' | 'muted'
 }
 
-// card de kpi do painel — ícone + título + valor + rodapé opcional
+// card de kpi do painel: ícone + título + valor + rodapé opcional
 export function StatCard({
   icon: Icon,
   title,

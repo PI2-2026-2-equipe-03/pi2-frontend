@@ -8,8 +8,7 @@ type PasswordRequirementsProps = {
   confirmPassword: string
 }
 
-// checklist visual da senha — feedback em tempo real enquanto o usuário digita.
-// delega os critérios ao helper em @/lib/forms/password-rules.
+// checklist visual da senha, feedback em tempo real
 export function PasswordRequirements({
   password,
   confirmPassword,

@@ -144,7 +144,7 @@ export function Home() {
           <EmptyState
             icon={SearchX}
             title="Nenhuma quadra encontrada"
-            description="Tente outro termo — nome da quadra, da arena ou da cidade."
+            description="Tente outro termo: nome da quadra, da arena ou da cidade."
           />
         ) : (
           <section className="flex flex-col gap-4">

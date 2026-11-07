@@ -7,8 +7,7 @@ type ReplayPlayerProps = {
   className?: string
 }
 
-// controls nativos de propósito: o browser já entrega fullscreen, PiP, atalhos de
-// teclado e legenda de acessibilidade — reimplementar isso só adiciona bug.
+// controls nativos de propósito: o browser já entrega fullscreen, PiP e atalhos
 export function ReplayPlayer({ src, label, className }: ReplayPlayerProps) {
   const [failed, setFailed] = useState(false)
 

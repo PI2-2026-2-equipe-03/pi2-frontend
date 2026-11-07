@@ -85,7 +85,7 @@ function TextField({
   )
 }
 
-// tela de solicitação de gestão — o usuário comum pede, o administrador analisa
+// tela de solicitação de gestão
 export function SolicitarGestor() {
   const createRequest = useCreateManagerRequest()
 

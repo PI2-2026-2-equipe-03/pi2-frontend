@@ -1,4 +1,4 @@
-// mocks locais para auth — ativados por VITE_USE_MOCKS=true.
+// mocks locais para auth, ativados por VITE_USE_MOCKS=true.
 // o fluxo real usa `@/lib/auth/client` (Better Auth) e não passa por aqui.
 import { getMockSession } from '@/lib/auth/session'
 import type { UserRole } from '@/lib/types'

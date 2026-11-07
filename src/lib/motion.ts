@@ -26,14 +26,12 @@ export const transitions = {
   },
 } as const
 
-// respeita prefers-reduced-motion do sistema.
-// devolve um wrapper que retorna variants "estáticas" (sem transform/opacity)
-// quando o usuário pediu para reduzir movimento — mantém contraste sem parar animações inteiras.
+// respeita prefers-reduced-motion do sistema
 export function useMotionSafe() {
   const shouldReduce = useReducedMotion()
   return {
     shouldReduce,
-    // aplica em cada campo initial/animate — devolve identity quando reduzido.
+    // devolve undefined quando reduced motion está ativo
     prop<T>(value: T): T | undefined {
       return shouldReduce ? undefined : value
     },

@@ -6,12 +6,11 @@ import { cn } from '@/lib/utils'
 
 type LogoProps = {
   className?: string
-  // destino opcional — quando presente, a logo vira link clicável.
-  // cada layout escolhe seu alvo (/sign-in nas telas de auth, /app no cliente, /admin no admin).
+  // quando presente, a logo vira link clicável
   to?: string
 }
 
-// wordmark tagravado — "g" em amarelo (marca) com micro-wiggle no hover.
+// wordmark tagravado: "G" em amarelo (marca) com wiggle no hover
 export function Logo({ className, to }: LogoProps) {
   const { shouldReduce } = useMotionSafe()
 

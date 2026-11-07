@@ -135,8 +135,7 @@ function ManagerOverview({ metrics }: { metrics: ManagerMetricsDto }) {
   )
 }
 
-// tela dashboard — métricas do perfil logado. o guard de /admin garante o perfil
-// antes de montar a tela, então só a query do perfil certo é disparada.
+// tela dashboard: métricas do perfil logado
 export function Dashboard() {
   const { data: currentUser } = useCurrentUser()
   const isAdmin = currentUser?.role === 'ADM'

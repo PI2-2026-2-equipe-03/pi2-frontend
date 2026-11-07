@@ -1,7 +1,4 @@
-// urls unsplash consumidas SÓ pelos mocks, que simulam um backend com uploads
-// já resolvidos. em modo API o campo vem null e a UI usa <MediaPlaceholder>.
-// nenhuma tela depende deste arquivo em runtime — rede de terceiro fora do
-// caminho crítico de render.
+// urls unsplash usadas só pelos mocks (em modo API o campo vem null)
 const UNSPLASH_BASE = 'https://images.unsplash.com'
 const q = (id: string, w = 800) =>
   `${UNSPLASH_BASE}/${id}?auto=format&fit=crop&w=${w}&q=80`

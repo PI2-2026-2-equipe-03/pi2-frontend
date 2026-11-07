@@ -1,8 +1,6 @@
 import { passwordComplexityRegex } from '@/lib/schemas/password'
 
-// critérios de senha compartilhados entre o schema de validação e a lista
-// visual de requisitos; mantém o "o que conta como senha válida" num só
-// lugar — mudança aqui propaga pra toda a aplicação.
+// critérios de senha compartilhados entre schema e UI
 export type PasswordRuleKey = 'length' | 'complexity' | 'match'
 
 export type PasswordRule = {

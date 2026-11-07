@@ -1,4 +1,4 @@
-# pi2-frontend — TaGravado
+# pi2-frontend - TaGravado
 
 SPA (Single Page Application) do **TaGravado**, sistema de replay para quadras esportivas. Este repositório contém apenas a camada de interface; a API está em [pi2-backend](https://github.com/PI2-2026-2-equipe-03/pi2-backend). Para a visão geral do projeto (contexto, equipe, roadmap), veja [PI2-2026-2-equipe-03](https://github.com/PI2-2026-2-equipe-03/PI2-2026-2-equipe-03).
 
@@ -32,7 +32,7 @@ Ver [docs/stack-frontend.md](docs/stack-frontend.md) para a justificativa comple
 
 ## Quickstart
 
-### Opção 1 — Docker (recomendado)
+### Opção 1: Docker (recomendado)
 
 Requer Docker + Docker Compose.
 
@@ -44,7 +44,7 @@ docker compose up --build  # primeira vez (ou após instalar nova dependência)
 docker compose up          # uso diário → http://localhost:5173
 ```
 
-### Opção 2 — Node local
+### Opção 2: Node local
 
 Requer Node.js 22+.
 
@@ -84,7 +84,7 @@ Convenções:
 - Arquivos em kebab-case; named exports (nada de `default export`).
 - Comentários curtos, em pt-BR, em caixa baixa.
 - Path alias `@/` → `src/`.
-- Sem CSS Modules / CSS-in-JS — só Tailwind + tokens do shadcn.
+- Sem CSS Modules / CSS-in-JS, só Tailwind + tokens do shadcn.
 
 ## Time
 

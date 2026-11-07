@@ -47,7 +47,7 @@ export function saveMockSession(session: MockSession): void {
   try {
     localStorage.setItem(SESSION_KEY, JSON.stringify(session))
   } catch {
-    // quota / modo privado — login ainda funciona nesta aba
+    // quota / modo privado: login ainda funciona nesta aba
   }
 }
 
@@ -74,12 +74,8 @@ export type AuthSessionState = {
 // authClient.useSession para respeitar as regras de hooks; no modo mocks o
 // resultado é ignorado em favor do localStorage.
 //
-// a montagem força uma leitura explícita de sessão (authClient.getSession)
-// antes de decidir "não autenticado". enquanto essa leitura não responde,
-// isPending permanece true. isso cobre o race entre signIn.email terminar
-// e o store reativo do Better Auth atualizar o atom — sem essa trava, o
-// guard do AppLayout vê { data: null, isPending: false } por um instante
-// no primeiro login e redireciona de volta pra /sign-in.
+// força getSession() antes de decidir "não autenticado".
+// sem isso o guard pode ver null por um instante no primeiro login e redirecionar.
 export function useAuthSession(): AuthSessionState {
   const live = authClient.useSession()
   const [initialProbeDone, setInitialProbeDone] = useState(env.VITE_USE_MOCKS)
@@ -128,9 +124,8 @@ export function useAuthSession(): AuthSessionState {
   }, [live.data, live.isPending, initialProbeDone])
 }
 
-// logout unificado — limpa o localStorage em mocks, dispara /api/auth/sign-out no real.
-// também limpa o cache do react-query pra evitar vazamento de dados da sessão
-// anterior pro próximo usuário que logar na mesma aba.
+// logout unificado: limpa localStorage (mocks) ou dispara sign-out (real).
+// também limpa o cache do react-query.
 export async function signOut(): Promise<void> {
   signingOut = true
   if (env.VITE_USE_MOCKS) {

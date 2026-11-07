@@ -1,7 +1,6 @@
-// tipos alinhados ao MER do projeto (ver docs/design-de-sistema/modelo-entidade-relacionamento.md).
-// nenhum campo é inventado — se não existe no banco, não existe aqui.
+// tipos alinhados ao MER do projeto (ver docs/design-de-sistema/)
 
-// o backend emite UUID em toda entidade — nada de id numérico no front.
+// o backend emite UUID em toda entidade
 export type Id = string
 
 // códigos da tabela perfil, os mesmos que o backend usa para autorizar
@@ -14,7 +13,7 @@ export type Arena = {
   cidade: string
   endereco: string
   // nullable de propósito: o backend ainda não expõe upload e responde null.
-  // quem renderiza decide o placeholder — a camada de dados não inventa foto.
+  // quem renderiza decide o placeholder
   fotoUrl: string | null
 }
 
@@ -72,8 +71,7 @@ export type QuadraPatrocinador = {
 // RF-05: cada replay tem exatamente 30 segundos
 export const REPLAY_DURATION_SECONDS = 30 as const
 
-// view-model consumido pelos componentes de UI — já carrega os joins necessários
-// (quadra, arena, cidade, patrocinador ativo) para evitar lookups manuais nos cards.
+// view-model consumido pela UI, já carrega os joins necessários
 export type ReplayView = {
   id: Id
   court: { id: Id; nome: string }

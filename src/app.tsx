@@ -9,9 +9,7 @@ import { TooltipProvider } from '@/components/ui/tooltip'
 import { queryClient } from '@/lib/react-query'
 import { router } from '@/routes'
 
-// providers globais — ordem importa (theme → query → tooltip → router)
-// MotionConfig reducedMotion="user" respeita prefers-reduced-motion do SO
-// em toda animação framer-motion sem precisar gatear por componente.
+// providers globais, a ordem importa: theme > query > tooltip > router
 export function App() {
   return (
     <ThemeProvider>

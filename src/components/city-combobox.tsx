@@ -35,7 +35,7 @@ type CityComboboxProps = {
   value: string
   onValueChange: (value: string) => void
   cities: readonly string[]
-  // valor sentinela de "sem filtro" — fica com o chamador pra não quebrar urls
+  // valor sentinela de "sem filtro", fica com o chamador pra não quebrar urls
   anyValue: string
   anyLabel?: string
   placeholder?: string

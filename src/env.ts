@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-// valida variáveis do vite no boot — evita boot silencioso com env quebrada
+// valida variáveis do vite no boot
 const envSchema = z
   .object({
     VITE_API_URL: z

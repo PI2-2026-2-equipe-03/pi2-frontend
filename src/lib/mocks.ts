@@ -1,5 +1,4 @@
-// mocks locais enquanto o backend não está exposto.
-// shapes alinhados ao MER (ver src/lib/types.ts) — nada inventado.
+// mocks locais, shapes alinhados ao MER (ver src/lib/types.ts)
 import { ARENA_COVERS } from '@/lib/assets'
 import type {
   Arena,
@@ -205,8 +204,7 @@ export const REPLAYS: readonly Replay[] = REPLAY_SEEDS.map((seed) => {
 })
 
 // ------------------------------------------------------------
-// helpers de join — simulam o que a API devolveria em uma call única,
-// mantendo os componentes agnósticos à estrutura relacional.
+// helpers de join: simulam o que a API devolveria em uma call única
 // ------------------------------------------------------------
 
 export function getArenaById(id: Id): Arena | undefined {

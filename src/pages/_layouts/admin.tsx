@@ -18,7 +18,7 @@ import { signOut } from '@/lib/auth/session'
 import type { UserRole } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
-// itens do menu lateral — painel admin (dashboard / câmeras / quadras / usuários / replays)
+// itens do menu lateral do painel admin
 type NavItem = {
   label: string
   to: string
@@ -118,9 +118,7 @@ function AdminFooter({ onNavigate }: { onNavigate?: () => void }) {
   )
 }
 
-// layout do administrador — topbar azul + sidebar escuro + main
-// container tem altura fixa da viewport (h-screen); scroll acontece dentro do <main>,
-// para header e sidebar ficarem sempre ancorados independentemente do tamanho do conteúdo.
+// layout do administrador: topbar azul + sidebar escuro + main
 export function AdminLayout() {
   const { data: currentUser } = useCurrentUser()
 

@@ -46,7 +46,7 @@ type DeleteTarget =
   | { kind: 'camera'; camera: Camera; quadra: Quadra; arenaNome: string }
 
 function quadraLabel(nome: string, arenaNome: string) {
-  return arenaNome === '—' ? nome : `${nome} (${arenaNome})`
+  return arenaNome === '-' ? nome : `${nome} (${arenaNome})`
 }
 
 function dialogCopy(target: DeleteTarget | null) {
@@ -114,7 +114,7 @@ function CameraCell({
   )
 }
 
-// tela de gestão de quadras e câmeras — consulta + exclusão (F3-03)
+// tela de gestão de quadras e câmeras: consulta + exclusão (F3-03)
 export function AdminQuadras() {
   const quadrasQuery = useQuadras()
   const camerasQuery = useCameras()
@@ -134,7 +134,7 @@ export function AdminQuadras() {
     )
     return (quadrasQuery.data ?? []).map((quadra) => ({
       quadra,
-      arenaNome: arenas.get(quadra.arenaId)?.nome ?? '—',
+      arenaNome: arenas.get(quadra.arenaId)?.nome ?? '-',
       camera: cameraByQuadra.get(quadra.id),
     }))
   }, [quadrasQuery.data, camerasQuery.data, arenasQuery.data])

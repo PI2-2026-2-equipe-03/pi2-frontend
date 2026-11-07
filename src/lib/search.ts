@@ -103,8 +103,7 @@ export function suggestArenas(
 // fábricas de adaptador pro SearchCombobox, que espera
 // `(query: string) => Promise<Suggestion[]>`. ligam o dataset vindo da API à
 // assinatura assíncrona do componente.
-// `subtitle` é o único campo que carrega contexto adicional (Arena · Cidade);
-// nenhum campo expõe pro UI qual critério bateu — o fallback é implícito.
+// subtitle carrega contexto adicional (Arena + Cidade)
 
 export function createCourtSuggestions(dataset: SearchDataset) {
   return async function courtSuggestions(query: string): Promise<Suggestion[]> {

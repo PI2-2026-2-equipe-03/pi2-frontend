@@ -99,7 +99,7 @@ export function Replays() {
     const quadra = quadras.find((q) => q.id === courtId)
     if (!quadra) return ''
     const arena = indexById(arenas).get(quadra.arenaId)
-    return arena ? `${quadra.nome} — ${arena.nome}` : quadra.nome
+    return arena ? `${quadra.nome} - ${arena.nome}` : quadra.nome
   }, [arenas, courtId, quadras])
 
   const replaysFiltrados = useMemo(() => {

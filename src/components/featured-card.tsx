@@ -12,8 +12,7 @@ type FeaturedCardProps = {
   replay: ReplayView
 }
 
-// card de destaque na Home — primeira impressão rica em vez de só grid.
-// consome um ReplayView real (replay mais recente, por padrão) sem inventar campos.
+// card de destaque na Home, primeira impressão rica em vez de só grid
 export function FeaturedCard({ replay }: FeaturedCardProps) {
   const dateLabel = new Intl.DateTimeFormat('pt-BR', {
     day: '2-digit',
@@ -31,17 +30,17 @@ export function FeaturedCard({ replay }: FeaturedCardProps) {
       }}
       className="group relative aspect-[4/3] overflow-hidden rounded-2xl shadow-md md:aspect-[21/9]"
     >
-      {/* camada 1 — frame do próprio replay */}
+      {/* camada 1: frame do replay */}
       <ReplayThumb
         src={resolveMediaUrl(replay.arquivoUrl)}
         className="absolute inset-0 size-full object-cover transition-transform duration-500 group-hover:scale-105"
       />
 
-      {/* camada 2 — gradient brand sobre a foto, com peso maior na esquerda pro texto respirar */}
+      {/* camada 2: gradient brand sobre a foto */}
       <div className="from-tg-brand-blue-dark/90 via-tg-brand-blue/60 absolute inset-0 bg-gradient-to-r to-transparent md:to-transparent" />
       <div className="from-tg-brand-yellow/40 absolute inset-0 bg-gradient-to-tr via-transparent to-transparent mix-blend-overlay" />
 
-      {/* camada 3 — conteúdo */}
+      {/* camada 3: conteúdo */}
       <div className="relative flex h-full flex-col justify-between gap-4 p-5 text-white md:p-8">
         <div className="flex items-start justify-between gap-3">
           <span className="inline-flex items-center gap-1.5 rounded-full border border-white/25 bg-white/15 px-3 py-1 text-xs font-semibold tracking-wide uppercase backdrop-blur">

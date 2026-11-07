@@ -20,7 +20,7 @@ import {
 } from '@/lib/schemas/reset-password-schema'
 import { PasswordRequirements } from '@/pages/auth/components/password-requirements'
 
-// tela de redefinição de senha — baixa fidelidade, ainda sem integração de auth
+// tela de redefinição de senha (baixa fidelidade)
 export function ResetPassword() {
   const navigate = useNavigate()
 

@@ -1,6 +1,4 @@
-// ponto único de leitura de cada domínio. as telas consomem estes hooks em vez
-// de montar useQuery à mão — assim ligar um endpoint novo não deixa consumidor
-// para trás, e nenhuma página precisa saber do toggle de mocks.
+// ponto único de leitura de cada domínio
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { listArenas } from '@/lib/api/arenas'

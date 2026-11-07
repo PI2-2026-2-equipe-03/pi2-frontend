@@ -216,7 +216,7 @@ function QuadraCard({
         showCloseButton={false}
         className="flex max-h-[85svh] flex-col gap-0 overflow-hidden rounded-xl border-0 p-0 shadow-2xl sm:max-w-xl"
       >
-        {/* hero reveal — imagem como capa, título sobreposto, close button flutuante */}
+        {/* hero: imagem como capa com título sobreposto */}
         <div className="relative h-48 w-full shrink-0 overflow-hidden md:h-56">
           <MediaThumb
             src={cover}
@@ -263,7 +263,7 @@ function QuadraCard({
           </div>
         </div>
 
-        {/* zona 3 — conteúdo denso, com overflow-y-auto apenas aqui */}
+        {/* zona 3: conteúdo com scroll */}
         <div className="flex min-h-0 flex-col gap-4 overflow-y-auto p-5 sm:p-6">
           <div>
             <p className="text-foreground mb-2 text-sm font-semibold">

@@ -25,7 +25,7 @@ function ProfileSkeleton() {
   )
 }
 
-// tela de perfil — dados de GET /me; o backend ainda não tem rota de edição
+// tela de perfil, dados de GET /me
 export function Perfil() {
   const currentUser = useCurrentUser()
 

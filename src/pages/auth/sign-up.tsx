@@ -25,11 +25,8 @@ import { formatPhone } from '@/lib/forms/phone-mask'
 import { type SignUpInput, signUpSchema } from '@/lib/schemas/sign-up-schema'
 import { PasswordRequirements } from '@/pages/auth/components/password-requirements'
 
-// o cadastro já deixa o usuário autenticado: o Better Auth tem autoSignIn
-// ligado por padrão e emite a cookie de sessão junto com o 200 do sign-up.
-// por isso a tela segue direto pra /app — mandar pra /sign-in forçaria um
-// segundo login e abandonaria a sessão recém-criada, que ficaria órfã no banco
-// até expirar.
+// cadastro já autentica (Better Auth emite cookie de sessão no 200).
+// por isso redireciona direto pra /app em vez de /sign-in.
 async function performSignUp(input: SignUpInput): Promise<void> {
   const data = {
     name: input.fullName,

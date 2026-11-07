@@ -19,7 +19,7 @@ import {
   forgotPasswordSchema,
 } from '@/lib/schemas/forgot-password-schema'
 
-// tela de recuperação de senha — baixa fidelidade, ainda sem integração de auth
+// tela de recuperação de senha (baixa fidelidade)
 export function ForgotPassword() {
   const navigate = useNavigate()
 

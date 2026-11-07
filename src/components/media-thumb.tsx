@@ -10,8 +10,7 @@ type MediaThumbProps = {
   loading?: 'lazy' | 'eager'
 }
 
-// url quebrada é tão comum quanto url ausente — guardar qual src falhou evita
-// ficar preso no placeholder quando o componente recebe uma foto nova.
+// guarda qual src falhou pra não travar no placeholder quando chegar foto nova
 export function MediaThumb({
   src,
   alt,

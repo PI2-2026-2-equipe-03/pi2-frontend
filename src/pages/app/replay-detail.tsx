@@ -135,7 +135,7 @@ export function ReplayDetail() {
           <div className="relative min-h-0 overflow-hidden bg-black">
             <ReplayPlayer
               src={resolveMediaUrl(view.arquivoUrl)}
-              label={`Replay de ${view.court.nome} — ${view.arena.nome}`}
+              label={`Replay de ${view.court.nome} - ${view.arena.nome}`}
               className="size-full object-contain"
             />
             {/* badges fora do caminho dos controls nativos (barra inferior) */}
