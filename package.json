@@ -9,6 +9,10 @@
     "format": "prettier --write \"src/**/*.{ts,tsx,css,json}\"",
     "lint": "eslint --fix . && prettier --write \"src/**/*.{ts,tsx,css,json}\"",
     "preview": "vite preview",
+    "test": "jest",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "dev:test": "vite --port 50789 --mode test",
     "api:generate": "orval"
   },
   "dependencies": {
@@ -41,6 +45,10 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
+    "@jest/globals": "^30.5.2",
+    "@playwright/test": "^1.65.0",
+    "@swc/core": "^1.16.22",
+    "@swc/jest": "^0.2.39",
     "@types/node": "^24.11.0",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
@@ -50,6 +58,7 @@
     "eslint-plugin-react-refresh": "^0.4.24",
     "eslint-plugin-simple-import-sort": "^12.1.1",
     "globals": "^16.5.0",
+    "jest": "^30.5.2",
     "orval": "^8.39.0",
     "prettier": "^3.8.1",
     "prettier-plugin-tailwindcss": "^0.7.2",
