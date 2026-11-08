@@ -1,7 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useMutation } from '@tanstack/react-query'
 import { Loader2 } from 'lucide-react'
 import { useForm, useWatch } from 'react-hook-form'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import { PasswordInput } from '@/components/password-input'
@@ -14,15 +15,18 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
+import { resetPassword } from '@/lib/api/auth'
+import { toApiAuthError } from '@/lib/errors'
 import {
   type ResetPasswordInput,
   resetPasswordSchema,
 } from '@/lib/schemas/reset-password-schema'
 import { PasswordRequirements } from '@/pages/auth/components/password-requirements'
 
-// tela de redefinição de senha (baixa fidelidade)
 export function ResetPassword() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const token = searchParams.get('token')
 
   const form = useForm<ResetPasswordInput>({
     resolver: zodResolver(resetPasswordSchema),
@@ -37,17 +41,57 @@ export function ResetPassword() {
     name: 'confirmPassword',
   })
 
-  async function onSubmit() {
-    // mock: sprint 2 chamará o backend para efetivamente trocar a senha
-    toast.success('Senha redefinida com sucesso!', {
-      description: 'Você já pode entrar com sua nova senha.',
-    })
-    navigate('/sign-in', { replace: true })
+  const mutation = useMutation({
+    mutationFn: (data: ResetPasswordInput) =>
+      resetPassword({
+        token: token!,
+        password: data.password,
+        passwordConfirmation: data.confirmPassword,
+      }),
+  })
+
+  async function onSubmit(data: ResetPasswordInput) {
+    try {
+      const request = mutation.mutateAsync(data)
+      void toast.promise(request, {
+        loading: 'Salvando…',
+        success: 'Senha redefinida com sucesso!',
+        error: (error: Error) => error.message,
+      })
+      await request
+      navigate('/sign-in', { replace: true })
+    } catch (error) {
+      const authError = toApiAuthError(
+        error,
+        'Não foi possível redefinir a senha',
+      )
+      const field = authError.field === 'password' ? 'password' : 'root'
+      form.setError(field, { message: authError.message })
+    }
   }
 
-  const {
-    formState: { isSubmitting },
-  } = form
+  const isSubmitting = mutation.isPending
+
+  if (!token) {
+    return (
+      <div className="bg-card border-border w-full max-w-md rounded-xl border p-8 shadow-sm">
+        <div className="space-y-3 text-center">
+          <h1 className="text-tg-brand-blue text-2xl font-bold">
+            Link inválido
+          </h1>
+          <p className="text-muted-foreground text-sm">
+            O link de recuperação é inválido ou expirou. Solicite um novo.
+          </p>
+          <Link
+            to="/forgot-password"
+            className="text-primary inline-block text-sm font-medium hover:underline"
+          >
+            Solicitar novo link
+          </Link>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="bg-card border-border w-full max-w-md rounded-xl border p-8 shadow-sm">
@@ -103,11 +147,16 @@ export function ResetPassword() {
             )}
           />
 
-          {/* feedback visual dos requisitos de senha, atualizado em tempo real */}
           <PasswordRequirements
             password={password}
             confirmPassword={confirmPassword}
           />
+
+          {form.formState.errors.root?.message ? (
+            <p role="alert" className="text-destructive text-sm">
+              {form.formState.errors.root.message}
+            </p>
+          ) : null}
 
           <Button
             type="submit"

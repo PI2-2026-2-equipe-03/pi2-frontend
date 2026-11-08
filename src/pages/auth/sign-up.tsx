@@ -16,45 +16,20 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { env } from '@/env'
-import { registerUser as mockRegisterUser } from '@/lib/api/mocks/auth'
-import { authClient } from '@/lib/auth/client'
-import { saveMockSession } from '@/lib/auth/session'
-import { AuthRequestError, toAuthRequestError } from '@/lib/errors'
-import { formatPhone } from '@/lib/forms/phone-mask'
+import { registerUser } from '@/lib/api/auth'
+import { toApiAuthError } from '@/lib/errors'
+import { formatPhone, stripPhone } from '@/lib/forms/phone-mask'
 import { type SignUpInput, signUpSchema } from '@/lib/schemas/sign-up-schema'
 import { PasswordRequirements } from '@/pages/auth/components/password-requirements'
 
-// cadastro já autentica (Better Auth emite cookie de sessão no 200).
-// por isso redireciona direto pra /app em vez de /sign-in.
 async function performSignUp(input: SignUpInput): Promise<void> {
-  const data = {
+  await registerUser({
     name: input.fullName,
     email: input.email,
+    phone: stripPhone(input.phone),
     password: input.password,
     confirmPassword: input.confirmPassword,
-    phone: input.phone,
-  }
-
-  if (env.VITE_USE_MOCKS) {
-    const response = await mockRegisterUser(data)
-    saveMockSession({
-      id: response.data.id,
-      name: response.data.name,
-      email: response.data.email,
-    })
-    return;
-  }
-
-  const { error } = await authClient.signUp.email(data)
-
-  if (error) {
-    throw toAuthRequestError(error, 'Não foi possível criar a conta')
-  }
-
-  // mesmo motivo do sign-in: popula o atom reativo antes de navegar, senão o
-  // guard do AppLayout vê null por um instante e devolve pra /sign-in.
-  await authClient.getSession()
+  })
 }
 
 export function SignUp() {
@@ -95,14 +70,16 @@ export function SignUp() {
         error: (error: Error) => error.message,
       })
       await request
-      navigate('/app', { replace: true })
+      navigate('/sign-in', { replace: true })
     } catch (error) {
-      const message =
-        error instanceof Error
-          ? error.message
-          : 'Não foi possível criar a conta'
-      const field = error instanceof AuthRequestError ? error.field : undefined
-      form.setError(field ?? 'root', { message })
+      const authError = toApiAuthError(error, 'Não foi possível criar a conta')
+      const field =
+        authError.field === 'email' ||
+        authError.field === 'password' ||
+        authError.field === 'phone'
+          ? authError.field
+          : 'root'
+      form.setError(field, { message: authError.message })
     }
   }
 

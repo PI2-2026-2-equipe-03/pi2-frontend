@@ -13,7 +13,9 @@ export const axiosInstance = Axios.create({
 
 axiosInstance.interceptors.response.use(undefined, (error: AxiosError) => {
   const status = error.response?.status
-  if (status === 401) expireSession()
+  // auth endpoints return 401 for bad credentials / invalid token, not expired session
+  if (status === 401 && !error.config?.url?.startsWith('/auth/'))
+    expireSession()
   // falha em /me já é apresentada pelo RequireRole
   if (status === 403 && error.config?.url !== '/me') showForbidden()
   return Promise.reject(error)

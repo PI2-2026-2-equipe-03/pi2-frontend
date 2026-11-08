@@ -2,6 +2,10 @@
 // aceita até 11 dígitos (celular). o valor armazenado no form fica formatado;
 // o schema zod aceita parens/hífen/espaço como validadores soltos.
 
+export function stripPhone(formatted: string): string {
+  return formatted.replace(/\D/g, '')
+}
+
 export function formatPhone(raw: string): string {
   const digits = raw.replace(/\D/g, '').slice(0, 11)
 

@@ -17,7 +17,7 @@ export const FORBIDDEN_MESSAGE =
   'Você não possui permissão para acessar este recurso'
 export const SESSION_EXPIRED_MESSAGE = 'Sua sessão expirou. Entre novamente.'
 
-export type AuthField = 'email' | 'password'
+export type AuthField = 'email' | 'password' | 'phone' | 'root'
 
 const NETWORK_MESSAGE =
   'Sem conexão com o servidor. Verifique sua rede e tente novamente.'
@@ -39,6 +39,14 @@ const AUTH_MESSAGES: Record<string, string> = {
   SESSION_EXPIRED: SESSION_EXPIRED_MESSAGE,
   FAILED_TO_CREATE_USER: 'Não foi possível criar a conta',
   FAILED_TO_CREATE_SESSION: 'Não foi possível iniciar a sessão',
+  PHONE_ALREADY_EXISTS: 'Telefone já cadastrado',
+  ACCOUNT_LOCKED: 'Conta bloqueada temporariamente. Aguarde 15 minutos.',
+  TOKEN_EXPIRED: 'Link expirado. Solicite um novo.',
+  TOKEN_INVALID: 'Link inválido. Solicite um novo.',
+  TOKEN_MAX_ATTEMPTS: 'Tentativas esgotadas para este link.',
+  SAME_PASSWORD: 'A nova senha não pode ser igual à anterior.',
+  EMAIL_SERVICE_UNAVAILABLE:
+    'Serviço de e-mail temporariamente indisponível. Tente novamente mais tarde.',
 }
 
 const AUTH_FIELDS: Record<string, AuthField> = {
@@ -51,6 +59,12 @@ const AUTH_FIELDS: Record<string, AuthField> = {
   USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL: 'email',
   INVALID_EMAIL: 'email',
   EMAIL_NOT_VERIFIED: 'email',
+  PHONE_ALREADY_EXISTS: 'phone',
+  ACCOUNT_LOCKED: 'root',
+  TOKEN_EXPIRED: 'root',
+  TOKEN_INVALID: 'root',
+  TOKEN_MAX_ATTEMPTS: 'root',
+  SAME_PASSWORD: 'password',
 }
 
 // erro de auth já traduzido, carregando o campo do formulário a destacar.
@@ -96,6 +110,39 @@ export function toAuthRequestError(
     getAuthErrorMessage(failure, fallback),
     code ? AUTH_FIELDS[code] : undefined,
   )
+}
+
+export function toApiAuthError(
+  error: unknown,
+  fallback: string,
+): AuthRequestError {
+  if (!Axios.isAxiosError<ErrorEnvelope & { code?: string }>(error)) {
+    return new AuthRequestError(
+      error instanceof Error && error.message.trim()
+        ? error.message
+        : fallback,
+    )
+  }
+
+  const status = error.response?.status
+  const data = error.response?.data
+  const code = data?.code
+
+  const mapped = code ? AUTH_MESSAGES[code] : undefined
+  const field = code ? AUTH_FIELDS[code] : undefined
+
+  if (mapped) return new AuthRequestError(mapped, field)
+  if (!error.response) return new AuthRequestError(NETWORK_MESSAGE)
+  if (status === 429) return new AuthRequestError(TOO_MANY_ATTEMPTS_MESSAGE, 'root')
+  if (status === 503)
+    return new AuthRequestError(
+      AUTH_MESSAGES.EMAIL_SERVICE_UNAVAILABLE ?? SERVER_MESSAGE,
+      'root',
+    )
+  if (status && status >= 500) return new AuthRequestError(SERVER_MESSAGE)
+
+  const msg = data?.message?.trim() || data?.error?.message?.trim()
+  return new AuthRequestError(msg || fallback, field)
 }
 
 export function getApiErrorMessage(error: unknown, fallback: string): string {

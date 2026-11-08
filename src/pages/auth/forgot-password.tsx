@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useMutation } from '@tanstack/react-query'
 import { Loader2, Mail } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { Link, useNavigate } from 'react-router-dom'
@@ -14,12 +15,13 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { forgotPassword } from '@/lib/api/auth'
+import { toApiAuthError } from '@/lib/errors'
 import {
   type ForgotPasswordInput,
   forgotPasswordSchema,
 } from '@/lib/schemas/forgot-password-schema'
 
-// tela de recuperação de senha (baixa fidelidade)
 export function ForgotPassword() {
   const navigate = useNavigate()
 
@@ -30,18 +32,32 @@ export function ForgotPassword() {
     defaultValues: { email: '' },
   })
 
-  async function onSubmit() {
-    // mock: sprint 2 chamará o backend para disparar o e-mail de recuperação
-    toast.success('Verifique seu e-mail', {
-      description:
-        'Enviamos um link de recuperação de senha para o e-mail informado.',
-    })
-    navigate('/sign-in', { replace: true })
+  const mutation = useMutation({
+    mutationFn: (data: ForgotPasswordInput) =>
+      forgotPassword({ email: data.email }),
+  })
+
+  async function onSubmit(data: ForgotPasswordInput) {
+    try {
+      const request = mutation.mutateAsync(data)
+      void toast.promise(request, {
+        loading: 'Enviando…',
+        success: 'Verifique seu e-mail',
+        error: (error: Error) => error.message,
+      })
+      await request
+      navigate('/sign-in', { replace: true })
+    } catch (error) {
+      const authError = toApiAuthError(
+        error,
+        'Não foi possível enviar o link de recuperação',
+      )
+      const field = authError.field === 'email' ? 'email' : 'root'
+      form.setError(field, { message: authError.message })
+    }
   }
 
-  const {
-    formState: { isSubmitting },
-  } = form
+  const isSubmitting = mutation.isPending
 
   return (
     <div className="bg-card border-border w-full max-w-md rounded-xl border p-8 shadow-sm">
@@ -86,6 +102,12 @@ export function ForgotPassword() {
               </FormItem>
             )}
           />
+
+          {form.formState.errors.root?.message ? (
+            <p role="alert" className="text-destructive text-sm">
+              {form.formState.errors.root.message}
+            </p>
+          ) : null}
 
           <Button
             type="submit"
