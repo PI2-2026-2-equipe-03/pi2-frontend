@@ -24,9 +24,14 @@ export default defineConfig({
       usePolling: true,
     },
     proxy: {
+      // custom auth endpoints (/auth/register, /auth/login, etc.) live at
+      // /auth/* on the backend. this rule must appear before /api/auth so it
+      // takes precedence for direct /auth/* calls from the auth module.
+      '/auth': {
+        target: process.env.API_PROXY_TARGET ?? 'http://127.0.0.1:3000',
+        changeOrigin: true,
+      },
       // Better Auth vive em /api/auth/* no backend; mantém o prefixo intacto.
-      // match mais longo tem precedência no proxy do vite, então essa regra
-      // precisa aparecer antes de `/api`.
       '/api/auth': {
         target: process.env.API_PROXY_TARGET ?? 'http://127.0.0.1:3000',
         changeOrigin: true,

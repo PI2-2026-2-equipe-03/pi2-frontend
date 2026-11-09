@@ -17,52 +17,22 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { env } from '@/env'
+import { loginUser } from '@/lib/api/auth'
 import { getMe } from '@/lib/api/me'
-import { loginUser as mockLoginUser } from '@/lib/api/mocks/auth'
 import { queryKeys } from '@/lib/api/queries'
 import { authClient } from '@/lib/auth/client'
-import { saveMockSession } from '@/lib/auth/session'
 import {
-  AuthRequestError,
   SESSION_EXPIRED_MESSAGE,
-  toAuthRequestError,
+  toApiAuthError,
 } from '@/lib/errors'
 import { queryClient } from '@/lib/react-query'
 import { type SignInInput, signInSchema } from '@/lib/schemas/sign-in-schema'
 
 async function performSignIn(input: SignInInput): Promise<void> {
-  if (env.VITE_USE_MOCKS) {
-    const response = await mockLoginUser(input)
-    saveMockSession({
-      id: response.data.id,
-      name: response.data.name,
-      email: response.data.email,
-      token: response.data.token,
-      role: response.data.role,
-    })
-    return
-  }
-
-  const { error } = await authClient.signIn.email({
-    email: input.email,
-    password: input.password,
-    // rememberMe=false faz o Better Auth emitir cookie de sessão (sem maxAge),
-    // que o navegador descarta ao fechar. true usa o expiresIn do servidor.
-    rememberMe: input.rememberMe,
-  })
-
-  if (error) {
-    throw toAuthRequestError(error, 'Não foi possível entrar')
-  }
-
-  // garante que o atom do Better Auth está populado antes de navegar,
-  // senão o guard pode retornar null e redirecionar de volta.
+  await loginUser({ email: input.email, password: input.password })
   await authClient.getSession()
 }
 
-// falha ao ler o perfil não invalida o login: /app atende qualquer perfil.
-// staleTime 0 porque a conta pode ter acabado de mudar nesta aba.
 async function homePathAfterSignIn(): Promise<string> {
   try {
     const { data } = await queryClient.fetchQuery({
@@ -103,10 +73,12 @@ export function SignIn() {
       await request
       navigate(await homePathAfterSignIn(), { replace: true })
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : 'Usuário ou senha inválidos'
-      const field = error instanceof AuthRequestError ? error.field : undefined
-      form.setError(field ?? 'root', { message })
+      const authError = toApiAuthError(error, 'Usuário ou senha inválidos')
+      const field =
+        authError.field === 'email' || authError.field === 'password'
+          ? authError.field
+          : 'root'
+      form.setError(field, { message: authError.message })
     }
   }
 
