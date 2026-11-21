@@ -20,6 +20,7 @@ import { ForgotPassword } from '@/pages/auth/forgot-password'
 import { ResetPassword } from '@/pages/auth/reset-password'
 import { SignIn } from '@/pages/auth/sign-in'
 import { SignUp } from '@/pages/auth/sign-up'
+import { NotFound } from '@/pages/not-found'
 
 // adapter do nuqs para que query params sejam gerenciados em todas as rotas
 function NuqsRouteWrapper() {
@@ -75,9 +76,14 @@ export const router = createBrowserRouter([
           { index: true, element: <Dashboard /> },
           { path: 'quadras', element: <AdminQuadras /> },
           { path: 'patrocinadores', element: <AdminPatrocinadores /> },
+          // own catch-all: the error shows up inside the layout, so the admin
+          // keeps the menu and the header
+          { path: '*', element: <NotFound embedded /> },
         ],
       },
-      { path: '*', element: <Navigate to="/sign-in" replace /> },
+      // unknown route used to bounce to /sign-in, which looked like a dropped
+      // session to anyone already signed in
+      { path: '*', element: <NotFound /> },
     ],
   },
 ])
