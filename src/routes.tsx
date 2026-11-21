@@ -1,32 +1,67 @@
 /* eslint-disable react-refresh/only-export-components */
 import { NuqsAdapter } from 'nuqs/adapters/react-router/v7'
+import { type ComponentType, lazy, Suspense } from 'react'
 import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom'
 
-import { RequireRole } from '@/components/require-role'
-import { AdminLayout } from '@/pages/_layouts/admin'
-import { AppLayout } from '@/pages/_layouts/app'
-import { AuthLayout } from '@/pages/_layouts/auth'
-import { Dashboard } from '@/pages/admin/dashboard'
-import { AdminPatrocinadores } from '@/pages/admin/patrocinadores'
-import { AdminQuadras } from '@/pages/admin/quadras'
-import { Arenas } from '@/pages/app/arenas'
-import { Home } from '@/pages/app/home'
-import { Perfil } from '@/pages/app/perfil'
-import { Quadras } from '@/pages/app/quadras'
-import { ReplayDetail } from '@/pages/app/replay-detail'
-import { Replays } from '@/pages/app/replays'
-import { SolicitarGestor } from '@/pages/app/solicitar-gestor'
-import { ForgotPassword } from '@/pages/auth/forgot-password'
-import { ResetPassword } from '@/pages/auth/reset-password'
-import { SignIn } from '@/pages/auth/sign-in'
-import { SignUp } from '@/pages/auth/sign-up'
-import { NotFound } from '@/pages/not-found'
+import { RouteFallback } from '@/components/route-fallback'
+
+// one dynamic import per area. every lazy() below reuses the same loader, so
+// rollup emits one chunk per area instead of one per screen.
+const authArea = () => import('@/pages/auth-area')
+const appArea = () => import('@/pages/app-area')
+const adminArea = () => import('@/pages/admin-area')
+
+// the role gate pulls the api layer and the auth client with it: keeping it
+// lazy leaves both out of the entry chunk, which /sign-in never needs.
+const roleGate = () => import('@/components/require-role')
+
+// lazy() wants a default export; the areas use named exports, so pick by name
+function lazyFrom<M extends Record<string, ComponentType>>(
+  loadArea: () => Promise<M>,
+  name: keyof M & string,
+) {
+  return lazy(() => loadArea().then((area) => ({ default: area[name] })))
+}
+
+const AuthLayout = lazyFrom(authArea, 'AuthLayout')
+const SignIn = lazyFrom(authArea, 'SignIn')
+const SignUp = lazyFrom(authArea, 'SignUp')
+const ForgotPassword = lazyFrom(authArea, 'ForgotPassword')
+const ResetPassword = lazyFrom(authArea, 'ResetPassword')
+
+const AppLayout = lazyFrom(appArea, 'AppLayout')
+const Home = lazyFrom(appArea, 'Home')
+const Replays = lazyFrom(appArea, 'Replays')
+const ReplayDetail = lazyFrom(appArea, 'ReplayDetail')
+const Arenas = lazyFrom(appArea, 'Arenas')
+const Quadras = lazyFrom(appArea, 'Quadras')
+const Perfil = lazyFrom(appArea, 'Perfil')
+const SolicitarGestor = lazyFrom(appArea, 'SolicitarGestor')
+
+const AdminLayout = lazyFrom(adminArea, 'AdminLayout')
+const Dashboard = lazyFrom(adminArea, 'Dashboard')
+const AdminQuadras = lazyFrom(adminArea, 'AdminQuadras')
+const AdminPatrocinadores = lazyFrom(adminArea, 'AdminPatrocinadores')
+
+// not via lazyFrom: RequireRole takes props, the helper only types screens
+const RequireRole = lazy(() =>
+  roleGate().then((gate) => ({ default: gate.RequireRole })),
+)
+
+// not via lazyFrom either: NotFound takes props, and it is the only screen that
+// lives outside the three areas
+const NotFound = lazy(() =>
+  import('@/pages/not-found').then((page) => ({ default: page.NotFound })),
+)
 
 // adapter do nuqs para que query params sejam gerenciados em todas as rotas
 function NuqsRouteWrapper() {
   return (
     <NuqsAdapter>
-      <Outlet />
+      {/* the area chunk lands after the shell: a fallback avoids a blank page */}
+      <Suspense fallback={<RouteFallback />}>
+        <Outlet />
+      </Suspense>
     </NuqsAdapter>
   )
 }
