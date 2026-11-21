@@ -27,13 +27,13 @@ type NavItem = {
   roles?: readonly UserRole[]
 }
 
+// only routes that exist: cameras, usuarios and replays fell into the global
+// catch-all and threw a signed-in admin out to /sign-in (#36). they come back
+// together with their screens
 const NAV_ITEMS: readonly NavItem[] = [
   { label: 'Dashboard', to: '/admin', end: true },
-  { label: 'Câmeras', to: '/admin/cameras' },
   { label: 'Quadras', to: '/admin/quadras' },
   { label: 'Patrocinadores', to: '/admin/patrocinadores' },
-  { label: 'Usuários', to: '/admin/usuarios', roles: ['ADM'] },
-  { label: 'Replays', to: '/admin/replays' },
 ]
 
 function AdminNav({

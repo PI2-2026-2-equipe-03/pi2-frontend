@@ -21,10 +21,7 @@ import { loginUser } from '@/lib/api/auth'
 import { getMe } from '@/lib/api/me'
 import { queryKeys } from '@/lib/api/queries'
 import { authClient } from '@/lib/auth/client'
-import {
-  SESSION_EXPIRED_MESSAGE,
-  toApiAuthError,
-} from '@/lib/errors'
+import { SESSION_EXPIRED_MESSAGE, toApiAuthError } from '@/lib/errors'
 import { queryClient } from '@/lib/react-query'
 import { type SignInInput, signInSchema } from '@/lib/schemas/sign-in-schema'
 
