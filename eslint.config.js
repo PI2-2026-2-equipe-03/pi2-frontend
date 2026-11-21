@@ -57,4 +57,11 @@ export default [
       ],
     },
   },
+  {
+    // configs da raiz rodam em node (process.env etc), não no browser
+    files: ['*.config.{ts,js,mts,mjs}'],
+    languageOptions: {
+      globals: globals.node,
+    },
+  },
 ]
