@@ -122,6 +122,28 @@ export function toReplayView(dto: ReplayDto): ReplayView {
   }
 }
 
+// the home shows one highlight, so projecting the whole list to find it is
+// waste. GET /replays already excludes deleted and expired items, which is why
+// there is no status filter here.
+export function toFeaturedReplayView(
+  dtos: readonly ReplayDto[],
+): ReplayView | undefined {
+  let newest: ReplayDto | undefined
+  let newestAt = Number.NEGATIVE_INFINITY
+
+  for (const dto of dtos) {
+    const recordedAt = new Date(
+      toIsoDateTime(dto.recordingDate, dto.recordingTime, dto.createdAt),
+    ).getTime()
+    if (recordedAt > newestAt) {
+      newest = dto
+      newestAt = recordedAt
+    }
+  }
+
+  return newest ? toReplayView(newest) : undefined
+}
+
 export function resolveMediaUrl(path: string): string {
   if (!path) return ''
   if (/^https?:\/\//i.test(path)) return path
