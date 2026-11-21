@@ -1,16 +1,14 @@
-@import '@fontsource/poppins/400.css';
-@import '@fontsource/poppins/500.css';
-@import '@fontsource/poppins/600.css';
-@import '@fontsource/poppins/700.css';
-@import '@fontsource/poppins/800.css';
-@import '@fontsource/poppins/900.css';
+/* latin subset only (pt-BR needs nothing else) and just the 4 weights the ui
+   actually uses: 400/500/600/700. keeps 90+ unused font files out of the build. */
+@import '@fontsource/poppins/latin-400.css';
+@import '@fontsource/poppins/latin-500.css';
+@import '@fontsource/poppins/latin-600.css';
+@import '@fontsource/poppins/latin-700.css';
 
-@import '@fontsource/geologica/400.css';
-@import '@fontsource/geologica/500.css';
-@import '@fontsource/geologica/600.css';
-@import '@fontsource/geologica/700.css';
-@import '@fontsource/geologica/800.css';
-@import '@fontsource/geologica/900.css';
+@import '@fontsource/geologica/latin-400.css';
+@import '@fontsource/geologica/latin-500.css';
+@import '@fontsource/geologica/latin-600.css';
+@import '@fontsource/geologica/latin-700.css';
 
 @import 'tailwindcss';
 @import 'tw-animate-css';
