@@ -1,3 +1,5 @@
+import { useState } from 'react'
+
 import {
   Tooltip,
   TooltipContent,
@@ -11,7 +13,11 @@ type SponsorBadgeProps = {
   className?: string
 }
 
+// guarda qual src falhou pra tentar de novo quando o logo mudar
 export function SponsorBadge({ nome, fotoUrl, className }: SponsorBadgeProps) {
+  const [failedSrc, setFailedSrc] = useState<string | null>(null)
+  const showFallback = !fotoUrl || failedSrc === fotoUrl
+
   return (
     <Tooltip>
       <TooltipTrigger asChild>
@@ -22,12 +28,22 @@ export function SponsorBadge({ nome, fotoUrl, className }: SponsorBadgeProps) {
           )}
           aria-label={`Patrocínio: ${nome}`}
         >
-          <img
-            src={fotoUrl}
-            alt=""
-            loading="lazy"
-            className="size-full object-cover"
-          />
+          {showFallback ? (
+            <span
+              aria-hidden
+              className="text-tg-brand-text text-sm font-semibold uppercase"
+            >
+              {nome.trim().charAt(0)}
+            </span>
+          ) : (
+            <img
+              src={fotoUrl}
+              alt=""
+              loading="lazy"
+              onError={() => setFailedSrc(fotoUrl)}
+              className="size-full object-cover"
+            />
+          )}
         </span>
       </TooltipTrigger>
       <TooltipContent side="left">Patrocínio · {nome}</TooltipContent>
