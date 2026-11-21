@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Projeto
 
-**pi2-frontend** é a SPA do **TaGravado**, sistema de replay para quadras esportivas. Este repo contém apenas a interface — a API vive em [pi2-backend](https://github.com/PI2-2026-2-equipe-03/pi2-backend) e precisa estar rodando em paralelo (por padrão em `http://localhost:3000`) para o app funcionar completamente.
+**pi2-frontend** é a SPA do **repeteco**, sistema de replay para quadras esportivas. Este repo contém apenas a interface — a API vive em [pi2-backend](https://github.com/PI2-2026-2-equipe-03/pi2-backend) e precisa estar rodando em paralelo (por padrão em `http://localhost:3000`) para o app funcionar completamente.
 
 Dois públicos: **cliente da arena** (mobile-first, baixa clipes) e **administrador** (desktop, gerencia conteúdos). As mesmas telas atendem mobile/tablet/desktop (RNF-02).
 
@@ -74,9 +74,9 @@ Páginas vivem em `src/pages/{auth,app,admin}/*.tsx`. Componentes específicos d
 
 ### Estilo e UI
 
-- **Tailwind CSS 4** via `@tailwindcss/vite` — configuração vive em `src/style.css` (`@theme inline`, tokens de marca TaGravado, variáveis shadcn para claro/escuro).
+- **Tailwind CSS 4** via `@tailwindcss/vite` — configuração vive em `src/style.css` (`@theme inline`, tokens de marca repeteco, variáveis shadcn para claro/escuro).
 - **shadcn/ui estilo "new-york"** (`components.json`): componentes copiados para `src/components/ui/` — editáveis, não são dependência. Base color `neutral`, CSS variables ligadas.
-- **Tema** gerenciado pelo `next-themes` via `ThemeProvider` em `src/components/theme/` (persiste em `localStorage` com chave `tagravado-theme` — RNF-01).
+- **Tema** gerenciado pelo `next-themes` via `ThemeProvider` em `src/components/theme/` (persiste em `localStorage` com chave `repeteco-theme` — RNF-01).
 - **Ícones apenas do `lucide-react`**: regra ESLint (`no-restricted-imports`) bloqueia `react-icons`.
 - Sem CSS Modules ou CSS-in-JS. Classes do Tailwind são auto-ordenadas pelo `prettier-plugin-tailwindcss`.
 

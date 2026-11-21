@@ -15,7 +15,7 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* light mode: paleta shadcn/neutral com primary azul tagravado (#103a9e) */
+/* light mode: paleta shadcn/neutral com primary azul repeteco (#103a9e) */
 :root {
   /* cores branco e preto suaves, 
   para não causar desconforto visual */
@@ -30,7 +30,7 @@
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.24 0.03 260);
 
-  /* primary: azul de marca tagravado */
+  /* primary: azul de marca repeteco */
   --primary: oklch(0.36 0.16 265);
   --primary-foreground: oklch(1 0 0);
 
@@ -58,7 +58,7 @@
   --info: oklch(0.54 0.19 250);
   --info-foreground: oklch(1 0 0);
 
-  /* tokens tagravado: cores dos wireframes.
+  /* tokens repeteco: cores dos wireframes.
      brand-blue é superfície (cabeçalho, botão, selo); brand-text é texto.
      uma cor que funciona atrás de texto branco não funciona como texto. */
   --tg-brand-blue: #103a9e;

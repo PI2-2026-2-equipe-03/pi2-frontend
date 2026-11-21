@@ -1,7 +1,7 @@
 import { ThemeProvider as NextThemesProvider } from 'next-themes'
 import type * as React from 'react'
 
-// wrapper do next-themes com defaults do tagravado
+// wrapper do next-themes com defaults do repeteco
 export function ThemeProvider({
   children,
   ...props
