@@ -8,6 +8,8 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { useCurrentUser } from '@/lib/api/queries'
 import type { UserRole } from '@/lib/types'
 
+import { ChangePasswordDialog } from './components/change-password-dialog'
+
 const ROLE_LABELS: Record<UserRole, string> = {
   ADM: 'Administrador',
   CLI: 'Gestor de arena',
@@ -79,14 +81,21 @@ export function Perfil() {
             </div>
           </dl>
 
-          {currentUser.data.role === 'USR' ? (
-            <Button asChild variant="brandOutline" className="w-full sm:w-fit">
-              <Link to="/app/solicitar-gestor">
-                <Briefcase className="size-4" />
-                Solicitar gestão de arena
-              </Link>
-            </Button>
-          ) : null}
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <ChangePasswordDialog />
+            {currentUser.data.role === 'USR' ? (
+              <Button
+                asChild
+                variant="brandOutline"
+                className="w-full sm:w-fit"
+              >
+                <Link to="/app/solicitar-gestor">
+                  <Briefcase className="size-4" />
+                  Solicitar gestão de arena
+                </Link>
+              </Button>
+            ) : null}
+          </div>
         </Card>
       )}
     </div>
