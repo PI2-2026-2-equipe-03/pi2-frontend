@@ -48,6 +48,12 @@ const RequireRole = lazy(() =>
   roleGate().then((gate) => ({ default: gate.RequireRole })),
 )
 
+// not via lazyFrom either: NotFound takes props, and it is the only screen that
+// lives outside the three areas
+const NotFound = lazy(() =>
+  import('@/pages/not-found').then((page) => ({ default: page.NotFound })),
+)
+
 // adapter do nuqs para que query params sejam gerenciados em todas as rotas
 function NuqsRouteWrapper() {
   return (
@@ -105,9 +111,14 @@ export const router = createBrowserRouter([
           { index: true, element: <Dashboard /> },
           { path: 'quadras', element: <AdminQuadras /> },
           { path: 'patrocinadores', element: <AdminPatrocinadores /> },
+          // own catch-all: the error shows up inside the layout, so the admin
+          // keeps the menu and the header
+          { path: '*', element: <NotFound embedded /> },
         ],
       },
-      { path: '*', element: <Navigate to="/sign-in" replace /> },
+      // unknown route used to bounce to /sign-in, which looked like a dropped
+      // session to anyone already signed in
+      { path: '*', element: <NotFound /> },
     ],
   },
 ])

@@ -37,7 +37,8 @@
   --secondary: oklch(0.95 0.02 240);
   --secondary-foreground: oklch(0.32 0.05 260);
   --muted: oklch(0.96 0.005 260);
-  --muted-foreground: oklch(0.55 0.02 260);
+  /* 0.55 media 4,45:1 no fundo e reprovava em AA; 0.52 mede 5,07:1 */
+  --muted-foreground: oklch(0.52 0.02 260);
   /* accent: superfície de hover/foco/seleção. amarelo de marca destoava aqui,
      então usa um tom azulado discreto na interação. */
   --accent: oklch(0.94 0.018 265);
@@ -57,8 +58,11 @@
   --info: oklch(0.54 0.19 250);
   --info-foreground: oklch(1 0 0);
 
-  /* tokens tagravado: cores dos wireframes */
+  /* tokens tagravado: cores dos wireframes.
+     brand-blue é superfície (cabeçalho, botão, selo); brand-text é texto.
+     uma cor que funciona atrás de texto branco não funciona como texto. */
   --tg-brand-blue: #103a9e;
+  --tg-brand-text: #103a9e;
   --tg-brand-blue-dark: #0b2a75;
   --tg-brand-yellow: #f2c111;
   --tg-brand-bg: #eaf1fb;
@@ -90,6 +94,14 @@
     'Poppins', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --font-geologica:
     'Geologica', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  /* alvo de toque: 44px é o mínimo da wcag 2.5.5, 48px o confortável.
+     área segura lida do aparelho, com reserva zerada fora dele.
+     criados aqui e consumidos pela responsividade (f5-04). */
+  --tg-touch-target-min: 44px;
+  --tg-touch-target-comfortable: 48px;
+  --tg-safe-area-top: env(safe-area-inset-top, 0px);
+  --tg-safe-area-bottom: env(safe-area-inset-bottom, 0px);
 
   --radius: 0.625rem;
 }
@@ -127,6 +139,9 @@
   --info-foreground: oklch(0.18 0.04 245);
 
   --tg-brand-blue: #1e4bb8;
+  /* superfície usada como texto media 2,47:1 no fundo; este tom mede 7,03:1
+     no fundo e 5,83:1 no card */
+  --tg-brand-text: oklch(0.7 0.12 260);
   --tg-brand-blue-dark: #0b2a75;
   --tg-brand-yellow: #f2c111;
   --tg-brand-bg: #0f172a;
@@ -143,7 +158,9 @@
   --sidebar-primary-foreground: oklch(0.18 0.04 90);
   --sidebar-accent: oklch(0.3 0.08 265);
   --sidebar-accent-foreground: oklch(0.87 0.009 258);
-  --sidebar-border: oklch(0.3 0.08 265);
+  /* a barra mede 1,03:1 contra o fundo e clarear a superfície só chega a
+     1,37:1; a separação tem de vir da borda, que aqui mede 3,85:1 */
+  --sidebar-border: oklch(0.55 0.07 265);
   --sidebar-ring: oklch(0.85 0.15 90);
 
   --font-sans:
@@ -204,6 +221,7 @@
   --color-info-foreground: var(--info-foreground);
 
   --color-tg-brand-blue: var(--tg-brand-blue);
+  --color-tg-brand-text: var(--tg-brand-text);
   --color-tg-brand-blue-dark: var(--tg-brand-blue-dark);
   --color-tg-brand-yellow: var(--tg-brand-yellow);
   --color-tg-brand-bg: var(--tg-brand-bg);
@@ -269,6 +287,13 @@
   --z-index-popover: 80;
   --z-index-tooltip: 90;
   --z-index-toast: 100;
+
+  /* namespace --spacing-* para o tailwind gerar as utilities de tamanho:
+     min-h-touch-min, size-touch-comfortable, pt-safe-top, pb-safe-bottom */
+  --spacing-touch-min: var(--tg-touch-target-min);
+  --spacing-touch-comfortable: var(--tg-touch-target-comfortable);
+  --spacing-safe-top: var(--tg-safe-area-top);
+  --spacing-safe-bottom: var(--tg-safe-area-bottom);
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);

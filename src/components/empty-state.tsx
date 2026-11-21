@@ -25,7 +25,7 @@ export function EmptyState({
       className="border-border bg-card/40 mx-auto flex max-w-md flex-col items-center gap-4 rounded-2xl border border-dashed p-10 text-center"
     >
       <div className="bg-tg-brand-yellow/15 ring-tg-brand-yellow/25 flex size-16 items-center justify-center rounded-full ring-8">
-        <Icon className="text-tg-brand-blue size-7" />
+        <Icon className="text-tg-brand-text size-7" />
       </div>
       <div className="space-y-1">
         <h2 className="text-foreground text-lg font-semibold">{title}</h2>

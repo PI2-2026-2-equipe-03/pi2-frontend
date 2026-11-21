@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { CheckCircle2, Loader2 } from 'lucide-react'
-import type { HTMLAttributes } from 'react'
+import type { HTMLAttributes, HTMLInputTypeAttribute } from 'react'
 import { type Control, useForm } from 'react-hook-form'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -42,6 +42,7 @@ type TextFieldProps = {
   name: keyof ManagerRequestInput
   label: string
   placeholder?: string
+  type?: HTMLInputTypeAttribute
   autoComplete?: string
   inputMode?: HTMLAttributes<HTMLInputElement>['inputMode']
   format?: (raw: string) => string
@@ -53,6 +54,7 @@ function TextField({
   name,
   label,
   placeholder,
+  type = 'text',
   autoComplete,
   inputMode,
   format,
@@ -68,6 +70,7 @@ function TextField({
           <FormControl>
             <Input
               placeholder={placeholder}
+              type={type}
               autoComplete={autoComplete}
               inputMode={inputMode}
               {...field}
@@ -129,7 +132,7 @@ export function SolicitarGestor() {
       <Card className="mx-auto max-w-2xl items-center gap-4 p-6 text-center md:p-8">
         <CheckCircle2 className="text-success size-10" aria-hidden />
         <div className="space-y-1">
-          <h1 className="text-tg-brand-blue text-xl font-bold">
+          <h1 className="text-tg-brand-text text-xl font-bold">
             Solicitação recebida
           </h1>
           <p className="text-muted-foreground">{createRequest.data.message}</p>
@@ -146,7 +149,7 @@ export function SolicitarGestor() {
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-6">
       <header>
-        <h1 className="text-tg-brand-blue text-2xl font-bold md:text-3xl">
+        <h1 className="text-tg-brand-text text-2xl font-bold md:text-3xl">
           Solicitar gestão de arena
         </h1>
         <p className="text-muted-foreground">
@@ -162,11 +165,15 @@ export function SolicitarGestor() {
             className="grid grid-cols-1 gap-5 sm:grid-cols-2"
             aria-label="Formulário de solicitação de gestão"
           >
+            {/* type=tel + inputMode=numeric: numeric keypad confirmed on a real
+            device; autoComplete=off because documents have no standard token */}
             <TextField
               control={form.control}
               name="cpf"
               label="CPF"
               placeholder="000.000.000-00"
+              type="tel"
+              autoComplete="off"
               inputMode="numeric"
               format={formatCpf}
             />
@@ -175,6 +182,8 @@ export function SolicitarGestor() {
               name="cnpj"
               label="CNPJ (opcional)"
               placeholder="00.000.000/0000-00"
+              type="tel"
+              autoComplete="off"
               inputMode="numeric"
               format={formatCnpj}
             />
@@ -189,6 +198,8 @@ export function SolicitarGestor() {
               control={form.control}
               name="courtQuantity"
               label="Quantidade de quadras"
+              type="tel"
+              autoComplete="off"
               inputMode="numeric"
               format={formatCourtQuantity}
             />
@@ -197,6 +208,7 @@ export function SolicitarGestor() {
               name="zipCode"
               label="CEP"
               placeholder="00000-000"
+              type="tel"
               autoComplete="postal-code"
               inputMode="numeric"
               format={formatCep}
@@ -212,6 +224,7 @@ export function SolicitarGestor() {
               control={form.control}
               name="neighborhood"
               label="Bairro"
+              autoComplete="address-level3"
               className="sm:col-span-2"
             />
             <TextField

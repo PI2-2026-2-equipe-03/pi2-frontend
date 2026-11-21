@@ -139,10 +139,10 @@ export function Replays() {
     <div className="mx-auto flex max-w-6xl flex-col gap-6">
       <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-tg-brand-blue text-[clamp(1.5rem,3vw,2rem)] font-bold">
+          <h1 className="text-tg-brand-text text-[clamp(1.5rem,3vw,2rem)] font-bold">
             Replays
           </h1>
-          <p className="text-tg-brand-blue font-medium">
+          <p className="text-tg-brand-text font-medium">
             Replays disponíveis nos últimos 7 dias. Assista ou baixe antes de
             expirar.
           </p>

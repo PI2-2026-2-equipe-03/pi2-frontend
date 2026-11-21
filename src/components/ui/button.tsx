@@ -24,7 +24,7 @@ const buttonVariants = cva(
         brand:
           'bg-tg-brand-yellow text-tg-brand-blue-dark font-semibold shadow-sm hover:bg-tg-brand-yellow/90 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]',
         brandOutline:
-          'border border-tg-brand-blue text-tg-brand-blue hover:bg-tg-brand-blue hover:text-white active:scale-[0.98]',
+          'border border-tg-brand-text text-tg-brand-text hover:bg-tg-brand-blue hover:text-white active:scale-[0.98]',
       },
       size: {
         default: 'h-10 md:h-9 px-4 py-2 has-[>svg]:px-3',

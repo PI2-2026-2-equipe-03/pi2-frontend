@@ -153,7 +153,7 @@ export function ReplayDetail() {
               <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
                 {view.arena.nome}
               </p>
-              <h1 className="text-tg-brand-blue text-[clamp(1.25rem,2.5vw,1.75rem)] leading-tight font-bold">
+              <h1 className="text-tg-brand-text text-[clamp(1.25rem,2.5vw,1.75rem)] leading-tight font-bold">
                 {view.court.nome}
               </h1>
             </div>
