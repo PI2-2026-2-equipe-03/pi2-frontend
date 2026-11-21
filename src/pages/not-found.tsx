@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
-import { Compass } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 
+import { Ilustracao } from '@/components/ilustracao'
 import { Logo } from '@/components/logo'
 import { ThemeToggle } from '@/components/theme/theme-toggle'
 import { Button } from '@/components/ui/button'
@@ -35,14 +35,7 @@ export function NotFound({ embedded = false }: NotFoundProps) {
       transition={motionSafe.transition(transitions.slideUp)}
       className="mx-auto flex max-w-md flex-col items-center gap-6 text-center"
     >
-      {/* lucide placeholder: the brand `nao-encontrado` scene arrives in #39 */}
-      <div className="bg-tg-brand-yellow/15 ring-tg-brand-yellow/25 flex size-20 items-center justify-center rounded-full ring-8">
-        {/* brand blue sinks into the dark surface; yellow keeps the shape read */}
-        <Compass
-          className="text-tg-brand-blue dark:text-tg-brand-yellow size-9"
-          aria-hidden="true"
-        />
-      </div>
+      <Ilustracao nome="nao-encontrado" className="w-56" />
 
       <div className="space-y-2">
         <p className="text-muted-foreground text-xs font-semibold tracking-[0.2em]">
@@ -56,7 +49,7 @@ export function NotFound({ embedded = false }: NotFoundProps) {
           <span className="text-foreground font-mono break-all">
             {pathname}
           </span>{' '}
-          não leva a nenhuma tela do TaGravado. O link pode estar desatualizado
+          não leva a nenhuma tela do repeteco. O link pode estar desatualizado
           ou a tela ainda está por vir.
         </p>
         {signedIn ? null : (
@@ -79,7 +72,10 @@ export function NotFound({ embedded = false }: NotFoundProps) {
   return (
     <div className="bg-tg-brand-bg text-foreground flex min-h-svh flex-col">
       <header className="flex shrink-0 items-center justify-between p-4 md:px-6">
-        <Logo to={backTo} className="text-tg-brand-blue text-2xl" />
+        <Logo
+          to={backTo}
+          className="text-tg-brand-blue text-2xl dark:text-white"
+        />
         <ThemeToggle />
       </header>
       <main className="flex flex-1 items-center justify-center p-4 pb-20">

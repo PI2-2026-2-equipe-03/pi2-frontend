@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { ChevronRight, LayoutGrid, MapPin, RefreshCw, X } from 'lucide-react'
+import { ChevronRight, MapPin, RefreshCw, X } from 'lucide-react'
 import { useQueryState } from 'nuqs'
 import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
@@ -520,7 +520,7 @@ export function Quadras() {
         />
       ) : quadrasFiltradas.length === 0 ? (
         <EmptyState
-          icon={LayoutGrid}
+          ilustracao={hasActiveFilters ? 'busca-vazia' : 'sem-quadras'}
           title="Nenhuma quadra encontrada"
           description={
             hasActiveFilters

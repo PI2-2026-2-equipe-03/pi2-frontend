@@ -1,4 +1,3 @@
-import { ShieldAlert } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 
@@ -48,7 +47,7 @@ export function RequireRole({ roles, children }: RequireRoleProps) {
     return (
       <GuardScreen>
         <EmptyState
-          icon={ShieldAlert}
+          ilustracao="acesso-negado"
           title="Acesso não permitido"
           description={FORBIDDEN_MESSAGE}
           action={

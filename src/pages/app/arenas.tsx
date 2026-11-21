@@ -1,5 +1,4 @@
 import { motion } from 'framer-motion'
-import { MapPinOff } from 'lucide-react'
 import { useQueryState } from 'nuqs'
 import { useMemo } from 'react'
 
@@ -180,7 +179,7 @@ export function Arenas() {
         />
       ) : arenasFiltradas.length === 0 ? (
         <EmptyState
-          icon={MapPinOff}
+          ilustracao={hasActiveFilters ? 'busca-vazia' : 'sem-arenas'}
           title="Nenhuma arena encontrada"
           description={
             hasActiveFilters

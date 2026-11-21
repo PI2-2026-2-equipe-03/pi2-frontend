@@ -1,6 +1,7 @@
 import { Briefcase, Mail, ShieldCheck, User } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
+import { AvatarUsuario } from '@/components/avatar-usuario'
 import { QueryErrorState } from '@/components/query-error-state'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -51,6 +52,20 @@ export function Perfil() {
         />
       ) : (
         <Card className="gap-5 p-5 md:p-6">
+          <div className="flex items-center gap-4">
+            <AvatarUsuario
+              usuario={currentUser.data}
+              className="size-16 md:size-20"
+            />
+            <div className="min-w-0">
+              <p className="text-lg font-bold break-words md:text-xl">
+                {currentUser.data.name}
+              </p>
+              <p className="text-muted-foreground text-sm">
+                {ROLE_LABELS[currentUser.data.role]}
+              </p>
+            </div>
+          </div>
           <dl className="grid gap-4">
             <div className="flex items-start gap-3">
               <User className="text-tg-brand-text mt-0.5 size-5 shrink-0" />

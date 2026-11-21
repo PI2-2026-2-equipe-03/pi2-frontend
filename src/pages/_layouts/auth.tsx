@@ -48,7 +48,7 @@ export function AuthLayout() {
           </p>
         </motion.div>
 
-        <p className="text-sm text-white/75">© 2026 TaGravado</p>
+        <p className="text-sm text-white/75">© 2026 repeteco</p>
       </aside>
 
       <main className="bg-background text-foreground flex flex-1 items-center justify-center p-6">

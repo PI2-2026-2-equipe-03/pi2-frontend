@@ -12,7 +12,7 @@ export function ThemeProvider({
       defaultTheme="light"
       enableSystem
       disableTransitionOnChange
-      storageKey="tagravado-theme"
+      storageKey="repeteco-theme"
       {...props}
     >
       {children}

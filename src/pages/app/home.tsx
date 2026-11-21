@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { MapPin, RefreshCw, SearchX, Video, WifiOff } from 'lucide-react'
+import { MapPin, RefreshCw, Video } from 'lucide-react'
 import { useQueryState } from 'nuqs'
 import { useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
@@ -133,7 +133,7 @@ export function Home() {
       {hasQuery ? (
         preview.length === 0 ? (
           <EmptyState
-            icon={SearchX}
+            ilustracao="busca-vazia"
             title="Nenhuma quadra encontrada"
             description="Tente outro termo: nome da quadra, da arena ou da cidade."
           />
@@ -212,7 +212,7 @@ export function Home() {
               </ul>
             ) : hasLoadError ? (
               <EmptyState
-                icon={WifiOff}
+                ilustracao="sem-conexao"
                 title="Não foi possível carregar as arenas"
                 description="Confira se a API está no ar e tente novamente."
                 action={
@@ -236,7 +236,7 @@ export function Home() {
               />
             ) : arenas.length === 0 ? (
               <EmptyState
-                icon={MapPin}
+                ilustracao="sem-arenas"
                 title="Nenhuma arena cadastrada"
                 description="Assim que uma arena for cadastrada, ela aparece aqui."
               />
