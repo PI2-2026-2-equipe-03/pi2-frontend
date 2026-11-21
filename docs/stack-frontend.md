@@ -1,3 +1,5 @@
+> **Nota (21/11/2026):** o produto passou a se chamar **repeteco** (issue #39). Este documento é o registro da Sprint 1 e mantém o nome antigo, TaGravado, onde narra decisões daquela época; afirmações sobre o código atual (como a chave do tema) foram atualizadas.
+
 # Justificativa da Stack — Frontend TaGravado
 
 Documento de suporte à issue #18 (F-01 · Sprint 1). Explica por que a interface do TaGravado é implementada com **React 19 + Vite + TypeScript strict + Tailwind CSS 4 + shadcn/ui + TanStack Query + React Hook Form + Zod** sobre **Node.js 22+**, considerando o perfil de dispositivo de cada persona.
@@ -62,7 +64,7 @@ O RNF-02 (Responsividade) exige que as mesmas telas sirvam mobile, tablet e desk
 
 ### 3.3 next-themes
 
-- Alterna claro/escuro persistindo em `localStorage` (`tagravado-theme`).
+- Alterna claro/escuro persistindo em `localStorage` (`repeteco-theme`).
 - Cumpre RNF-01 sem esforço adicional; os tokens vivem em `--background`, `--foreground`, `--primary`, etc. e apenas trocam de valor entre `:root` e `.dark`.
 
 ## 4. Estado, dados e formulários
@@ -108,7 +110,7 @@ src/
   env.ts                      # zod schema para import.meta.env
   style.css                   # tokens shadcn + marca (@theme inline)
   components/
-    logo.tsx                  # wordmark tagravado
+    logo.tsx                  # wordmark repeteco
     theme/
       theme-provider.tsx
       theme-toggle.tsx

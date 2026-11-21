@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { CalendarDays, VideoOff, X } from 'lucide-react'
+import { CalendarDays, X } from 'lucide-react'
 import { useQueryState } from 'nuqs'
 import { useMemo } from 'react'
 
@@ -269,7 +269,7 @@ export function Replays() {
         />
       ) : replaysFiltrados.length === 0 ? (
         <EmptyState
-          icon={VideoOff}
+          ilustracao={hasActiveFilters ? 'busca-vazia' : 'sem-replays'}
           title="Nenhum replay encontrado"
           description={
             hasActiveFilters

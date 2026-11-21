@@ -1,4 +1,4 @@
-import { Megaphone, Trash2 } from 'lucide-react'
+import { Trash2 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
@@ -149,7 +149,7 @@ export function AdminPatrocinadores() {
         />
       ) : patrocinadores.length === 0 ? (
         <EmptyState
-          icon={Megaphone}
+          ilustracao="sem-patrocinadores"
           title="Nenhum patrocinador cadastrado"
           description="Os patrocinadores vinculados às suas quadras aparecem aqui."
         />

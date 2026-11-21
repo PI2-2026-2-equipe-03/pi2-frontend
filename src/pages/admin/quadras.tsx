@@ -1,4 +1,4 @@
-import { LayoutGrid, Trash2, VideoOff } from 'lucide-react'
+import { Trash2, VideoOff } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
@@ -200,7 +200,7 @@ export function AdminQuadras() {
         />
       ) : rows.length === 0 ? (
         <EmptyState
-          icon={LayoutGrid}
+          ilustracao="sem-quadras"
           title="Nenhuma quadra cadastrada"
           description="As quadras da sua arena aparecem aqui assim que forem cadastradas."
         />

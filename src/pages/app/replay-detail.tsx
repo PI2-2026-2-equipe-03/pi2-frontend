@@ -6,8 +6,6 @@ import {
   Loader2,
   MapPin,
   RefreshCw,
-  VideoOff,
-  WifiOff,
 } from 'lucide-react'
 import { Link, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -99,7 +97,7 @@ export function ReplayDetail() {
       ) : isError ? (
         <div className="grid min-h-0 flex-1 place-content-center">
           <EmptyState
-            icon={WifiOff}
+            ilustracao="sem-conexao"
             title="Não foi possível carregar o replay"
             description="Confira se a API está no ar e tente novamente."
             action={
@@ -120,7 +118,7 @@ export function ReplayDetail() {
       ) : notFound ? (
         <div className="grid min-h-0 flex-1 place-content-center">
           <EmptyState
-            icon={VideoOff}
+            ilustracao="replay-expirado"
             title="Replay não encontrado"
             description="O replay pode ter expirado ou sido removido."
             action={

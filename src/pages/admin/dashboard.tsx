@@ -161,7 +161,7 @@ export function Dashboard() {
           </h1>
           <p className="text-tg-brand-text font-medium">
             {isAdmin
-              ? 'Visão geral do sistema TaGravado'
+              ? 'Visão geral do sistema repeteco'
               : 'Visão geral das suas quadras'}
           </p>
         </div>

@@ -2,6 +2,7 @@ import { LogOut, Settings, User } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
+import { AvatarUsuario } from '@/components/avatar-usuario'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -53,7 +54,7 @@ export function ProfileMenu({
               aria-label="Menu do perfil"
               className={className}
             >
-              <User className="size-4" />
+              <AvatarUsuario usuario={currentUser} className="size-8" />
             </Button>
           </DropdownMenuTrigger>
         </TooltipTrigger>

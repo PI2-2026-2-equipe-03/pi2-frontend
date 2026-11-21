@@ -1,5 +1,6 @@
-import { VideoOff } from 'lucide-react'
 import { useState } from 'react'
+
+import { Ilustracao } from '@/components/ilustracao'
 
 type ReplayPlayerProps = {
   src: string
@@ -13,8 +14,8 @@ export function ReplayPlayer({ src, label, className }: ReplayPlayerProps) {
 
   if (!src || failed) {
     return (
-      <div className="text-muted-foreground flex size-full flex-col items-center justify-center gap-2 p-6 text-center text-sm">
-        <VideoOff className="size-8" aria-hidden />
+      <div className="flex size-full flex-col items-center justify-center gap-2 p-6 text-center text-sm text-white/80">
+        <Ilustracao nome="video-indisponivel" className="w-44 sm:w-52" />
         <p>O arquivo deste replay não está disponível para reprodução.</p>
       </div>
     )

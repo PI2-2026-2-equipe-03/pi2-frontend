@@ -1,0 +1,26 @@
+{
+  "name": "repeteco",
+  "short_name": "repeteco",
+  "description": "Esse lance merece repeteco.",
+  "theme_color": "#103A9E",
+  "background_color": "#103A9E",
+  "display": "standalone",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

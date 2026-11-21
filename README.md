@@ -1,6 +1,6 @@
-# pi2-frontend - TaGravado
+# pi2-frontend - repeteco
 
-SPA (Single Page Application) do **TaGravado**, sistema de replay para quadras esportivas. Este repositório contém apenas a camada de interface; a API está em [pi2-backend](https://github.com/PI2-2026-2-equipe-03/pi2-backend). Para a visão geral do projeto (contexto, equipe, roadmap), veja [PI2-2026-2-equipe-03](https://github.com/PI2-2026-2-equipe-03/PI2-2026-2-equipe-03).
+SPA (Single Page Application) do **repeteco**, sistema de replay para quadras esportivas. Este repositório contém apenas a camada de interface; a API está em [pi2-backend](https://github.com/PI2-2026-2-equipe-03/pi2-backend). Para a visão geral do projeto (contexto, equipe, roadmap), veja [PI2-2026-2-equipe-03](https://github.com/PI2-2026-2-equipe-03/PI2-2026-2-equipe-03).
 
 ## Objetivo
 
