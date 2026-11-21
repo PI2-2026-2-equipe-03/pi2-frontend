@@ -231,7 +231,7 @@ export function toReplayView(replay: Replay): ReplayView | undefined {
   return {
     id: replay.id,
     court: { id: quadra.id, nome: quadra.nome },
-    arena: { id: arena.id, nome: arena.nome },
+    arena: { nome: arena.nome },
     city: arena.cidade,
     recordedAt: replay.criadoEm,
     duration: REPLAY_DURATION_SECONDS,

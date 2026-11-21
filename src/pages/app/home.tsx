@@ -9,26 +9,19 @@ import { FeaturedCard } from '@/components/featured-card'
 import { MediaThumb } from '@/components/media-thumb'
 import { SearchCombobox } from '@/components/search-combobox'
 import { Button } from '@/components/ui/button'
-import { useArenas, useQuadras, useReplays } from '@/lib/api/queries'
+import { useArenas, useFeaturedReplay, useQuadras } from '@/lib/api/queries'
 import { motionTokens } from '@/lib/motion'
 import type { Suggestion } from '@/lib/search'
 import { createCourtSuggestions, suggestCourts } from '@/lib/search'
-import type { ReplayView } from '@/lib/types'
 
 import { ArenaCard } from './components/arena-card'
 import { ArenaCardSkeleton } from './components/arena-card-skeleton'
 
-// replay mais recente disponível alimenta o FeaturedCard. projeção pura.
-function pickFeatured(replays: readonly ReplayView[]): ReplayView | undefined {
-  return [...replays]
-    .filter((r) => r.status === 'available')
-    .sort(
-      (a, b) =>
-        new Date(b.recordedAt).getTime() - new Date(a.recordedAt).getTime(),
-    )[0]
-}
-
 const RESULT_PREVIEW_LIMIT = 12
+
+// the home is a shop window, not the catalog: /app/arenas lists everything and
+// paginates. two rows on the widest grid.
+const ARENA_PREVIEW_LIMIT = 6
 
 const listVariants = {
   hidden: { opacity: 0 },
@@ -56,7 +49,7 @@ export function Home() {
 
   const arenasQuery = useArenas()
   const quadrasQuery = useQuadras()
-  const replaysQuery = useReplays()
+  const featuredQuery = useFeaturedReplay()
 
   const arenas = useMemo(() => arenasQuery.data ?? [], [arenasQuery.data])
   const quadras = useMemo(() => quadrasQuery.data ?? [], [quadrasQuery.data])
@@ -78,10 +71,7 @@ export function Home() {
   }, [quadras])
 
   // replays são escopados à sessão; a Home não quebra se a lista vier vazia.
-  const featuredReplay = useMemo(
-    () => pickFeatured(replaysQuery.data ?? []),
-    [replaysQuery.data],
-  )
+  const featuredReplay = featuredQuery.data
 
   function handleSelect(suggestion: Suggestion) {
     if (suggestion.payload.kind === 'court') {
@@ -91,6 +81,7 @@ export function Home() {
 
   const hasQuery = Boolean(q.trim())
   const preview = matches.slice(0, RESULT_PREVIEW_LIMIT)
+  const arenaPreview = arenas.slice(0, ARENA_PREVIEW_LIMIT)
   const hasMore = matches.length > RESULT_PREVIEW_LIMIT
   const isLoading = arenasQuery.isPending || quadrasQuery.isPending
   const hasLoadError = arenasQuery.isError || quadrasQuery.isError
@@ -213,7 +204,7 @@ export function Home() {
                 aria-live="polite"
                 className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
               >
-                {Array.from({ length: 6 }).map((_, i) => (
+                {Array.from({ length: ARENA_PREVIEW_LIMIT }).map((_, i) => (
                   <li key={i}>
                     <ArenaCardSkeleton />
                   </li>
@@ -256,7 +247,7 @@ export function Home() {
                 animate="visible"
                 className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
               >
-                {arenas.map((arena) => (
+                {arenaPreview.map((arena) => (
                   <motion.li key={arena.id} variants={itemVariants}>
                     <ArenaCard
                       arena={arena}

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { cn } from '@/lib/utils'
 
 type ReplayExpiryProps = {
-  expiresAt: string
+  expiresAt: string | null
   className?: string
   withIcon?: boolean
 }
@@ -56,7 +56,12 @@ export function ReplayExpiry({
     return () => window.clearInterval(id)
   }, [])
 
-  const remainingMs = new Date(expiresAt).getTime() - now
+  // no deadline from the api is not the same as an expired replay: a badge
+  // either states a real deadline or says nothing
+  const deadline = expiresAt ? new Date(expiresAt).getTime() : Number.NaN
+  if (Number.isNaN(deadline)) return null
+
+  const remainingMs = deadline - now
   const severity = computeSeverity(remainingMs)
   const label = formatRemaining(remainingMs)
   const prefix = severity === 'expired' ? '' : 'Expira em '

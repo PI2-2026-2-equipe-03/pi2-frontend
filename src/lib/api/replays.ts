@@ -2,6 +2,14 @@ import { env } from '@/env'
 import * as mocks from '@/lib/api/mocks/replays'
 import { customInstance } from '@/lib/api/mutator/axios-instance'
 
+// english field names on purpose: this is the api contract (r.patrocinadores
+// AS sponsors), not the domain model
+export type ReplaySponsorDto = {
+  id: string
+  name: string
+  imageUrl: string | null
+}
+
 export type ReplayDto = {
   id: string
   courtId: string
@@ -14,6 +22,10 @@ export type ReplayDto = {
   courtName?: string
   arenaName?: string
   city?: string
+  // optional because the dev database may still lack duracao_segundos and
+  // patrocinadores (B-00); the api declares both as required
+  duration?: number
+  sponsors?: ReplaySponsorDto[]
 }
 
 // o backend responde só { id, downloadUrl }; o nome do arquivo fica por conta
