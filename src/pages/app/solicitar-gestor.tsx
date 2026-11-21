@@ -132,7 +132,7 @@ export function SolicitarGestor() {
       <Card className="mx-auto max-w-2xl items-center gap-4 p-6 text-center md:p-8">
         <CheckCircle2 className="text-success size-10" aria-hidden />
         <div className="space-y-1">
-          <h1 className="text-tg-brand-blue text-xl font-bold">
+          <h1 className="text-tg-brand-text text-xl font-bold">
             Solicitação recebida
           </h1>
           <p className="text-muted-foreground">{createRequest.data.message}</p>
@@ -149,7 +149,7 @@ export function SolicitarGestor() {
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-6">
       <header>
-        <h1 className="text-tg-brand-blue text-2xl font-bold md:text-3xl">
+        <h1 className="text-tg-brand-text text-2xl font-bold md:text-3xl">
           Solicitar gestão de arena
         </h1>
         <p className="text-muted-foreground">

@@ -25,11 +25,11 @@ export function StatCard({
         <h2 className="text-muted-foreground text-xs font-medium sm:text-sm">
           {title}
         </h2>
-        <span className="bg-tg-brand-blue/10 text-tg-brand-blue inline-flex size-8 shrink-0 items-center justify-center rounded-full transition-transform group-hover:rotate-6 sm:size-10">
+        <span className="bg-tg-brand-blue/10 text-tg-brand-text inline-flex size-8 shrink-0 items-center justify-center rounded-full transition-transform group-hover:rotate-6 sm:size-10">
           <Icon className="size-4 sm:size-5" />
         </span>
       </div>
-      <p className="text-tg-brand-blue-dark text-2xl font-bold tabular-nums sm:text-4xl">
+      <p className="text-tg-brand-text text-2xl font-bold tabular-nums sm:text-4xl">
         {value}
       </p>
       {hint ? (

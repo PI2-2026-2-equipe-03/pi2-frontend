@@ -43,7 +43,7 @@ export function ConfirmDeleteDialog({
     >
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle className="text-tg-brand-blue dark:text-foreground">
+          <AlertDialogTitle className="text-tg-brand-text">
             {title}
           </AlertDialogTitle>
           <AlertDialogDescription>{description}</AlertDialogDescription>

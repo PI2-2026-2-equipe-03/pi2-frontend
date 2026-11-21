@@ -202,7 +202,7 @@ function QuadraCard({
             </Badge>
           </div>
           <div className="space-y-1.5 p-4">
-            <p className="text-foreground group-hover:text-tg-brand-blue font-semibold tracking-tight transition-colors">
+            <p className="text-foreground group-hover:text-tg-brand-text font-semibold tracking-tight transition-colors">
               {quadra.nome}
             </p>
             <p className="text-muted-foreground text-xs leading-relaxed">
@@ -404,7 +404,7 @@ export function Quadras() {
 
         <div className="flex items-end justify-between gap-3">
           <div>
-            <h1 className="text-tg-brand-blue text-[clamp(1.5rem,3vw,2rem)] font-bold">
+            <h1 className="text-tg-brand-text text-[clamp(1.5rem,3vw,2rem)] font-bold">
               {isDeepLinked && arenaSelecionada
                 ? `Quadras de ${arenaSelecionada.nome}`
                 : 'Quadras'}
@@ -415,7 +415,7 @@ export function Quadras() {
                 {arenaSelecionada.cidade}
               </p>
             ) : (
-              <p className="text-tg-brand-blue font-medium">
+              <p className="text-tg-brand-text font-medium">
                 Escolha uma quadra para ver seus replays.
               </p>
             )}

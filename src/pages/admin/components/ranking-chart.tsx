@@ -46,7 +46,7 @@ export function RankingChart({
   return (
     <section className="bg-card border-border rounded-xl border p-5 md:p-6">
       <header className="mb-4">
-        <h2 className="text-tg-brand-blue flex items-center gap-2 text-lg font-bold">
+        <h2 className="text-tg-brand-text flex items-center gap-2 text-lg font-bold">
           <Icon className="size-5" />
           {title}
         </h2>
