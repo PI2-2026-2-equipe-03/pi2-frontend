@@ -1,11 +1,26 @@
-import { motion } from 'framer-motion'
-import { ArrowLeft, LogOut, Menu, User } from 'lucide-react'
-import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
+import {
+  ArrowLeft,
+  Handshake,
+  LayoutDashboard,
+  LayoutGrid,
+  Menu,
+} from 'lucide-react'
+import { Link, Outlet } from 'react-router-dom'
 
 import { Logo } from '@/components/logo'
+import { ProfileMenu } from '@/components/navigation/profile-menu'
+import {
+  type NavItem,
+  SideNav,
+  SideNavFooter,
+} from '@/components/navigation/side-nav'
 import { RouteTransition } from '@/components/route-transition'
 import { ThemeToggle } from '@/components/theme/theme-toggle'
 import { Button } from '@/components/ui/button'
+import {
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu'
 import {
   Sheet,
   SheetContent,
@@ -13,115 +28,18 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet'
-import { useCurrentUser } from '@/lib/api/queries'
-import { signOut } from '@/lib/auth/session'
-import type { UserRole } from '@/lib/types'
-import { cn } from '@/lib/utils'
-
-// itens do menu lateral do painel admin
-type NavItem = {
-  label: string
-  to: string
-  end?: boolean
-  // sem roles: visível para qualquer perfil da área de gestão
-  roles?: readonly UserRole[]
-}
 
 // only routes that exist: cameras, usuarios and replays fell into the global
 // catch-all and threw a signed-in admin out to /sign-in (#36). they come back
 // together with their screens
 const NAV_ITEMS: readonly NavItem[] = [
-  { label: 'Dashboard', to: '/admin', end: true },
-  { label: 'Quadras', to: '/admin/quadras' },
-  { label: 'Patrocinadores', to: '/admin/patrocinadores' },
+  { label: 'Dashboard', to: '/admin', icon: LayoutDashboard, end: true },
+  { label: 'Quadras', to: '/admin/quadras', icon: LayoutGrid },
+  { label: 'Patrocinadores', to: '/admin/patrocinadores', icon: Handshake },
 ]
-
-function AdminNav({
-  onNavigate,
-  pillId = 'admin-nav-pill',
-}: {
-  onNavigate?: () => void
-  pillId?: string
-}) {
-  const { data: currentUser } = useCurrentUser()
-  const items = NAV_ITEMS.filter(
-    (item) =>
-      !item.roles || (currentUser && item.roles.includes(currentUser.role)),
-  )
-
-  return (
-    <nav className="flex flex-col gap-2 px-3">
-      {items.map((item) => (
-        <NavLink
-          key={item.to}
-          to={item.to}
-          end={item.end}
-          onClick={onNavigate}
-          className={({ isActive }) =>
-            cn(
-              'relative isolate rounded-full px-5 py-2 text-base font-medium transition-colors',
-              'focus-visible:ring-tg-brand-yellow/60 focus-visible:ring-2 focus-visible:outline-none',
-              isActive
-                ? 'text-tg-brand-blue-dark'
-                : 'text-sidebar-foreground/90 hover:bg-tg-brand-yellow/20 hover:text-sidebar-accent-foreground',
-            )
-          }
-        >
-          {({ isActive }) => (
-            <>
-              {isActive ? (
-                <motion.span
-                  layoutId={pillId}
-                  className="bg-tg-brand-yellow absolute inset-0 -z-10 rounded-full shadow-sm"
-                  transition={{ type: 'spring', stiffness: 500, damping: 40 }}
-                />
-              ) : null}
-              <span className="relative">{item.label}</span>
-            </>
-          )}
-        </NavLink>
-      ))}
-    </nav>
-  )
-}
-
-function AdminFooter({ onNavigate }: { onNavigate?: () => void }) {
-  const navigate = useNavigate()
-
-  async function handleLogout() {
-    onNavigate?.()
-    await signOut()
-    navigate('/sign-in', { replace: true })
-  }
-
-  return (
-    <div className="flex flex-col gap-1 px-3">
-      <Link
-        to="/app"
-        onClick={onNavigate}
-        className="text-sidebar-foreground/90 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground flex items-center gap-2 rounded-md px-5 py-2 text-left text-base font-medium transition-colors"
-      >
-        <ArrowLeft className="size-4" />
-        Voltar ao app
-      </Link>
-      <button
-        type="button"
-        onClick={() => {
-          void handleLogout()
-        }}
-        className="text-sidebar-foreground/90 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground flex items-center gap-2 rounded-md px-5 py-2 text-left text-base font-medium transition-colors"
-      >
-        <LogOut className="size-4" />
-        Sair
-      </button>
-    </div>
-  )
-}
 
 // layout do administrador: topbar azul + sidebar escuro + main
 export function AdminLayout() {
-  const { data: currentUser } = useCurrentUser()
-
   return (
     <div className="bg-background text-foreground flex min-h-svh flex-col">
       <header className="bg-tg-brand-blue z-sticky sticky top-0 flex h-16 shrink-0 items-center justify-between px-4 text-white shadow-sm md:px-6">
@@ -149,11 +67,11 @@ export function AdminLayout() {
                   </SheetTitle>
                 </SheetHeader>
                 <div className="py-4">
-                  <AdminNav pillId="admin-nav-pill-mobile" />
+                  <SideNav items={NAV_ITEMS} pillId="admin-nav-pill-mobile" />
                 </div>
               </div>
               <div className="border-sidebar-border/40 border-t py-4">
-                <AdminFooter />
+                <SideNavFooter />
               </div>
             </SheetContent>
           </Sheet>
@@ -161,23 +79,28 @@ export function AdminLayout() {
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <span className="flex size-8 items-center justify-center rounded-full bg-white/15">
-              <User className="size-4" />
-            </span>
-            {/* em 375px o rótulo encostava na logo; o avatar já identifica */}
-            <span className="hidden max-w-48 truncate text-sm font-medium sm:inline">
-              {currentUser?.name}
-            </span>
-          </div>
+          <ProfileMenu
+            className="size-9 rounded-full text-white hover:bg-white/10 hover:text-white focus-visible:ring-white/40"
+            extraItems={
+              <>
+                <DropdownMenuItem asChild>
+                  <Link to="/app">
+                    <ArrowLeft className="size-4" />
+                    Voltar ao app
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+              </>
+            }
+          />
           <ThemeToggle />
         </div>
       </header>
 
       <div className="flex flex-1">
         <aside className="bg-sidebar text-sidebar-foreground border-sidebar-border z-sidebar sticky top-16 hidden h-[calc(100svh-4rem)] w-56 shrink-0 flex-col justify-between overflow-y-auto border-r py-6 md:flex">
-          <AdminNav />
-          <AdminFooter />
+          <SideNav items={NAV_ITEMS} pillId="admin-nav-pill" />
+          <SideNavFooter />
         </aside>
 
         <main className="min-w-0 flex-1 p-4 md:p-8">
