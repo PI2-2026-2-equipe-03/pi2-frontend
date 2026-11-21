@@ -2,7 +2,7 @@ import type { ArenaDto } from '@/lib/api/arenas'
 import type { CameraDto } from '@/lib/api/cameras'
 import type { PatrocinadorDto } from '@/lib/api/patrocinadores'
 import type { QuadraDto } from '@/lib/api/quadras'
-import type { ReplayDto } from '@/lib/api/replays'
+import type { ReplayDto, ReplaySponsorDto } from '@/lib/api/replays'
 import {
   type Arena,
   type Camera,
@@ -89,21 +89,36 @@ function toIsoDateTime(
   return parsed.toISOString()
 }
 
+// RN-05: the card has a single badge slot, and the badge is image-only, so the
+// projection keeps the first sponsor that actually has a logo.
+function toSponsorView(
+  sponsors?: readonly ReplaySponsorDto[],
+): ReplayView['sponsor'] {
+  for (const sponsor of sponsors ?? []) {
+    const fotoUrl = sponsor.imageUrl?.trim()
+    if (fotoUrl) return { id: sponsor.id, nome: sponsor.name, fotoUrl }
+  }
+  return undefined
+}
+
 export function toReplayView(dto: ReplayDto): ReplayView {
   return {
     id: dto.id,
     court: { id: dto.courtId, nome: dto.courtName ?? `Quadra ${dto.courtId}` },
-    arena: { id: dto.courtId, nome: dto.arenaName ?? 'Arena' },
+    arena: { nome: dto.arenaName ?? 'Arena' },
     city: dto.city ?? '',
     recordedAt: toIsoDateTime(
       dto.recordingDate,
       dto.recordingTime,
       dto.createdAt,
     ),
-    duration: REPLAY_DURATION_SECONDS,
-    expiresAt: dto.expiresAt ?? new Date().toISOString(),
+    duration: dto.duration ?? REPLAY_DURATION_SECONDS,
+    // keeping the old `new Date()` default made every replay without a deadline
+    // show up as expired
+    expiresAt: dto.expiresAt ?? null,
     status: mapReplayStatus(dto.status),
     arquivoUrl: dto.downloadUrl ?? '',
+    sponsor: toSponsorView(dto.sponsors),
   }
 }
 

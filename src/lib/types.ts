@@ -77,11 +77,15 @@ export type ReplayView = {
   court: { id: Id; nome: string }
   // sem fotoUrl: a capa de um replay é um frame do próprio vídeo (arquivoUrl),
   // não a foto da arena.
-  arena: { id: Id; nome: string }
+  // no id: GET /replays never returns the arena id (B-16) and no screen needs
+  // it. keeping the field invited filling it with the court id by mistake.
+  arena: { nome: string }
   city: string
   recordedAt: string
-  duration: typeof REPLAY_DURATION_SECONDS
-  expiresAt: string
+  // comes from the api; REPLAY_DURATION_SECONDS is only the RF-05 fallback
+  duration: number
+  // null means the api sent no deadline, which is not the same as expired
+  expiresAt: string | null
   status: ReplayStatus
   arquivoUrl: string
   sponsor?: { id: Id; nome: string; fotoUrl: string }

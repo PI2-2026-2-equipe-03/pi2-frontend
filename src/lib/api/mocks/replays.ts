@@ -23,6 +23,18 @@ function toReplayDto(view: (typeof REPLAY_VIEWS)[number]): ReplayDto {
     courtName: view.court.nome,
     arenaName: view.arena.nome,
     city: view.city,
+    duration: view.duration,
+    // same envelope as the api, so mock mode exercises the sponsor badge
+    // through the same projection the backend feeds
+    sponsors: view.sponsor
+      ? [
+          {
+            id: view.sponsor.id,
+            name: view.sponsor.nome,
+            imageUrl: view.sponsor.fotoUrl,
+          },
+        ]
+      : [],
   }
 }
 
