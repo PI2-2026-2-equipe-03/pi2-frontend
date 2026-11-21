@@ -1,19 +1,14 @@
 import { z } from 'zod'
 
-import { passwordComplexityRegex } from '@/lib/schemas/password'
+import { passwordField } from '@/lib/schemas/password'
 
-// change-password form (current + new + confirmation). same policy as sign-up
-// and reset: the complexity rule lives in one place only.
+// change-password form (current + new + confirmation). the policy itself lives
+// in passwordField, shared with sign-up and reset, so the three stay aligned
+// with what the server enforces.
 export const changePasswordSchema = z
   .object({
     currentPassword: z.string().min(1, 'Informe sua senha atual'),
-    newPassword: z
-      .string()
-      .min(8, 'A senha deve ter pelo menos 8 dígitos')
-      .regex(
-        passwordComplexityRegex,
-        'A senha deve ter letras, números e símbolos',
-      ),
+    newPassword: passwordField,
     confirmPassword: z.string().min(1, 'Confirme sua nova senha'),
   })
   .refine((data) => data.newPassword === data.confirmPassword, {
