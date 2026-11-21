@@ -118,9 +118,7 @@ export function toApiAuthError(
 ): AuthRequestError {
   if (!Axios.isAxiosError<ErrorEnvelope & { code?: string }>(error)) {
     return new AuthRequestError(
-      error instanceof Error && error.message.trim()
-        ? error.message
-        : fallback,
+      error instanceof Error && error.message.trim() ? error.message : fallback,
     )
   }
 
@@ -133,7 +131,8 @@ export function toApiAuthError(
 
   if (mapped) return new AuthRequestError(mapped, field)
   if (!error.response) return new AuthRequestError(NETWORK_MESSAGE)
-  if (status === 429) return new AuthRequestError(TOO_MANY_ATTEMPTS_MESSAGE, 'root')
+  if (status === 429)
+    return new AuthRequestError(TOO_MANY_ATTEMPTS_MESSAGE, 'root')
   if (status === 503)
     return new AuthRequestError(
       AUTH_MESSAGES.EMAIL_SERVICE_UNAVAILABLE ?? SERVER_MESSAGE,

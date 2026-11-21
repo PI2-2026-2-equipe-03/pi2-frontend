@@ -34,7 +34,7 @@ export function Perfil() {
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-6">
       <header>
-        <h1 className="text-tg-brand-blue text-2xl font-bold md:text-3xl">
+        <h1 className="text-tg-brand-text text-2xl font-bold md:text-3xl">
           Meu perfil
         </h1>
         <p className="text-muted-foreground">Os dados da sua conta</p>
@@ -53,7 +53,7 @@ export function Perfil() {
         <Card className="gap-5 p-5 md:p-6">
           <dl className="grid gap-4">
             <div className="flex items-start gap-3">
-              <User className="text-tg-brand-blue mt-0.5 size-5 shrink-0" />
+              <User className="text-tg-brand-text mt-0.5 size-5 shrink-0" />
               <div className="min-w-0">
                 <dt className="text-muted-foreground text-sm">Nome</dt>
                 <dd className="font-medium break-words">
@@ -62,7 +62,7 @@ export function Perfil() {
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <Mail className="text-tg-brand-blue mt-0.5 size-5 shrink-0" />
+              <Mail className="text-tg-brand-text mt-0.5 size-5 shrink-0" />
               <div className="min-w-0">
                 <dt className="text-muted-foreground text-sm">E-mail</dt>
                 <dd className="font-medium break-words">
@@ -71,7 +71,7 @@ export function Perfil() {
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <ShieldCheck className="text-tg-brand-blue mt-0.5 size-5 shrink-0" />
+              <ShieldCheck className="text-tg-brand-text mt-0.5 size-5 shrink-0" />
               <div className="min-w-0">
                 <dt className="text-muted-foreground text-sm">Perfil</dt>
                 <dd className="font-medium">

@@ -1,7 +1,15 @@
-import { passwordComplexityRegex } from '@/lib/schemas/password'
+import {
+  PASSWORD_MAX_LENGTH,
+  PASSWORD_MIN_LENGTH,
+  passwordLowercaseRegex,
+  passwordNumberRegex,
+  passwordSpecialRegex,
+  passwordUppercaseRegex,
+} from '@/lib/schemas/password'
 
 // critérios de senha compartilhados entre schema e UI
-export type PasswordRuleKey = 'length' | 'complexity' | 'match'
+export type PasswordRuleKey =
+  'length' | 'uppercase' | 'lowercase' | 'number' | 'special' | 'match'
 
 export type PasswordRule = {
   key: PasswordRuleKey
@@ -9,6 +17,7 @@ export type PasswordRule = {
   isMet: boolean
 }
 
+// one line per server rule: grouping them hid which criterion was missing
 export function evaluatePassword(
   password: string,
   confirmPassword: string,
@@ -16,13 +25,30 @@ export function evaluatePassword(
   return [
     {
       key: 'length',
-      label: 'Pelo menos 8 dígitos',
-      isMet: password.length >= 8,
+      label: `Entre ${PASSWORD_MIN_LENGTH} e ${PASSWORD_MAX_LENGTH} caracteres`,
+      isMet:
+        password.length >= PASSWORD_MIN_LENGTH &&
+        password.length <= PASSWORD_MAX_LENGTH,
     },
     {
-      key: 'complexity',
-      label: 'Possui letras, números e símbolos',
-      isMet: passwordComplexityRegex.test(password),
+      key: 'uppercase',
+      label: 'Uma letra maiúscula',
+      isMet: passwordUppercaseRegex.test(password),
+    },
+    {
+      key: 'lowercase',
+      label: 'Uma letra minúscula',
+      isMet: passwordLowercaseRegex.test(password),
+    },
+    {
+      key: 'number',
+      label: 'Um número',
+      isMet: passwordNumberRegex.test(password),
+    },
+    {
+      key: 'special',
+      label: 'Um símbolo (o espaço não conta)',
+      isMet: passwordSpecialRegex.test(password),
     },
     {
       key: 'match',

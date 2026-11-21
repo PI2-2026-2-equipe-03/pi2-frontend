@@ -21,10 +21,7 @@ import { loginUser } from '@/lib/api/auth'
 import { getMe } from '@/lib/api/me'
 import { queryKeys } from '@/lib/api/queries'
 import { authClient } from '@/lib/auth/client'
-import {
-  SESSION_EXPIRED_MESSAGE,
-  toApiAuthError,
-} from '@/lib/errors'
+import { SESSION_EXPIRED_MESSAGE, toApiAuthError } from '@/lib/errors'
 import { queryClient } from '@/lib/react-query'
 import { type SignInInput, signInSchema } from '@/lib/schemas/sign-in-schema'
 
@@ -87,7 +84,7 @@ export function SignIn() {
   return (
     <div className="bg-card border-border w-full max-w-md rounded-xl border p-8 shadow-sm">
       <div className="mb-6 space-y-1">
-        <h1 className="text-tg-brand-blue text-2xl font-bold">
+        <h1 className="text-tg-brand-text text-2xl font-bold">
           Entrar na sua conta
         </h1>
         <p className="text-muted-foreground text-sm">

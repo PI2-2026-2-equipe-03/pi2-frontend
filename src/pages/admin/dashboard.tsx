@@ -34,9 +34,9 @@ function DashboardSkeleton() {
   return (
     <div role="status" aria-busy="true" className="flex flex-col gap-8">
       <span className="sr-only">Carregando…</span>
-      <section className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <section className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
         {Array.from({ length: 3 }, (_, index) => (
-          <Skeleton key={index} className="h-32 rounded-xl" />
+          <Skeleton key={index} className="h-24 rounded-xl sm:h-32" />
         ))}
       </section>
       <Skeleton className="h-56 rounded-xl" />
@@ -47,7 +47,7 @@ function DashboardSkeleton() {
 function AdminOverview({ metrics }: { metrics: AdminMetricsDto }) {
   return (
     <>
-      <section className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <section className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
         <StatCard
           title="Usuários ativos"
           value={metrics.activeUsers}
@@ -86,7 +86,7 @@ function AdminOverview({ metrics }: { metrics: AdminMetricsDto }) {
 function ManagerOverview({ metrics }: { metrics: ManagerMetricsDto }) {
   return (
     <>
-      <section className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <section className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
         <StatCard
           title="Replays ativos"
           value={metrics.totalReplays}
@@ -156,10 +156,10 @@ export function Dashboard() {
     <div className="mx-auto flex max-w-6xl flex-col gap-8">
       <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-tg-brand-blue text-2xl font-bold md:text-3xl">
+          <h1 className="text-tg-brand-text text-2xl font-bold md:text-3xl">
             {isAdmin ? 'Painel administrativo' : 'Painel do gestor'}
           </h1>
-          <p className="text-tg-brand-blue font-medium">
+          <p className="text-tg-brand-text font-medium">
             {isAdmin
               ? 'Visão geral do sistema TaGravado'
               : 'Visão geral das suas quadras'}
