@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { passwordComplexityRegex } from '@/lib/schemas/password'
+import { passwordField } from '@/lib/schemas/password'
 
 // schema do formulário de criação de conta (rf/sprint 2 vai integrar com o backend)
 export const signUpSchema = z
@@ -11,13 +11,7 @@ export const signUpSchema = z
       .string()
       .trim()
       .regex(/^[0-9()+\-\s]{15}$/, 'Telefone inválido'),
-    password: z
-      .string()
-      .min(8, 'A senha deve ter pelo menos 8 dígitos')
-      .regex(
-        passwordComplexityRegex,
-        'A senha deve ter letras, números e símbolos',
-      ),
+    password: passwordField,
     confirmPassword: z.string().min(1, 'Confirme sua senha'),
   })
   .refine((data) => data.password === data.confirmPassword, {
