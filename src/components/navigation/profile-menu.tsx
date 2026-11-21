@@ -17,7 +17,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { useCurrentUser } from '@/lib/api/queries'
-import { signOut } from '@/lib/auth/session'
+import { signOut, useAuthSession } from '@/lib/auth/session'
 
 type ProfileMenuProps = {
   profileTo?: string
@@ -33,6 +33,8 @@ export function ProfileMenu({
 }: ProfileMenuProps) {
   const navigate = useNavigate()
   const { data: currentUser } = useCurrentUser()
+  // session is available at once; /me can lag behind on first paint
+  const { data: session } = useAuthSession()
 
   async function handleLogout() {
     await signOut()
@@ -59,9 +61,11 @@ export function ProfileMenu({
       </Tooltip>
       <DropdownMenuContent align="end" className="w-52">
         <DropdownMenuLabel className="flex flex-col gap-0.5">
-          <span className="truncate">{currentUser?.name}</span>
+          <span className="truncate">
+            {currentUser?.name ?? session?.user.name}
+          </span>
           <span className="text-muted-foreground truncate text-xs font-normal">
-            {currentUser?.email}
+            {currentUser?.email ?? session?.user.email}
           </span>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />

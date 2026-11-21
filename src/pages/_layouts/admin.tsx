@@ -1,10 +1,4 @@
-import {
-  ArrowLeft,
-  Handshake,
-  LayoutDashboard,
-  LayoutGrid,
-  Menu,
-} from 'lucide-react'
+import { ArrowLeft, Gauge, Handshake, LayoutGrid, Menu } from 'lucide-react'
 import { Link, Outlet } from 'react-router-dom'
 
 import { Logo } from '@/components/logo'
@@ -33,7 +27,7 @@ import {
 // catch-all and threw a signed-in admin out to /sign-in (#36). they come back
 // together with their screens
 const NAV_ITEMS: readonly NavItem[] = [
-  { label: 'Dashboard', to: '/admin', icon: LayoutDashboard, end: true },
+  { label: 'Dashboard', to: '/admin', icon: Gauge, end: true },
   { label: 'Quadras', to: '/admin/quadras', icon: LayoutGrid },
   { label: 'Patrocinadores', to: '/admin/patrocinadores', icon: Handshake },
 ]
