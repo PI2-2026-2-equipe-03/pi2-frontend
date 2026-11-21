@@ -305,7 +305,7 @@ export function AppLayout() {
       </header>
 
       <div className="flex flex-1">
-        <aside className="bg-sidebar text-sidebar-foreground z-sidebar sticky top-16 hidden h-[calc(100svh-4rem)] w-56 shrink-0 flex-col justify-between overflow-y-auto py-6 md:flex">
+        <aside className="bg-sidebar text-sidebar-foreground border-sidebar-border z-sidebar sticky top-16 hidden h-[calc(100svh-4rem)] w-56 shrink-0 flex-col justify-between overflow-y-auto border-r py-6 md:flex">
           <NavItems />
           <NavFooter />
         </aside>

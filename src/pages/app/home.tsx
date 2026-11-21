@@ -106,7 +106,7 @@ export function Home() {
         }}
         className="flex flex-col items-center gap-4 text-center"
       >
-        <h1 className="text-tg-brand-blue text-[clamp(1.75rem,3.5vw,2.5rem)] leading-tight font-bold">
+        <h1 className="text-tg-brand-text text-[clamp(1.75rem,3.5vw,2.5rem)] leading-tight font-bold">
           Reviva seus melhores lances
         </h1>
         <p className="text-muted-foreground max-w-xl text-sm md:text-base">
@@ -125,7 +125,7 @@ export function Home() {
         }}
         className="flex flex-col items-center gap-3"
       >
-        <Video className="text-tg-brand-blue-dark size-14 md:size-16" />
+        <Video className="text-tg-brand-text size-14 md:size-16" />
         <div className="w-full max-w-2xl">
           <SearchCombobox
             value={q}
@@ -183,7 +183,7 @@ export function Home() {
               <div className="flex justify-center">
                 <Link
                   to={`/app/replays?q=${encodeURIComponent(q)}`}
-                  className="text-tg-brand-blue text-sm font-medium hover:underline"
+                  className="text-tg-brand-text text-sm font-medium hover:underline"
                 >
                   Ver todos os replays correspondentes →
                 </Link>
@@ -197,12 +197,12 @@ export function Home() {
 
           <section>
             <div className="mb-4 flex items-end justify-between">
-              <h2 className="text-tg-brand-blue text-lg font-bold">
+              <h2 className="text-tg-brand-text text-lg font-bold">
                 Explore arenas
               </h2>
               <Link
                 to="/app/arenas"
-                className="text-tg-brand-blue text-xs font-medium hover:underline"
+                className="text-tg-brand-text text-xs font-medium hover:underline"
               >
                 Ver todas →
               </Link>

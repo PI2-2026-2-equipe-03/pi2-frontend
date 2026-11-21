@@ -123,7 +123,7 @@ export function ReplayCard({ replay }: ReplayCardProps) {
       </div>
 
       <div className="space-y-2 p-4">
-        <p className="text-foreground group-hover:text-tg-brand-blue line-clamp-1 font-semibold tracking-tight transition-colors">
+        <p className="text-foreground group-hover:text-tg-brand-text line-clamp-1 font-semibold tracking-tight transition-colors">
           {title}
         </p>
         <div className="text-muted-foreground flex flex-col gap-1 text-xs">
@@ -140,7 +140,7 @@ export function ReplayCard({ replay }: ReplayCardProps) {
         <div className="flex items-center justify-between pt-2">
           <span
             aria-hidden
-            className="text-muted-foreground group-hover:text-tg-brand-blue flex items-center gap-1.5 text-xs font-medium transition-colors"
+            className="text-muted-foreground group-hover:text-tg-brand-text flex items-center gap-1.5 text-xs font-medium transition-colors"
           >
             <Play className="size-3.5" />
             Ver replay

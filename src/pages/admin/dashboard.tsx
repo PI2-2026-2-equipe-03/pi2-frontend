@@ -156,10 +156,10 @@ export function Dashboard() {
     <div className="mx-auto flex max-w-6xl flex-col gap-8">
       <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-tg-brand-blue text-2xl font-bold md:text-3xl">
+          <h1 className="text-tg-brand-text text-2xl font-bold md:text-3xl">
             {isAdmin ? 'Painel administrativo' : 'Painel do gestor'}
           </h1>
-          <p className="text-tg-brand-blue font-medium">
+          <p className="text-tg-brand-text font-medium">
             {isAdmin
               ? 'Visão geral do sistema TaGravado'
               : 'Visão geral das suas quadras'}

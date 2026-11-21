@@ -88,7 +88,7 @@ export function SignUp() {
   return (
     <div className="bg-card border-border w-full max-w-md rounded-xl border p-8 shadow-sm">
       <div className="mb-6 space-y-1">
-        <h1 className="text-tg-brand-blue text-2xl font-bold">
+        <h1 className="text-tg-brand-text text-2xl font-bold">
           Criar sua conta
         </h1>
         <p className="text-muted-foreground text-sm">
