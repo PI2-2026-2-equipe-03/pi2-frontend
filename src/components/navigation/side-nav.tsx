@@ -1,21 +1,16 @@
 import { motion } from 'framer-motion'
-import type { LucideIcon } from 'lucide-react'
 import { LogOut, User } from 'lucide-react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 
 import { useCurrentUser } from '@/lib/api/queries'
 import { signOut } from '@/lib/auth/session'
-import type { UserRole } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
-export type NavItem = {
-  label: string
-  to: string
-  icon: LucideIcon
-  end?: boolean
-  // sem roles: visível para qualquer perfil
-  roles?: readonly UserRole[]
-}
+import { type NavItem, visibleNavItems } from './nav-items'
+
+// the type moved next to the item lists it describes; re-exported so the
+// layouts keep importing it from here
+export type { NavItem }
 
 const rowClasses =
   'text-sidebar-foreground/90 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-tg-brand-yellow/60 flex items-center gap-2 rounded-md px-3 py-2 text-left text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:outline-none'
@@ -33,10 +28,7 @@ export function SideNav({
   pillId = 'side-nav-pill',
 }: SideNavProps) {
   const { data: currentUser } = useCurrentUser()
-  const visible = items.filter(
-    (item) =>
-      !item.roles || (currentUser && item.roles.includes(currentUser.role)),
-  )
+  const visible = visibleNavItems(items, currentUser?.role)
 
   return (
     <nav className="flex flex-col gap-1 px-3">

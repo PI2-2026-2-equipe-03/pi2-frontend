@@ -1,9 +1,12 @@
-import { Briefcase, Mail, ShieldCheck, User } from 'lucide-react'
+import { ChevronRight, Mail, ShieldCheck, User } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 import { AvatarUsuario } from '@/components/avatar-usuario'
+import {
+  APP_SECONDARY_ITEMS,
+  visibleNavItems,
+} from '@/components/navigation/nav-items'
 import { QueryErrorState } from '@/components/query-error-state'
-import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useCurrentUser } from '@/lib/api/queries'
@@ -31,6 +34,10 @@ function ProfileSkeleton() {
 // tela de perfil, dados de GET /me
 export function Perfil() {
   const currentUser = useCurrentUser()
+  const secondaryItems = visibleNavItems(
+    APP_SECONDARY_ITEMS,
+    currentUser.data?.role,
+  )
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-6">
@@ -96,24 +103,36 @@ export function Perfil() {
             </div>
           </dl>
 
-          <div className="flex flex-col gap-2 sm:flex-row">
-            <ChangePasswordDialog />
-
-            {currentUser.data.role === 'USR' ? (
-              <Button
-                asChild
-                variant="brandOutline"
-                className="w-full sm:w-fit"
-              >
-                <Link to="/app/solicitar-gestor">
-                  <Briefcase className="size-4" />
-                  Solicitar gestão de arena
-                </Link>
-              </Button>
-            ) : null}
-          </div>
+          <ChangePasswordDialog />
         </Card>
       )}
+
+      {/* d-01 moved Quadras, Solicitar gestão and Gestão out of the bottom
+          tabs, so the profile is the way to them. the list is derived from the
+          shared nav items, not retyped */}
+      {secondaryItems.length > 0 ? (
+        <Card className="gap-1 p-2">
+          <h2 className="text-muted-foreground px-3 pt-1 text-sm font-medium">
+            Outras seções
+          </h2>
+          <nav aria-label="Outras seções" className="flex flex-col">
+            {secondaryItems.map((item) => {
+              const Icon = item.icon
+              return (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  className="hover:bg-accent hover:text-accent-foreground focus-visible:ring-tg-brand-yellow/60 min-h-touch-min flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:outline-none"
+                >
+                  <Icon className="text-tg-brand-text size-5 shrink-0" />
+                  <span className="flex-1">{item.label}</span>
+                  <ChevronRight className="text-muted-foreground size-4 shrink-0" />
+                </Link>
+              )
+            })}
+          </nav>
+        </Card>
+      ) : null}
     </div>
   )
 }
