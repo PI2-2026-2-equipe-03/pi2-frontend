@@ -20,13 +20,35 @@ const ROLE_LABELS: Record<UserRole, string> = {
   USR: 'Usuário',
 }
 
+// same card as the loaded profile: avatar + name/role, three icon rows and
+// the change-password button
 function ProfileSkeleton() {
   return (
-    <Card role="status" aria-busy="true" className="gap-4 p-5 md:p-6">
-      <span className="sr-only">Carregando…</span>
-      <Skeleton className="h-6 w-2/3" />
-      <Skeleton className="h-4 w-full" />
-      <Skeleton className="h-4 w-1/2" />
+    <Card role="status" aria-busy="true" className="gap-5 p-5 md:p-6">
+      <span className="sr-only">Carregando seu perfil…</span>
+      <div className="flex items-center gap-4">
+        <Skeleton className="size-16 shrink-0 rounded-full md:size-20" />
+        <div className="flex flex-1 flex-col gap-2">
+          <Skeleton className="h-5 w-2/3 md:h-6" />
+          <Skeleton className="h-4 w-1/3" />
+        </div>
+      </div>
+      <div className="grid gap-4">
+        {Array.from({ length: 3 }, (_, index) => (
+          <div key={index} className="flex items-start gap-3">
+            <Skeleton className="mt-0.5 size-5 shrink-0" />
+            <div className="flex flex-1 flex-col">
+              <div className="flex h-5 items-center">
+                <Skeleton className="h-3.5 w-12" />
+              </div>
+              <div className="flex h-6 items-center">
+                <Skeleton className="h-4 w-2/3" />
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+      <Skeleton className="h-10 w-full sm:w-32 md:h-9" />
     </Card>
   )
 }
