@@ -66,7 +66,7 @@ export function FeaturedCard({ replay }: FeaturedCardProps) {
 
           <Link
             to={`/app/replays/${replay.id}`}
-            className="bg-tg-brand-yellow text-tg-brand-blue-dark hover:bg-tg-brand-yellow/90 mt-4 inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:outline-none"
+            className="bg-tg-brand-yellow text-tg-brand-blue-dark hover:bg-tg-brand-yellow/90 min-h-touch-comfortable mt-4 inline-flex items-center gap-2 rounded-full px-5 text-sm font-semibold shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:outline-none"
           >
             Ver replay
             <ArrowRight className="size-4" aria-hidden />
