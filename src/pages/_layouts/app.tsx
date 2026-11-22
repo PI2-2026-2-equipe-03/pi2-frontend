@@ -41,7 +41,7 @@ export function AppLayout() {
           <header
             data-scrolled={scrolled}
             className={cn(
-              'bg-tg-brand-blue z-sticky sticky top-0 flex h-16 shrink-0 items-center justify-between px-4 text-white transition-shadow duration-200 ease-out md:px-6',
+              'bg-tg-brand-blue z-sticky h-header pt-safe-top sticky top-0 flex shrink-0 items-center justify-between px-4 text-white transition-shadow duration-200 ease-out md:px-6',
               scrolled ? 'shadow-md' : 'shadow-sm',
               'motion-reduce:transition-none',
             )}
@@ -60,7 +60,7 @@ export function AppLayout() {
           {/* the inset lives on the row, not on <main>, so it adds to the page
               padding instead of competing with it */}
           <div className={cn('flex flex-1', !hideBottomNav && bottomNavInset)}>
-            <aside className="bg-sidebar text-sidebar-foreground border-sidebar-border z-sidebar sticky top-16 hidden h-[calc(100svh-4rem)] w-56 shrink-0 flex-col justify-between overflow-y-auto border-r py-6 lg:flex">
+            <aside className="bg-sidebar text-sidebar-foreground border-sidebar-border z-sidebar top-header sticky hidden h-[calc(100svh-var(--tg-header-height))] w-56 shrink-0 flex-col justify-between overflow-y-auto border-r py-6 lg:flex">
               <SideNav items={APP_NAV_ITEMS} pillId="app-nav-pill" />
               <SideNavFooter profileTo="/app/perfil" />
             </aside>

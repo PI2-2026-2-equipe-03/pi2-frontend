@@ -102,6 +102,9 @@
   --tg-touch-target-comfortable: 48px;
   --tg-safe-area-top: env(safe-area-inset-top, 0px);
   --tg-safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  /* the sticky header grows by the top inset; the sidebar and full-height
+     screens offset by the same value */
+  --tg-header-height: calc(4rem + var(--tg-safe-area-top));
 
   --radius: 0.625rem;
 }
@@ -294,6 +297,7 @@
   --spacing-touch-comfortable: var(--tg-touch-target-comfortable);
   --spacing-safe-top: var(--tg-safe-area-top);
   --spacing-safe-bottom: var(--tg-safe-area-bottom);
+  --spacing-header: var(--tg-header-height);
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);

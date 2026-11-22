@@ -43,7 +43,7 @@ export function AdminLayout() {
     <MotionConfig reducedMotion="user">
       <TooltipProvider>
         <div className="bg-background text-foreground flex min-h-svh flex-col">
-          <header className="bg-tg-brand-blue z-sticky sticky top-0 flex h-16 shrink-0 items-center justify-between px-4 text-white shadow-sm md:px-6">
+          <header className="bg-tg-brand-blue z-sticky h-header pt-safe-top sticky top-0 flex shrink-0 items-center justify-between px-4 text-white shadow-sm md:px-6">
             <div className="flex items-center gap-2">
               <Sheet>
                 <SheetTrigger asChild>
@@ -102,7 +102,7 @@ export function AdminLayout() {
           </header>
 
           <div className="flex flex-1">
-            <aside className="bg-sidebar text-sidebar-foreground border-sidebar-border z-sidebar sticky top-16 hidden h-[calc(100svh-4rem)] w-56 shrink-0 flex-col justify-between overflow-y-auto border-r py-6 lg:flex">
+            <aside className="bg-sidebar text-sidebar-foreground border-sidebar-border z-sidebar top-header sticky hidden h-[calc(100svh-var(--tg-header-height))] w-56 shrink-0 flex-col justify-between overflow-y-auto border-r py-6 lg:flex">
               <SideNav items={NAV_ITEMS} pillId="admin-nav-pill" />
               <SideNavFooter />
             </aside>
