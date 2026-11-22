@@ -27,6 +27,7 @@ export function StickyActionBar({
 }: StickyActionBarProps) {
   return createPortal(
     <div
+      data-slot="sticky-action-bar"
       role="region"
       aria-label={label}
       // z-sticky (50) sits below overlays and modals on purpose: a dialog

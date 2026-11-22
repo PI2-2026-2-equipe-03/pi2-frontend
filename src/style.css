@@ -312,6 +312,14 @@
   html {
     scroll-padding-bottom: calc(4.5rem + 1px + var(--tg-safe-area-bottom));
   }
+  /* toasts sit at the bottom on phones: lift them over whatever fixed bar the
+     route shows, or they cover the tabs / the submit button */
+  :root:has([data-slot='bottom-nav']) {
+    --tg-toast-lift: calc(3.5rem + 1px);
+  }
+  :root:has([data-slot='sticky-action-bar']) {
+    --tg-toast-lift: calc(4.5rem + 1px);
+  }
   * {
     @apply border-border outline-ring/50;
   }
