@@ -11,7 +11,8 @@ import { ThemeToggle } from '@/components/theme/theme-toggle'
 // (RNF-03). motion-safe keeps fade-only under reduced motion, as framer did.
 export function AuthLayout() {
   return (
-    <div className="bg-tg-brand-blue-dark relative flex min-h-screen text-white">
+    // svh ignores the retractable address bar, so the layout does not jump
+    <div className="bg-tg-brand-blue-dark relative flex min-h-svh text-white">
       <aside
         className="relative hidden flex-1 flex-col justify-between overflow-hidden bg-cover bg-center p-10 md:flex"
         style={{
@@ -36,7 +37,12 @@ export function AuthLayout() {
         <p className="text-sm text-white/75">© 2026 repeteco</p>
       </aside>
 
-      <main className="bg-background text-foreground flex flex-1 items-center justify-center p-6">
+      <main className="bg-background text-foreground flex flex-1 flex-col items-center justify-center gap-6 p-4 sm:p-6">
+        {/* the brand panel is hidden on mobile, which left the first screen
+            of the product without any logo */}
+        <div className="md:hidden">
+          <Logo to="/sign-in" className="text-tg-brand-text text-3xl" />
+        </div>
         <RouteTransition>
           <Outlet />
         </RouteTransition>

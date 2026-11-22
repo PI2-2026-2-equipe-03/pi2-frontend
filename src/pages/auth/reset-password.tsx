@@ -21,6 +21,7 @@ import {
   type ResetPasswordInput,
   resetPasswordSchema,
 } from '@/lib/schemas/reset-password-schema'
+import { AuthCard, authSubmitClasses } from '@/pages/auth/components/auth-card'
 import { PasswordRequirements } from '@/pages/auth/components/password-requirements'
 
 export function ResetPassword() {
@@ -74,7 +75,7 @@ export function ResetPassword() {
 
   if (!token) {
     return (
-      <div className="bg-card border-border w-full max-w-md rounded-xl border p-8 shadow-sm">
+      <AuthCard>
         <div className="space-y-3 text-center">
           <h1 className="text-tg-brand-text text-2xl font-bold">
             Link inválido
@@ -89,12 +90,12 @@ export function ResetPassword() {
             Solicitar novo link
           </Link>
         </div>
-      </div>
+      </AuthCard>
     )
   }
 
   return (
-    <div className="bg-card border-border w-full max-w-md rounded-xl border p-8 shadow-sm">
+    <AuthCard>
       <div className="mb-6 space-y-1">
         <h1 className="text-tg-brand-text text-2xl font-bold">
           Redefinir senha
@@ -163,7 +164,7 @@ export function ResetPassword() {
             variant="brand"
             disabled={isSubmitting}
             aria-busy={isSubmitting}
-            className="w-full"
+            className={authSubmitClasses}
           >
             {isSubmitting ? (
               <>
@@ -186,6 +187,6 @@ export function ResetPassword() {
           </p>
         </form>
       </Form>
-    </div>
+    </AuthCard>
   )
 }

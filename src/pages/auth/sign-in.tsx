@@ -24,6 +24,7 @@ import { authClient } from '@/lib/auth/client'
 import { SESSION_EXPIRED_MESSAGE, toApiAuthError } from '@/lib/errors'
 import { queryClient } from '@/lib/react-query'
 import { type SignInInput, signInSchema } from '@/lib/schemas/sign-in-schema'
+import { AuthCard, authSubmitClasses } from '@/pages/auth/components/auth-card'
 
 async function performSignIn(input: SignInInput): Promise<void> {
   await loginUser({ email: input.email, password: input.password })
@@ -82,7 +83,7 @@ export function SignIn() {
   const isSubmitting = signInMutation.isPending
 
   return (
-    <div className="bg-card border-border w-full max-w-md rounded-xl border p-8 shadow-sm">
+    <AuthCard>
       <div className="mb-6 space-y-1">
         <h1 className="text-tg-brand-text text-2xl font-bold">
           Entrar na sua conta
@@ -190,7 +191,7 @@ export function SignIn() {
             variant="brand"
             disabled={isSubmitting}
             aria-busy={isSubmitting}
-            className="w-full"
+            className={authSubmitClasses}
           >
             {isSubmitting ? (
               <>
@@ -213,6 +214,6 @@ export function SignIn() {
           </p>
         </form>
       </Form>
-    </div>
+    </AuthCard>
   )
 }

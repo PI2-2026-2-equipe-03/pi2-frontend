@@ -20,6 +20,7 @@ import { registerUser } from '@/lib/api/auth'
 import { toApiAuthError } from '@/lib/errors'
 import { formatPhone, stripPhone } from '@/lib/forms/phone-mask'
 import { type SignUpInput, signUpSchema } from '@/lib/schemas/sign-up-schema'
+import { AuthCard, authSubmitClasses } from '@/pages/auth/components/auth-card'
 import { PasswordRequirements } from '@/pages/auth/components/password-requirements'
 
 async function performSignUp(input: SignUpInput): Promise<void> {
@@ -86,7 +87,7 @@ export function SignUp() {
   const isSubmitting = signUpMutation.isPending
 
   return (
-    <div className="bg-card border-border w-full max-w-md rounded-xl border p-8 shadow-sm">
+    <AuthCard>
       <div className="mb-6 space-y-1">
         <h1 className="text-tg-brand-text text-2xl font-bold">
           Criar sua conta
@@ -241,7 +242,7 @@ export function SignUp() {
             variant="brand"
             disabled={isSubmitting}
             aria-busy={isSubmitting}
-            className="w-full"
+            className={authSubmitClasses}
           >
             {isSubmitting ? (
               <>
@@ -264,6 +265,6 @@ export function SignUp() {
           </p>
         </form>
       </Form>
-    </div>
+    </AuthCard>
   )
 }
