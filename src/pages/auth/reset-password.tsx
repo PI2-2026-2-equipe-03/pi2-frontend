@@ -84,7 +84,7 @@ export function ResetPassword() {
           </p>
           <Link
             to="/forgot-password"
-            className="text-primary inline-block text-sm font-medium hover:underline"
+            className="text-primary min-h-touch-min inline-flex items-center text-sm font-medium hover:underline md:min-h-0"
           >
             Solicitar novo link
           </Link>
@@ -179,7 +179,7 @@ export function ResetPassword() {
             Lembrou sua senha?{' '}
             <Link
               to="/sign-in"
-              className="text-primary focus-visible:ring-ring/50 rounded-sm font-medium hover:underline focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+              className="text-primary focus-visible:ring-ring/50 touch-hitbox relative rounded-sm font-medium hover:underline focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
             >
               Entrar
             </Link>

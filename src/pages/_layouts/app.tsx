@@ -14,7 +14,7 @@ import { useScrolled } from '@/lib/use-scrolled'
 import { cn } from '@/lib/utils'
 
 const headerIconClasses =
-  'size-9 rounded-full text-white transition-colors hover:bg-white/10 hover:text-white focus-visible:ring-white/40'
+  'rounded-full text-white transition-colors hover:bg-white/10 hover:text-white focus-visible:ring-white/40'
 
 export type RouteHandle = { hideBottomNav?: boolean }
 

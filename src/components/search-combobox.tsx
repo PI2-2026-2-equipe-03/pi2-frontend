@@ -70,7 +70,7 @@ export function SearchCombobox({
   const containerClasses =
     size === 'hero'
       ? 'rounded-full px-5 py-3 text-base shadow-md focus-within:shadow-lg'
-      : 'rounded-full px-4 py-2 text-sm shadow-sm focus-within:shadow-md'
+      : 'min-h-touch-min rounded-full px-4 py-2 text-sm shadow-sm focus-within:shadow-md md:min-h-0'
 
   return (
     <Popover open={open && Boolean(value.trim())} onOpenChange={setOpen}>
@@ -115,7 +115,7 @@ export function SearchCombobox({
                 setOpen(false)
                 inputRef.current?.focus()
               }}
-              className="text-muted-foreground hover:text-foreground hover:bg-muted focus-visible:ring-ring/40 -mr-1 inline-flex shrink-0 cursor-pointer items-center justify-center rounded-full p-1 transition-colors focus-visible:ring-2 focus-visible:outline-none active:scale-90"
+              className="text-muted-foreground hover:text-foreground hover:bg-muted focus-visible:ring-ring/40 touch-hitbox relative -mr-1 inline-flex shrink-0 cursor-pointer items-center justify-center rounded-full p-1 transition-colors focus-visible:ring-2 focus-visible:outline-none active:scale-90"
             >
               <X className={size === 'hero' ? 'size-5' : 'size-4'} />
             </button>

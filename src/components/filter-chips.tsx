@@ -42,7 +42,7 @@ export function FilterChips<T extends string>({
             animate={isActive ? { scale: [1, 1.05, 1] } : { scale: 1 }}
             transition={{ duration: 0.2 }}
             className={cn(
-              'shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-colors',
+              'min-h-touch-min shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-colors md:min-h-0',
               'focus-visible:ring-tg-brand-blue/40 focus-visible:ring-2 focus-visible:outline-none',
               isActive
                 ? 'bg-tg-brand-blue text-white shadow-sm'

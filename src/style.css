@@ -321,6 +321,20 @@
   }
 }
 
+/* widens the tap area to the touch token without changing the visual: taps on
+   the pseudo-element hit the element. the caller sets relative/absolute */
+@utility touch-hitbox {
+  &::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: max(100%, var(--tg-touch-target-min));
+    height: max(100%, var(--tg-touch-target-min));
+    transform: translate(-50%, -50%);
+  }
+}
+
 /* route transition: CSS puro, sem flash do AnimatePresence */
 @keyframes route-fade-in {
   from {

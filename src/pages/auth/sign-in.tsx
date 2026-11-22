@@ -143,7 +143,7 @@ export function SignIn() {
                   <FormLabel>Senha</FormLabel>
                   <Link
                     to="/forgot-password"
-                    className="text-primary focus-visible:ring-ring/50 rounded-sm text-sm hover:underline focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+                    className="text-primary focus-visible:ring-ring/50 min-h-touch-min inline-flex items-center rounded-sm text-sm hover:underline focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none md:min-h-0"
                   >
                     Esqueci minha senha
                   </Link>
@@ -206,7 +206,7 @@ export function SignIn() {
             Não possui uma conta?{' '}
             <Link
               to="/sign-up"
-              className="text-primary focus-visible:ring-ring/50 rounded-sm font-medium hover:underline focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+              className="text-primary focus-visible:ring-ring/50 touch-hitbox relative rounded-sm font-medium hover:underline focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
             >
               Criar conta
             </Link>

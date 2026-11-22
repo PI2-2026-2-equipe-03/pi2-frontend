@@ -84,7 +84,7 @@ export function AdminLayout() {
 
             <div className="flex items-center gap-3">
               <ProfileMenu
-                className="size-9 rounded-full text-white hover:bg-white/10 hover:text-white focus-visible:ring-white/40"
+                className="rounded-full text-white hover:bg-white/10 hover:text-white focus-visible:ring-white/40"
                 extraItems={
                   <>
                     <DropdownMenuItem asChild>
