@@ -52,7 +52,7 @@ export function AdminLayout() {
                     variant="ghost"
                     size="icon"
                     aria-label="Abrir menu"
-                    className="rounded-full text-white hover:bg-white/10 hover:text-white md:hidden"
+                    className="rounded-full text-white hover:bg-white/10 hover:text-white lg:hidden"
                   >
                     <Menu className="size-5" />
                   </Button>
@@ -102,7 +102,7 @@ export function AdminLayout() {
           </header>
 
           <div className="flex flex-1">
-            <aside className="bg-sidebar text-sidebar-foreground border-sidebar-border z-sidebar sticky top-16 hidden h-[calc(100svh-4rem)] w-56 shrink-0 flex-col justify-between overflow-y-auto border-r py-6 md:flex">
+            <aside className="bg-sidebar text-sidebar-foreground border-sidebar-border z-sidebar sticky top-16 hidden h-[calc(100svh-4rem)] w-56 shrink-0 flex-col justify-between overflow-y-auto border-r py-6 lg:flex">
               <SideNav items={NAV_ITEMS} pillId="admin-nav-pill" />
               <SideNavFooter />
             </aside>

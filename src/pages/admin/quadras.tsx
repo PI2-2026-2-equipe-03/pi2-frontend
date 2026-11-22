@@ -206,7 +206,7 @@ export function AdminQuadras() {
         />
       ) : (
         <>
-          <div className="bg-card hidden overflow-hidden rounded-2xl border md:block">
+          <div className="bg-card hidden overflow-hidden rounded-2xl border lg:block">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -258,7 +258,7 @@ export function AdminQuadras() {
             </Table>
           </div>
 
-          <ul className="flex flex-col gap-3 md:hidden">
+          <ul className="flex flex-col gap-3 lg:hidden">
             {rows.map((row) => (
               <li key={row.quadra.id}>
                 <Card className="gap-3 p-4">
