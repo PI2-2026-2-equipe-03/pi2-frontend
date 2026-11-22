@@ -2,6 +2,7 @@ import { motion } from 'framer-motion'
 import type { LucideIcon } from 'lucide-react'
 import { useMemo } from 'react'
 
+import { Skeleton } from '@/components/ui/skeleton'
 import { motionTokens, useMotionSafe } from '@/lib/motion'
 
 type RankingItem = {
@@ -89,5 +90,31 @@ export function RankingChart({
         </ul>
       )}
     </section>
+  )
+}
+
+// five rows, the most the api returns, with the same label/bar rhythm
+export function RankingChartSkeleton() {
+  return (
+    <div className="bg-card border-border rounded-xl border p-5 md:p-6">
+      <div className="mb-4">
+        <div className="flex h-7 items-center gap-2">
+          <Skeleton className="size-5 shrink-0" />
+          <Skeleton className="h-5 w-1/2" />
+        </div>
+        <Skeleton className="mt-2 h-3.5 w-3/4" />
+      </div>
+      <div className="flex flex-col gap-3">
+        {Array.from({ length: 5 }, (_, index) => (
+          <div key={index}>
+            <div className="mb-1 flex h-5 items-center justify-between gap-3">
+              <Skeleton className="h-4 w-1/3" />
+              <Skeleton className="h-4 w-16 shrink-0" />
+            </div>
+            <Skeleton className="h-2 rounded-full" />
+          </div>
+        ))}
+      </div>
+    </div>
   )
 }

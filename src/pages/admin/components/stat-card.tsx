@@ -1,5 +1,6 @@
 import type { LucideIcon } from 'lucide-react'
 
+import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
 
 type StatCardProps = {
@@ -47,5 +48,19 @@ export function StatCard({
         <span className="h-4" aria-hidden />
       )}
     </article>
+  )
+}
+
+// same box and line heights as StatCard, so the number does not shift the grid
+export function StatCardSkeleton() {
+  return (
+    <div className="bg-card border-border flex min-h-24 flex-col justify-between gap-2 rounded-xl border p-3 sm:min-h-32 sm:gap-4 sm:p-4">
+      <div className="flex items-start justify-between gap-2 sm:gap-3">
+        <Skeleton className="mt-0.5 h-3 w-2/3 sm:h-4" />
+        <Skeleton className="size-8 shrink-0 rounded-full sm:size-10" />
+      </div>
+      <Skeleton className="h-8 w-1/3 sm:h-10" />
+      <Skeleton className="h-3 w-3/4" />
+    </div>
   )
 }

@@ -11,7 +11,6 @@ import { toast } from 'sonner'
 
 import { QueryErrorState } from '@/components/query-error-state'
 import { Button } from '@/components/ui/button'
-import { Skeleton } from '@/components/ui/skeleton'
 import type { AdminMetricsDto, ManagerMetricsDto } from '@/lib/api/metrics'
 import {
   useAdminMetrics,
@@ -19,8 +18,11 @@ import {
   useManagerMetrics,
 } from '@/lib/api/queries'
 import { cn } from '@/lib/utils'
-import { RankingChart } from '@/pages/admin/components/ranking-chart'
-import { StatCard } from '@/pages/admin/components/stat-card'
+import {
+  RankingChart,
+  RankingChartSkeleton,
+} from '@/pages/admin/components/ranking-chart'
+import { StatCard, StatCardSkeleton } from '@/pages/admin/components/stat-card'
 
 function formatAccesses(value: number) {
   return `${value} ${value === 1 ? 'acesso' : 'acessos'}`
@@ -30,16 +32,25 @@ function formatReplays(value: number) {
   return `${value} ${value === 1 ? 'replay' : 'replays'}`
 }
 
-function DashboardSkeleton() {
+// mirrors AdminOverview / ManagerOverview; the role is unknown until /me
+// answers, and the admin shape is the default guess
+function DashboardSkeleton({ isManager }: { isManager: boolean }) {
   return (
     <div role="status" aria-busy="true" className="flex flex-col gap-8">
-      <span className="sr-only">Carregando…</span>
-      <section className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
+      <span className="sr-only">Carregando as métricas…</span>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
         {Array.from({ length: 3 }, (_, index) => (
-          <Skeleton key={index} className="h-24 rounded-xl sm:h-32" />
+          <StatCardSkeleton key={index} />
         ))}
-      </section>
-      <Skeleton className="h-56 rounded-xl" />
+      </div>
+      {isManager ? (
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <RankingChartSkeleton />
+          <RankingChartSkeleton />
+        </div>
+      ) : (
+        <RankingChartSkeleton />
+      )}
     </div>
   )
 }
@@ -179,7 +190,7 @@ export function Dashboard() {
       </header>
 
       {metrics.isPending ? (
-        <DashboardSkeleton />
+        <DashboardSkeleton isManager={currentUser?.role === 'CLI'} />
       ) : metrics.isError ? (
         <QueryErrorState
           title="Não foi possível carregar as métricas"
