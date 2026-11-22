@@ -87,13 +87,13 @@ export function ReplayCard({ replay }: ReplayCardProps) {
         <p className="text-foreground group-hover:text-tg-brand-text line-clamp-1 font-semibold tracking-tight transition-colors">
           {title}
         </p>
-        <div className="text-muted-foreground flex flex-col gap-1 text-xs">
+        <div className="text-muted-foreground flex flex-col gap-1 text-sm">
           <span className="flex items-center gap-1">
-            <MapPin className="size-3 shrink-0" />
+            <MapPin className="size-3.5 shrink-0" />
             <span className="line-clamp-1">{replay.city}</span>
           </span>
           <span className="flex items-center gap-1">
-            <Calendar className="size-3 shrink-0" />
+            <Calendar className="size-3.5 shrink-0" />
             {dateFormatter.format(recorded)} · {timeFormatter.format(recorded)}
           </span>
         </div>
@@ -101,7 +101,7 @@ export function ReplayCard({ replay }: ReplayCardProps) {
         <div className="flex items-center justify-between pt-2">
           <span
             aria-hidden
-            className="text-muted-foreground group-hover:text-tg-brand-text flex items-center gap-1.5 text-xs font-medium transition-colors"
+            className="text-muted-foreground group-hover:text-tg-brand-text flex items-center gap-1.5 text-sm font-medium transition-colors"
           >
             <Play className="size-3.5" />
             Ver replay

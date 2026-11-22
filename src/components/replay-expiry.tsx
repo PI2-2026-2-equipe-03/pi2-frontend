@@ -69,13 +69,13 @@ export function ReplayExpiry({
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium tabular-nums',
+        'inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-sm font-medium tabular-nums',
         TONE[severity],
         className,
       )}
       aria-live="polite"
     >
-      {withIcon ? <Clock className="size-3" aria-hidden /> : null}
+      {withIcon ? <Clock className="size-3.5" aria-hidden /> : null}
       {prefix}
       {label}
     </span>

@@ -167,7 +167,7 @@ export function Home() {
           </h2>
           <Link
             to="/app/arenas"
-            className="text-tg-brand-text min-h-touch-min inline-flex items-center text-xs font-medium hover:underline md:min-h-0"
+            className="text-tg-brand-text min-h-touch-min inline-flex items-center text-sm font-medium hover:underline md:min-h-0"
           >
             Ver todas →
           </Link>
