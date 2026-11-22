@@ -142,7 +142,7 @@ export function Home() {
                     variant={q === city ? 'brand' : 'brandOutline'}
                     aria-pressed={q === city}
                     onClick={() => setQ(q === city ? null : city)}
-                    className="rounded-full"
+                    className="min-h-touch-min rounded-full"
                   >
                     {city}
                   </Button>
@@ -220,8 +220,6 @@ export function Home() {
         ) : (
           <div className="flex flex-col gap-4">
             <motion.ul
-              // remount on new term so the stagger replays
-              key={q}
               variants={listVariants}
               initial="hidden"
               animate="visible"
