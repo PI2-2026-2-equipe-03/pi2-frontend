@@ -1,8 +1,9 @@
 import { motion } from 'framer-motion'
-import { CalendarDays, X } from 'lucide-react'
+import { X } from 'lucide-react'
 import { useQueryState } from 'nuqs'
 import { useMemo } from 'react'
 
+import { CalendarSheet } from '@/components/calendar-sheet'
 import { CityCombobox } from '@/components/city-combobox'
 import { EmptyState } from '@/components/empty-state'
 import { ListingToolbar } from '@/components/listing-toolbar'
@@ -10,7 +11,6 @@ import { PaginationControl } from '@/components/pagination-control'
 import { QueryErrorState } from '@/components/query-error-state'
 import { SearchCombobox } from '@/components/search-combobox'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import {
   citiesFromArenas,
   indexById,
@@ -18,6 +18,7 @@ import {
   useQuadras,
   useReplays,
 } from '@/lib/api/queries'
+import { localDateKey } from '@/lib/dates'
 import { motionTokens } from '@/lib/motion'
 import { usePagination } from '@/lib/pagination'
 import { createCourtSuggestions } from '@/lib/search'
@@ -49,14 +50,8 @@ const itemVariants = {
 const CITY_ANY = 'all'
 const HOUR_ANY = 'all'
 
-// recordedAt é iso em utc; data e hora do filtro valem no fuso do usuário
+// recordedAt é iso em utc; a hora do filtro vale no fuso do usuário
 // (gravação às 22h em brasília não pode cair no dia seguinte)
-function localDateKey(date: Date): string {
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  return `${date.getFullYear()}-${month}-${day}`
-}
-
 function localHourKey(date: Date): string {
   return `${String(date.getHours()).padStart(2, '0')}:00`
 }
@@ -207,18 +202,13 @@ export function Replays() {
             position: 'trailing',
             width: '11rem',
             control: (
-              <div className="border-border bg-background focus-within:border-tg-brand-blue/60 focus-within:ring-tg-brand-blue/20 flex items-center gap-2 rounded-md border px-3 py-1.5 transition-colors focus-within:ring-2">
-                <CalendarDays className="text-muted-foreground size-4 shrink-0" />
-                <Input
-                  type="date"
-                  value={date}
-                  onChange={(event) => {
-                    setDate(event.target.value || null)
-                    resetPage()
-                  }}
-                  className="h-7 border-0 bg-transparent p-0 shadow-none focus-visible:ring-0"
-                />
-              </div>
+              <CalendarSheet
+                value={date || null}
+                onChange={(next) => {
+                  setDate(next)
+                  resetPage()
+                }}
+              />
             ),
           },
         ]}

@@ -1,9 +1,10 @@
 import { motion } from 'framer-motion'
 import { ChevronRight, MapPin, RefreshCw, X } from 'lucide-react'
 import { useQueryState } from 'nuqs'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 
+import { BottomSheet } from '@/components/bottom-sheet'
 import { CityCombobox } from '@/components/city-combobox'
 import { EmptyState } from '@/components/empty-state'
 import { FilterChips } from '@/components/filter-chips'
@@ -38,6 +39,7 @@ import { motionTokens } from '@/lib/motion'
 import { usePagination } from '@/lib/pagination'
 import { createArenaSuggestions } from '@/lib/search'
 import type { Arena, Quadra } from '@/lib/types'
+import { DESKTOP_QUERY, useMediaQuery } from '@/lib/use-media-query'
 import { cn } from '@/lib/utils'
 
 import { QuadraCardSkeleton } from './components/quadra-card-skeleton'
@@ -78,7 +80,7 @@ const STATUS_OPTIONS: ReadonlyArray<{ value: StatusFilter; label: string }> = [
 
 const RECENT_REPLAYS_LIMIT = 3
 
-// montado só com o dialog aberto: a request de replays sai quando o usuário
+// montado só com o detalhe aberto: a request de replays sai quando o usuário
 // abre a quadra (ou reaproveita o cache de useReplays da tela de replays).
 function CourtRecentReplays({ courtId }: { courtId: Quadra['id'] }) {
   const replaysQuery = useReplays()
@@ -172,45 +174,116 @@ function QuadraCard({
   quadra: Quadra
   arena: Arena | undefined
 }) {
+  const [open, setOpen] = useState(false)
+  const isDesktop = useMediaQuery(DESKTOP_QUERY)
+
   // a quadra não tem foto própria no MER; herda a da arena quando existir.
   const cover = arena?.fotoUrl ?? null
 
-  return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Card
-          role="button"
-          tabIndex={0}
-          className="group border-border/60 shadow-card hover:border-tg-brand-blue/40 hover:shadow-card-hover focus-visible:ring-ring/40 cursor-pointer overflow-hidden rounded-2xl py-0 text-left transition-all duration-200 hover:-translate-y-0.5 focus-visible:ring-4 focus-visible:outline-none"
+  const trigger = (
+    <Card
+      role="button"
+      tabIndex={0}
+      // the trigger is a div with role=button, so enter and space need the
+      // wiring a native <button> would get for free
+      onKeyDown={(event) => {
+        if (event.key !== 'Enter' && event.key !== ' ') return
+        event.preventDefault()
+        event.currentTarget.click()
+      }}
+      className="group border-border/60 shadow-card hover:border-tg-brand-blue/40 hover:shadow-card-hover focus-visible:ring-ring/40 cursor-pointer overflow-hidden rounded-2xl py-0 text-left transition-all duration-200 hover:-translate-y-0.5 focus-visible:ring-4 focus-visible:outline-none"
+    >
+      <div className="relative h-28 overflow-hidden">
+        <MediaThumb
+          src={cover}
+          alt={`Foto da ${quadra.nome}`}
+          kind="quadra"
+          className="size-full object-cover transition-transform duration-500 group-hover:scale-110"
+        />
+        {/* vinheta só faz sentido sobre foto; no placeholder vira borrão sujo */}
+        {cover ? (
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+        ) : null}
+        <Badge
+          variant={quadra.disponivel ? 'success' : 'destructive'}
+          className="absolute top-2 right-2 backdrop-blur"
         >
-          <div className="relative h-28 overflow-hidden">
-            <MediaThumb
-              src={cover}
-              alt={`Foto da ${quadra.nome}`}
-              kind="quadra"
-              className="size-full object-cover transition-transform duration-500 group-hover:scale-110"
-            />
-            {/* vinheta só faz sentido sobre foto; no placeholder vira borrão sujo */}
-            {cover ? (
-              <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-            ) : null}
-            <Badge
-              variant={quadra.disponivel ? 'success' : 'destructive'}
-              className="absolute top-2 right-2 backdrop-blur"
-            >
-              {quadra.disponivel ? 'Disponível' : 'Indisponível'}
-            </Badge>
-          </div>
-          <div className="space-y-1.5 p-4">
-            <p className="text-foreground group-hover:text-tg-brand-text font-semibold tracking-tight transition-colors">
-              {quadra.nome}
-            </p>
-            <p className="text-muted-foreground text-xs leading-relaxed">
-              {arena?.nome ?? 'Arena desconhecida'}
-            </p>
-          </div>
-        </Card>
-      </DialogTrigger>
+          {quadra.disponivel ? 'Disponível' : 'Indisponível'}
+        </Badge>
+      </div>
+      <div className="space-y-1.5 p-4">
+        <p className="text-foreground group-hover:text-tg-brand-text font-semibold tracking-tight transition-colors">
+          {quadra.nome}
+        </p>
+        <p className="text-muted-foreground text-xs leading-relaxed">
+          {arena?.nome ?? 'Arena desconhecida'}
+        </p>
+      </div>
+    </Card>
+  )
+
+  const replaysLink = (
+    <Link to={`/app/replays?court=${quadra.id}`}>
+      Ver todos os replays desta quadra
+    </Link>
+  )
+
+  // no celular o painel nasce ancorado embaixo, ao alcance do polegar; no
+  // desktop o diálogo centralizado continua sendo a leitura certa
+  if (!isDesktop) {
+    return (
+      <BottomSheet
+        open={open}
+        onOpenChange={setOpen}
+        trigger={trigger}
+        title={quadra.nome}
+        description={
+          arena ? (
+            <span className="flex items-center gap-1">
+              <MapPin className="size-3.5 shrink-0" aria-hidden />
+              {arena.nome} · {arena.cidade}
+            </span>
+          ) : (
+            'Arena desconhecida'
+          )
+        }
+        titleAside={
+          <Badge variant={quadra.disponivel ? 'success' : 'destructive'}>
+            {quadra.disponivel ? 'Disponível' : 'Indisponível'}
+          </Badge>
+        }
+        footer={
+          <Button
+            asChild
+            variant="brand"
+            className="min-h-touch-comfortable w-full"
+          >
+            {replaysLink}
+          </Button>
+        }
+      >
+        <div className="h-40 w-full shrink-0 overflow-hidden rounded-xl">
+          <MediaThumb
+            src={cover}
+            alt={`Foto da ${quadra.nome}`}
+            kind="quadra"
+            className="size-full object-cover"
+          />
+        </div>
+
+        <div>
+          <p className="text-foreground mb-2 text-sm font-semibold">
+            Últimos replays
+          </p>
+          <CourtRecentReplays courtId={quadra.id} />
+        </div>
+      </BottomSheet>
+    )
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
 
       <DialogContent
         showCloseButton={false}
@@ -277,9 +350,7 @@ function QuadraCard({
             variant="brand"
             className="w-full sm:w-auto sm:self-start"
           >
-            <Link to={`/app/replays?court=${quadra.id}`}>
-              Ver todos os replays desta quadra
-            </Link>
+            {replaysLink}
           </Button>
         </div>
       </DialogContent>
