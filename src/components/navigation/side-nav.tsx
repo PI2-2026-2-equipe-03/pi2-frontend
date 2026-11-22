@@ -13,7 +13,7 @@ import { type NavItem, visibleNavItems } from './nav-items'
 export type { NavItem }
 
 const rowClasses =
-  'text-sidebar-foreground/90 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-tg-brand-yellow/60 min-h-touch-min flex items-center gap-2 rounded-md px-3 py-2 text-left md:min-h-0 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:outline-none'
+  'text-sidebar-foreground/90 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-tg-brand-yellow/60 min-h-touch-min flex items-center gap-2 rounded-md px-3 py-2 text-left dense:min-h-0 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:outline-none'
 
 type SideNavProps = {
   items: readonly NavItem[]
@@ -42,7 +42,7 @@ export function SideNav({
             onClick={onNavigate}
             className={({ isActive }) =>
               cn(
-                'min-h-touch-min relative isolate flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors md:min-h-0',
+                'min-h-touch-min dense:min-h-0 relative isolate flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
                 'focus-visible:ring-tg-brand-yellow/60 focus-visible:ring-2 focus-visible:outline-none',
                 isActive
                   ? 'text-tg-brand-blue-dark'

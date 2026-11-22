@@ -144,7 +144,7 @@ export function SignIn() {
                   <FormLabel>Senha</FormLabel>
                   <Link
                     to="/forgot-password"
-                    className="text-primary focus-visible:ring-ring/50 min-h-touch-min inline-flex items-center rounded-sm text-sm hover:underline focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none md:min-h-0"
+                    className="text-primary focus-visible:ring-ring/50 min-h-touch-min dense:min-h-0 inline-flex items-center rounded-sm text-sm hover:underline focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
                   >
                     Esqueci minha senha
                   </Link>

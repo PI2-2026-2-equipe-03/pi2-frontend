@@ -79,10 +79,10 @@ export function AdminLayout() {
                   </div>
                 </SheetContent>
               </Sheet>
-              <Logo to="/admin" className="text-2xl" />
+              <Logo to="/admin" className="text-xl md:text-2xl" />
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1">
               <ProfileMenu
                 className="rounded-full text-white hover:bg-white/10 hover:text-white focus-visible:ring-white/40"
                 extraItems={

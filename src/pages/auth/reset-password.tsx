@@ -85,7 +85,7 @@ export function ResetPassword() {
           </p>
           <Link
             to="/forgot-password"
-            className="text-primary min-h-touch-min inline-flex items-center text-sm font-medium hover:underline md:min-h-0"
+            className="text-primary min-h-touch-min dense:min-h-0 inline-flex items-center text-sm font-medium hover:underline"
           >
             Solicitar novo link
           </Link>

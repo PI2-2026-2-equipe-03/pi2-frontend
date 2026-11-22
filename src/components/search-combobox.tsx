@@ -69,8 +69,11 @@ export function SearchCombobox({
 
   const containerClasses =
     size === 'hero'
-      ? 'rounded-full px-5 py-3 text-base shadow-md focus-within:shadow-lg'
-      : 'min-h-touch-min rounded-full px-4 py-2 text-base shadow-sm focus-within:shadow-md md:min-h-0'
+      ? 'rounded-full px-5 text-base shadow-md focus-within:shadow-lg'
+      : 'rounded-full px-4 text-base shadow-sm focus-within:shadow-md'
+  // the vertical padding lives on the input so the whole pill is its tap area
+  const inputClasses =
+    size === 'hero' ? 'py-3' : 'min-h-touch-min py-2 dense:min-h-0'
 
   return (
     <Popover open={open && Boolean(value.trim())} onOpenChange={setOpen}>
@@ -104,7 +107,10 @@ export function SearchCombobox({
             aria-expanded={open}
             aria-controls={listboxId}
             aria-autocomplete="list"
-            className="placeholder:text-muted-foreground w-full flex-1 border-0 bg-transparent outline-none"
+            className={cn(
+              'placeholder:text-muted-foreground w-full flex-1 border-0 bg-transparent outline-none',
+              inputClasses,
+            )}
           />
           {value ? (
             <button

@@ -27,16 +27,16 @@ const buttonVariants = cva(
           'border border-tg-brand-text text-tg-brand-text hover:bg-tg-brand-blue hover:text-white active:scale-[0.98]',
       },
       size: {
-        // touch token on mobile, back to the current density from md
-        default: 'h-touch-min md:h-9 px-4 py-2 has-[>svg]:px-3',
-        xs: "h-touch-min md:h-6 gap-1 rounded-md px-2 text-xs has-[>svg]:px-1.5 [&_svg:not([class*='size-'])]:size-3",
-        sm: 'h-touch-min md:h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5',
-        lg: 'h-touch-min md:h-10 rounded-md px-6 has-[>svg]:px-4',
-        icon: 'size-touch-min md:size-9',
+        // touch token by default, back to the current density with a mouse (dense)
+        default: 'h-touch-min dense:h-9 px-4 py-2 has-[>svg]:px-3',
+        xs: "h-touch-min dense:h-6 gap-1 rounded-md px-2 text-xs has-[>svg]:px-1.5 [&_svg:not([class*='size-'])]:size-3",
+        sm: 'h-touch-min dense:h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5',
+        lg: 'h-touch-min dense:h-10 rounded-md px-6 has-[>svg]:px-4',
+        icon: 'size-touch-min dense:size-9',
         'icon-xs':
-          "size-touch-min md:size-6 rounded-md [&_svg:not([class*='size-'])]:size-3",
-        'icon-sm': 'size-touch-min md:size-8',
-        'icon-lg': 'size-touch-min md:size-10',
+          "size-touch-min dense:size-6 rounded-md [&_svg:not([class*='size-'])]:size-3",
+        'icon-sm': 'size-touch-min dense:size-8',
+        'icon-lg': 'size-touch-min dense:size-10',
       },
     },
     defaultVariants: {

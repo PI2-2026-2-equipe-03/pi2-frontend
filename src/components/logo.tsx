@@ -71,7 +71,7 @@ export function Logo({ className, to, variant = 'full' }: LogoProps) {
     <Link
       to={to}
       aria-label="Ir para a página inicial"
-      className="focus-visible:ring-tg-brand-yellow/60 inline-block rounded-sm transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:outline-none"
+      className="focus-visible:ring-tg-brand-yellow/60 touch-hitbox relative inline-block rounded-sm transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:outline-none"
     >
       {wrapper}
     </Link>
