@@ -70,7 +70,7 @@ export function SearchCombobox({
   const containerClasses =
     size === 'hero'
       ? 'rounded-full px-5 py-3 text-base shadow-md focus-within:shadow-lg'
-      : 'min-h-touch-min rounded-full px-4 py-2 text-sm shadow-sm focus-within:shadow-md md:min-h-0'
+      : 'min-h-touch-min rounded-full px-4 py-2 text-base shadow-sm focus-within:shadow-md md:min-h-0'
 
   return (
     <Popover open={open && Boolean(value.trim())} onOpenChange={setOpen}>
