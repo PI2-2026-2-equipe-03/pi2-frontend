@@ -1,10 +1,19 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { CheckCircle2, Loader2 } from 'lucide-react'
-import type { HTMLAttributes, HTMLInputTypeAttribute } from 'react'
+import {
+  type HTMLAttributes,
+  type HTMLInputTypeAttribute,
+  useEffect,
+  useRef,
+} from 'react'
 import { type Control, useForm } from 'react-hook-form'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 
+import {
+  StickyActionBar,
+  stickyActionBarInset,
+} from '@/components/navigation/sticky-action-bar'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import {
@@ -88,6 +97,8 @@ function TextField({
   )
 }
 
+const formId = 'solicitar-gestor-form'
+
 // tela de solicitação de gestão
 export function SolicitarGestor() {
   const createRequest = useCreateManagerRequest()
@@ -109,6 +120,16 @@ export function SolicitarGestor() {
     },
   })
 
+  // the button no longer sits next to the message, so bring it into view or a
+  // failed submit looks like nothing happened. an effect, not an inline ref:
+  // a ref callback re-runs on every render and would scroll on each keystroke
+  const rootError = form.formState.errors.root?.message
+  const submitCount = form.formState.submitCount
+  const rootErrorRef = useRef<HTMLParagraphElement>(null)
+  useEffect(() => {
+    if (rootError) rootErrorRef.current?.scrollIntoView({ block: 'center' })
+  }, [rootError, submitCount])
+
   function onSubmit(input: ManagerRequestInput) {
     createRequest.mutate(toManagerRequestBody(input), {
       onSuccess: () => {
@@ -129,25 +150,41 @@ export function SolicitarGestor() {
 
   if (createRequest.isSuccess) {
     return (
-      <Card className="mx-auto max-w-2xl items-center gap-4 p-6 text-center md:p-8">
-        <CheckCircle2 className="text-success size-10" aria-hidden />
-        <div className="space-y-1">
-          <h1 className="text-tg-brand-text text-xl font-bold">
-            Solicitação recebida
-          </h1>
-          <p className="text-muted-foreground">{createRequest.data.message}</p>
-        </div>
-        <Button asChild variant="brandOutline">
-          <Link to="/app">Voltar para o início</Link>
-        </Button>
-      </Card>
+      // the route hides the bottom nav, so this state needs its own way out
+      <div className={cn('mx-auto max-w-2xl', stickyActionBarInset)}>
+        <Card className="items-center gap-4 p-6 text-center md:p-8">
+          <CheckCircle2 className="text-success size-10" aria-hidden />
+          <div className="space-y-1">
+            <h1 className="text-tg-brand-text text-xl font-bold">
+              Solicitação recebida
+            </h1>
+            <p className="text-muted-foreground">
+              {createRequest.data.message}
+            </p>
+          </div>
+        </Card>
+        <StickyActionBar label="Ação da página">
+          <Button
+            asChild
+            variant="brand"
+            className="min-h-touch-comfortable w-full"
+          >
+            <Link to="/app">Voltar para o início</Link>
+          </Button>
+        </StickyActionBar>
+      </div>
     )
   }
 
   const isSubmitting = createRequest.isPending
 
   return (
-    <div className="mx-auto flex max-w-2xl flex-col gap-6">
+    <div
+      className={cn(
+        'mx-auto flex max-w-2xl flex-col gap-6',
+        stickyActionBarInset,
+      )}
+    >
       <header>
         <h1 className="text-tg-brand-text text-2xl font-bold md:text-3xl">
           Solicitar gestão de arena
@@ -163,6 +200,7 @@ export function SolicitarGestor() {
             onSubmit={form.handleSubmit(onSubmit)}
             noValidate
             className="grid grid-cols-1 gap-5 sm:grid-cols-2"
+            id={formId}
             aria-label="Formulário de solicitação de gestão"
           >
             {/* type=tel + inputMode=numeric: numeric keypad confirmed on a real
@@ -245,31 +283,35 @@ export function SolicitarGestor() {
             {form.formState.errors.root?.message ? (
               <p
                 role="alert"
+                ref={rootErrorRef}
                 className="text-destructive text-sm sm:col-span-2"
               >
                 {form.formState.errors.root.message}
               </p>
             ) : null}
-
-            <Button
-              type="submit"
-              variant="brand"
-              disabled={isSubmitting}
-              aria-busy={isSubmitting}
-              className="w-full sm:col-span-2"
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="mr-2 size-4 animate-spin" />
-                  Enviando…
-                </>
-              ) : (
-                'Enviar solicitação'
-              )}
-            </Button>
           </form>
         </Form>
       </Card>
+
+      <StickyActionBar label="Enviar solicitação">
+        <Button
+          type="submit"
+          variant="brand"
+          disabled={isSubmitting}
+          aria-busy={isSubmitting}
+          form={formId}
+          className="min-h-touch-comfortable w-full"
+        >
+          {isSubmitting ? (
+            <>
+              <Loader2 className="mr-2 size-4 animate-spin" />
+              Enviando…
+            </>
+          ) : (
+            'Enviar solicitação'
+          )}
+        </Button>
+      </StickyActionBar>
     </div>
   )
 }

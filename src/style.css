@@ -303,6 +303,11 @@
 
 /* base */
 @layer base {
+  /* keyboard focus scrolls on the html scroller: keep focused fields clear of
+     the fixed action bar (same height as stickyActionBarInset) */
+  html {
+    scroll-padding-bottom: calc(4.5rem + 1px + var(--tg-safe-area-bottom));
+  }
   * {
     @apply border-border outline-ring/50;
   }
