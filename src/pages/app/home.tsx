@@ -1,23 +1,25 @@
 import { motion } from 'framer-motion'
-import { MapPin, RefreshCw, Video } from 'lucide-react'
+import { RefreshCw, Video } from 'lucide-react'
 import { useQueryState } from 'nuqs'
 import { useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
 import { EmptyState } from '@/components/empty-state'
 import { FeaturedCard } from '@/components/featured-card'
-import { MediaThumb } from '@/components/media-thumb'
 import { SearchCombobox } from '@/components/search-combobox'
 import { Button } from '@/components/ui/button'
-import { useArenas, useFeaturedReplay, useQuadras } from '@/lib/api/queries'
+import {
+  citiesFromArenas,
+  useArenas,
+  useFeaturedReplay,
+  useQuadras,
+} from '@/lib/api/queries'
 import { motionTokens } from '@/lib/motion'
 import type { Suggestion } from '@/lib/search'
-import { createCourtSuggestions, suggestCourts } from '@/lib/search'
+import { createArenaSuggestions, suggestArenas } from '@/lib/search'
 
 import { ArenaCard } from './components/arena-card'
 import { ArenaCardSkeleton } from './components/arena-card-skeleton'
-
-const RESULT_PREVIEW_LIMIT = 12
 
 // the home is a shop window, not the catalog: /app/arenas lists everything and
 // paginates. two rows on the widest grid.
@@ -54,13 +56,13 @@ export function Home() {
   const arenas = useMemo(() => arenasQuery.data ?? [], [arenasQuery.data])
   const quadras = useMemo(() => quadrasQuery.data ?? [], [quadrasQuery.data])
 
-  const dataset = useMemo(() => ({ arenas, quadras }), [arenas, quadras])
   const fetchSuggestions = useMemo(
-    () => createCourtSuggestions(dataset),
-    [dataset],
+    () => createArenaSuggestions(arenas),
+    [arenas],
   )
+  const cities = useMemo(() => citiesFromArenas(arenas), [arenas])
 
-  const matches = useMemo(() => suggestCourts(dataset, q), [dataset, q])
+  const matches = useMemo(() => suggestArenas(arenas, q), [arenas, q])
 
   const quadrasByArena = useMemo(() => {
     const counts = new Map<string, number>()
@@ -74,15 +76,15 @@ export function Home() {
   const featuredReplay = featuredQuery.data
 
   function handleSelect(suggestion: Suggestion) {
-    if (suggestion.payload.kind === 'court') {
-      navigate(`/app/replays?court=${suggestion.payload.value}`)
+    if (suggestion.payload.kind === 'arena') {
+      navigate(`/app/quadras?arena=${suggestion.payload.value}&from=arena`)
     }
   }
 
   const hasQuery = Boolean(q.trim())
-  const preview = matches.slice(0, RESULT_PREVIEW_LIMIT)
-  const arenaPreview = arenas.slice(0, ARENA_PREVIEW_LIMIT)
-  const hasMore = matches.length > RESULT_PREVIEW_LIMIT
+  const visible = hasQuery ? matches : arenas
+  const arenaPreview = visible.slice(0, ARENA_PREVIEW_LIMIT)
+  const hasMore = hasQuery && matches.length > ARENA_PREVIEW_LIMIT
   const isLoading = arenasQuery.isPending || quadrasQuery.isPending
   const hasLoadError = arenasQuery.isError || quadrasQuery.isError
 
@@ -101,8 +103,8 @@ export function Home() {
           Reviva seus melhores lances
         </h1>
         <p className="text-muted-foreground max-w-xl text-sm md:text-base">
-          Encontre sua quadra pelo nome ou pela cidade e abra o replay dos
-          últimos 7 dias.
+          Procure por cidade ou nome da arena, escolha a quadra e abra o replay
+          dos últimos 7 dias.
         </p>
       </motion.header>
 
@@ -123,143 +125,128 @@ export function Home() {
             onValueChange={(value) => setQ(value || null)}
             onSelect={handleSelect}
             fetchSuggestions={fetchSuggestions}
-            placeholder="Qual quadra ou cidade você procura?"
-            emptyMessage="Nenhuma quadra encontrada."
+            placeholder="Qual cidade ou arena você procura?"
+            emptyMessage="Nenhuma arena encontrada."
             size="hero"
           />
+          {cities.length > 0 ? (
+            <ul
+              aria-label="Cidades"
+              className="mt-3 flex flex-wrap justify-center gap-2"
+            >
+              {cities.map((city) => (
+                <li key={city}>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={q === city ? 'brand' : 'brandOutline'}
+                    aria-pressed={q === city}
+                    onClick={() => setQ(q === city ? null : city)}
+                    className="min-h-touch-min rounded-full"
+                  >
+                    {city}
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          ) : null}
         </div>
       </motion.div>
 
-      {hasQuery ? (
-        preview.length === 0 ? (
+      {hasQuery ? null : featuredReplay ? (
+        <FeaturedCard replay={featuredReplay} />
+      ) : null}
+
+      <section>
+        <div className="mb-4 flex items-end justify-between">
+          <h2 className="text-tg-brand-text text-lg font-bold">
+            {hasQuery ? `Resultados para «${q.trim()}»` : 'Explore arenas'}
+          </h2>
+          <Link
+            to="/app/arenas"
+            className="text-tg-brand-text text-xs font-medium hover:underline"
+          >
+            Ver todas →
+          </Link>
+        </div>
+        {isLoading ? (
+          <ul
+            aria-busy="true"
+            aria-live="polite"
+            className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
+          >
+            {Array.from({ length: ARENA_PREVIEW_LIMIT }).map((_, i) => (
+              <li key={i}>
+                <ArenaCardSkeleton />
+              </li>
+            ))}
+          </ul>
+        ) : hasLoadError ? (
+          <EmptyState
+            ilustracao="sem-conexao"
+            title="Não foi possível carregar as arenas"
+            description="Confira se a API está no ar e tente novamente."
+            action={
+              <Button
+                variant="brandOutline"
+                onClick={() => {
+                  void arenasQuery.refetch()
+                  void quadrasQuery.refetch()
+                }}
+                disabled={arenasQuery.isRefetching}
+                aria-busy={arenasQuery.isRefetching}
+              >
+                <RefreshCw
+                  className={
+                    arenasQuery.isRefetching ? 'animate-spin' : undefined
+                  }
+                />
+                Tentar novamente
+              </Button>
+            }
+          />
+        ) : arenas.length === 0 ? (
+          <EmptyState
+            ilustracao="sem-arenas"
+            title="Nenhuma arena cadastrada"
+            description="Assim que uma arena for cadastrada, ela aparece aqui."
+          />
+        ) : hasQuery && matches.length === 0 ? (
           <EmptyState
             ilustracao="busca-vazia"
-            title="Nenhuma quadra encontrada"
-            description="Tente outro termo: nome da quadra, da arena ou da cidade."
+            title="Nenhuma arena encontrada"
+            description="Tente outro termo: nome da arena ou cidade."
           />
         ) : (
-          <section className="flex flex-col gap-4">
+          <div className="flex flex-col gap-4">
             <motion.ul
               variants={listVariants}
               initial="hidden"
               animate="visible"
-              className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3"
+              className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
             >
-              {preview.map(({ quadra, arena }) => (
-                <motion.li key={quadra.id} variants={itemVariants}>
-                  <Link
-                    to={`/app/replays?court=${quadra.id}`}
-                    className="hover:border-tg-brand-blue/30 focus-visible:ring-ring/40 bg-card flex items-center gap-3 rounded-xl border p-3 transition-all hover:-translate-y-0.5 hover:shadow-md focus-visible:ring-4 focus-visible:outline-none"
-                  >
-                    <MediaThumb
-                      src={arena.fotoUrl}
-                      alt=""
-                      kind="quadra"
-                      className="size-14 shrink-0 rounded-lg object-cover"
-                    />
-                    <div className="min-w-0 flex-1">
-                      <p className="text-foreground truncate font-semibold">
-                        {quadra.nome}
-                      </p>
-                      <p className="text-muted-foreground flex items-center gap-1 truncate text-xs">
-                        <MapPin className="size-3 shrink-0" />
-                        {arena.nome} · {arena.cidade}
-                      </p>
-                    </div>
-                  </Link>
+              {arenaPreview.map((arena) => (
+                <motion.li key={arena.id} variants={itemVariants}>
+                  <ArenaCard
+                    arena={arena}
+                    quadrasCount={quadrasByArena.get(arena.id) ?? 0}
+                  />
                 </motion.li>
               ))}
             </motion.ul>
             {hasMore ? (
               <div className="flex justify-center">
                 <Link
-                  to={`/app/replays?q=${encodeURIComponent(q)}`}
+                  to={`/app/arenas?q=${encodeURIComponent(q.trim())}`}
                   className="text-tg-brand-text text-sm font-medium hover:underline"
                 >
-                  Ver todos os replays correspondentes →
+                  Ver todas as arenas correspondentes →
                 </Link>
               </div>
             ) : null}
-          </section>
-        )
-      ) : (
-        <>
-          {featuredReplay ? <FeaturedCard replay={featuredReplay} /> : null}
-
-          <section>
-            <div className="mb-4 flex items-end justify-between">
-              <h2 className="text-tg-brand-text text-lg font-bold">
-                Explore arenas
-              </h2>
-              <Link
-                to="/app/arenas"
-                className="text-tg-brand-text text-xs font-medium hover:underline"
-              >
-                Ver todas →
-              </Link>
-            </div>
-            {isLoading ? (
-              <ul
-                aria-busy="true"
-                aria-live="polite"
-                className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
-              >
-                {Array.from({ length: ARENA_PREVIEW_LIMIT }).map((_, i) => (
-                  <li key={i}>
-                    <ArenaCardSkeleton />
-                  </li>
-                ))}
-              </ul>
-            ) : hasLoadError ? (
-              <EmptyState
-                ilustracao="sem-conexao"
-                title="Não foi possível carregar as arenas"
-                description="Confira se a API está no ar e tente novamente."
-                action={
-                  <Button
-                    variant="brandOutline"
-                    onClick={() => {
-                      void arenasQuery.refetch()
-                      void quadrasQuery.refetch()
-                    }}
-                    disabled={arenasQuery.isRefetching}
-                    aria-busy={arenasQuery.isRefetching}
-                  >
-                    <RefreshCw
-                      className={
-                        arenasQuery.isRefetching ? 'animate-spin' : undefined
-                      }
-                    />
-                    Tentar novamente
-                  </Button>
-                }
-              />
-            ) : arenas.length === 0 ? (
-              <EmptyState
-                ilustracao="sem-arenas"
-                title="Nenhuma arena cadastrada"
-                description="Assim que uma arena for cadastrada, ela aparece aqui."
-              />
-            ) : (
-              <motion.ul
-                variants={listVariants}
-                initial="hidden"
-                animate="visible"
-                className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
-              >
-                {arenaPreview.map((arena) => (
-                  <motion.li key={arena.id} variants={itemVariants}>
-                    <ArenaCard
-                      arena={arena}
-                      quadrasCount={quadrasByArena.get(arena.id) ?? 0}
-                    />
-                  </motion.li>
-                ))}
-              </motion.ul>
-            )}
-          </section>
-        </>
-      )}
+          </div>
+        )}
+      </section>
     </div>
   )
 }
