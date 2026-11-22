@@ -1,4 +1,4 @@
-import { Outlet } from 'react-router-dom'
+import { Outlet, useMatches } from 'react-router-dom'
 
 import { Logo } from '@/components/logo'
 import { BottomNav, bottomNavInset } from '@/components/navigation/bottom-nav'
@@ -14,9 +14,16 @@ import { cn } from '@/lib/utils'
 const headerIconClasses =
   'size-9 rounded-full text-white transition-colors hover:bg-white/10 hover:text-white focus-visible:ring-white/40'
 
+export type RouteHandle = { hideBottomNav?: boolean }
+
 export function AppLayout() {
   const { data: session, isPending } = useSessionGuard()
   const scrolled = useScrolled(8)
+  // focused flows (route handle) swap the tab bar for their own action bar:
+  // two fixed strips would eat a small phone screen
+  const hideBottomNav = useMatches().some(
+    (match) => (match.handle as RouteHandle | undefined)?.hideBottomNav,
+  )
 
   if (isPending || !session) {
     return null
@@ -45,7 +52,7 @@ export function AppLayout() {
 
       {/* the inset lives on the row, not on <main>, so it adds to the page
           padding instead of competing with it */}
-      <div className={cn('flex flex-1', bottomNavInset)}>
+      <div className={cn('flex flex-1', !hideBottomNav && bottomNavInset)}>
         <aside className="bg-sidebar text-sidebar-foreground border-sidebar-border z-sidebar sticky top-16 hidden h-[calc(100svh-4rem)] w-56 shrink-0 flex-col justify-between overflow-y-auto border-r py-6 lg:flex">
           <SideNav items={APP_NAV_ITEMS} pillId="app-nav-pill" />
           <SideNavFooter profileTo="/app/perfil" />
@@ -58,7 +65,7 @@ export function AppLayout() {
         </main>
       </div>
 
-      <BottomNav items={APP_TAB_ITEMS} />
+      {hideBottomNav ? null : <BottomNav items={APP_TAB_ITEMS} />}
     </div>
   )
 }

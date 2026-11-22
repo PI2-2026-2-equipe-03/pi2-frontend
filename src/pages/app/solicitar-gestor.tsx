@@ -5,6 +5,10 @@ import { type Control, useForm } from 'react-hook-form'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 
+import {
+  StickyActionBar,
+  stickyActionBarInset,
+} from '@/components/navigation/sticky-action-bar'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import {
@@ -88,6 +92,8 @@ function TextField({
   )
 }
 
+const formId = 'solicitar-gestor-form'
+
 // tela de solicitação de gestão
 export function SolicitarGestor() {
   const createRequest = useCreateManagerRequest()
@@ -147,7 +153,12 @@ export function SolicitarGestor() {
   const isSubmitting = createRequest.isPending
 
   return (
-    <div className="mx-auto flex max-w-2xl flex-col gap-6">
+    <div
+      className={cn(
+        'mx-auto flex max-w-2xl flex-col gap-6',
+        stickyActionBarInset,
+      )}
+    >
       <header>
         <h1 className="text-tg-brand-text text-2xl font-bold md:text-3xl">
           Solicitar gestão de arena
@@ -163,6 +174,7 @@ export function SolicitarGestor() {
             onSubmit={form.handleSubmit(onSubmit)}
             noValidate
             className="grid grid-cols-1 gap-5 sm:grid-cols-2"
+            id={formId}
             aria-label="Formulário de solicitação de gestão"
           >
             {/* type=tel + inputMode=numeric: numeric keypad confirmed on a real
@@ -245,31 +257,37 @@ export function SolicitarGestor() {
             {form.formState.errors.root?.message ? (
               <p
                 role="alert"
+                // the button no longer sits next to this message, so bring it
+                // into view or a failed submit looks like nothing happened
+                ref={(node) => node?.scrollIntoView({ block: 'center' })}
                 className="text-destructive text-sm sm:col-span-2"
               >
                 {form.formState.errors.root.message}
               </p>
             ) : null}
-
-            <Button
-              type="submit"
-              variant="brand"
-              disabled={isSubmitting}
-              aria-busy={isSubmitting}
-              className="w-full sm:col-span-2"
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="mr-2 size-4 animate-spin" />
-                  Enviando…
-                </>
-              ) : (
-                'Enviar solicitação'
-              )}
-            </Button>
           </form>
         </Form>
       </Card>
+
+      <StickyActionBar>
+        <Button
+          type="submit"
+          variant="brand"
+          disabled={isSubmitting}
+          aria-busy={isSubmitting}
+          form={formId}
+          className="min-h-touch-comfortable w-full"
+        >
+          {isSubmitting ? (
+            <>
+              <Loader2 className="mr-2 size-4 animate-spin" />
+              Enviando…
+            </>
+          ) : (
+            'Enviar solicitação'
+          )}
+        </Button>
+      </StickyActionBar>
     </div>
   )
 }

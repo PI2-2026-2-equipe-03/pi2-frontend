@@ -92,6 +92,7 @@ export const router = createBrowserRouter([
           { path: 'perfil', element: <Perfil /> },
           {
             path: 'solicitar-gestor',
+            handle: { hideBottomNav: true },
             element: (
               <RequireRole roles={['USR']}>
                 <SolicitarGestor />
