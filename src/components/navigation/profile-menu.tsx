@@ -58,7 +58,10 @@ export function ProfileMenu({
             </Button>
           </DropdownMenuTrigger>
         </TooltipTrigger>
-        <TooltipContent>Perfil</TooltipContent>
+        {/* touch has no hover: the tip would only flash on tap */}
+        <TooltipContent className="pointer-coarse:hidden">
+          Perfil
+        </TooltipContent>
       </Tooltip>
       <DropdownMenuContent align="end" className="w-52">
         <DropdownMenuLabel className="flex flex-col gap-0.5">
