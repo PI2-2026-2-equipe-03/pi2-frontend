@@ -1,6 +1,11 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { CheckCircle2, Loader2 } from 'lucide-react'
-import type { HTMLAttributes, HTMLInputTypeAttribute } from 'react'
+import {
+  type HTMLAttributes,
+  type HTMLInputTypeAttribute,
+  useEffect,
+  useRef,
+} from 'react'
 import { type Control, useForm } from 'react-hook-form'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -115,6 +120,16 @@ export function SolicitarGestor() {
     },
   })
 
+  // the button no longer sits next to the message, so bring it into view or a
+  // failed submit looks like nothing happened. an effect, not an inline ref:
+  // a ref callback re-runs on every render and would scroll on each keystroke
+  const rootError = form.formState.errors.root?.message
+  const submitCount = form.formState.submitCount
+  const rootErrorRef = useRef<HTMLParagraphElement>(null)
+  useEffect(() => {
+    if (rootError) rootErrorRef.current?.scrollIntoView({ block: 'center' })
+  }, [rootError, submitCount])
+
   function onSubmit(input: ManagerRequestInput) {
     createRequest.mutate(toManagerRequestBody(input), {
       onSuccess: () => {
@@ -135,18 +150,29 @@ export function SolicitarGestor() {
 
   if (createRequest.isSuccess) {
     return (
-      <Card className="mx-auto max-w-2xl items-center gap-4 p-6 text-center md:p-8">
-        <CheckCircle2 className="text-success size-10" aria-hidden />
-        <div className="space-y-1">
-          <h1 className="text-tg-brand-text text-xl font-bold">
-            Solicitação recebida
-          </h1>
-          <p className="text-muted-foreground">{createRequest.data.message}</p>
-        </div>
-        <Button asChild variant="brandOutline">
-          <Link to="/app">Voltar para o início</Link>
-        </Button>
-      </Card>
+      // the route hides the bottom nav, so this state needs its own way out
+      <div className={cn('mx-auto max-w-2xl', stickyActionBarInset)}>
+        <Card className="items-center gap-4 p-6 text-center md:p-8">
+          <CheckCircle2 className="text-success size-10" aria-hidden />
+          <div className="space-y-1">
+            <h1 className="text-tg-brand-text text-xl font-bold">
+              Solicitação recebida
+            </h1>
+            <p className="text-muted-foreground">
+              {createRequest.data.message}
+            </p>
+          </div>
+        </Card>
+        <StickyActionBar label="Ação da página">
+          <Button
+            asChild
+            variant="brand"
+            className="min-h-touch-comfortable w-full"
+          >
+            <Link to="/app">Voltar para o início</Link>
+          </Button>
+        </StickyActionBar>
+      </div>
     )
   }
 
@@ -257,9 +283,7 @@ export function SolicitarGestor() {
             {form.formState.errors.root?.message ? (
               <p
                 role="alert"
-                // the button no longer sits next to this message, so bring it
-                // into view or a failed submit looks like nothing happened
-                ref={(node) => node?.scrollIntoView({ block: 'center' })}
+                ref={rootErrorRef}
                 className="text-destructive text-sm sm:col-span-2"
               >
                 {form.formState.errors.root.message}
@@ -269,7 +293,7 @@ export function SolicitarGestor() {
         </Form>
       </Card>
 
-      <StickyActionBar>
+      <StickyActionBar label="Enviar solicitação">
         <Button
           type="submit"
           variant="brand"

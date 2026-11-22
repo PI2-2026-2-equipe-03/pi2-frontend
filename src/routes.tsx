@@ -4,6 +4,7 @@ import { type ComponentType, lazy, Suspense } from 'react'
 import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom'
 
 import { RouteFallback } from '@/components/route-fallback'
+import type { RouteHandle } from '@/pages/_layouts/app'
 
 // one dynamic import per area. every lazy() below reuses the same loader, so
 // rollup emits one chunk per area instead of one per screen.
@@ -91,8 +92,11 @@ export const router = createBrowserRouter([
           { path: 'quadras', element: <Quadras /> },
           { path: 'perfil', element: <Perfil /> },
           {
+            // the bar only exists once the form (or its success state) renders:
+            // RequireRole's denied/error/loading states have neither nav nor
+            // bar. accepted, they are transient and have their own exits
             path: 'solicitar-gestor',
-            handle: { hideBottomNav: true },
+            handle: { hideBottomNav: true } satisfies RouteHandle,
             element: (
               <RequireRole roles={['USR']}>
                 <SolicitarGestor />
