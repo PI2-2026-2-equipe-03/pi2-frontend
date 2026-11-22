@@ -20,6 +20,7 @@ import { createArenaSuggestions, suggestArenas } from '@/lib/search'
 
 import { ArenaCard } from './components/arena-card'
 import { ArenaCardSkeleton } from './components/arena-card-skeleton'
+import { HowItWorks } from './components/how-it-works'
 
 // the home is a shop window, not the catalog: /app/arenas lists everything and
 // paginates. two rows on the widest grid.
@@ -152,6 +153,8 @@ export function Home() {
           ) : null}
         </div>
       </motion.div>
+
+      {hasQuery ? null : <HowItWorks />}
 
       {hasQuery ? null : featuredReplay ? (
         <FeaturedCard replay={featuredReplay} />

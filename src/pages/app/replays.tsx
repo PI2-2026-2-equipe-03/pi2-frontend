@@ -22,6 +22,7 @@ import { motionTokens } from '@/lib/motion'
 import { usePagination } from '@/lib/pagination'
 import { createCourtSuggestions } from '@/lib/search'
 
+import { HourChips } from './components/hour-chips'
 import { ReplayCard } from './components/replay-card'
 import { ReplayCardSkeleton } from './components/replay-card-skeleton'
 
@@ -157,10 +158,7 @@ export function Replays() {
 
       <ListingToolbar
         activeCount={
-          (city !== CITY_ANY ? 1 : 0) +
-          (date ? 1 : 0) +
-          (hour !== HOUR_ANY ? 1 : 0) +
-          (courtId ? 1 : 0)
+          (city !== CITY_ANY ? 1 : 0) + (date ? 1 : 0) + (courtId ? 1 : 0)
         }
         onClearAll={clearFilters}
         search={
@@ -223,30 +221,19 @@ export function Replays() {
               </div>
             ),
           },
-          {
-            id: 'hour',
-            label: 'Horário',
-            active: hour !== HOUR_ANY,
-            position: 'trailing',
-            width: '10rem',
-            control: (
-              <CityCombobox
-                value={hour}
-                onValueChange={(v) => {
-                  setHour(v === HOUR_ANY ? null : v)
-                  resetPage()
-                }}
-                cities={hourOptions}
-                anyValue={HOUR_ANY}
-                anyLabel="Todos os horários"
-                placeholder="Horário"
-                searchPlaceholder="Buscar horário…"
-                emptyMessage="Nenhum horário com replay."
-              />
-            ),
-          },
         ]}
       />
+
+      {!isLoading && !isError ? (
+        <HourChips
+          availableHours={hourOptions}
+          value={hour === HOUR_ANY ? null : hour}
+          onChange={(next) => {
+            setHour(next)
+            resetPage()
+          }}
+        />
+      ) : null}
 
       {isLoading ? (
         <ul
