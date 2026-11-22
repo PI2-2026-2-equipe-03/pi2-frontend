@@ -139,7 +139,9 @@ export function ListingToolbar({
                 </div>
               ))}
             </div>
-            <SheetFooter className="border-border/60 flex-row gap-2 border-t px-5 py-4">
+            {/* the sheet covers the bottom nav (overlay 60 > nav 50), so the
+                safe area the nav used to hold is now this footer's job */}
+            <SheetFooter className="border-border/60 flex-row gap-2 border-t px-5 pt-4 pb-[calc(1rem+var(--tg-safe-area-bottom))]">
               {onClearAll ? (
                 <Button
                   type="button"
