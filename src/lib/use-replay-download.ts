@@ -1,9 +1,14 @@
 import { useMutation } from '@tanstack/react-query'
+import { useRef } from 'react'
 import { toast } from 'sonner'
 
 import { resolveMediaUrl } from '@/lib/api/mappers'
 import { getReplayDownload } from '@/lib/api/replays'
-import { getApiErrorMessage, isForbiddenError } from '@/lib/errors'
+import {
+  getApiErrorMessage,
+  isForbiddenError,
+  isSessionExpiredError,
+} from '@/lib/errors'
 import { useHaptics } from '@/lib/haptics'
 
 // an anchor with `download` suggests the file name and, unlike window.open,
@@ -21,6 +26,9 @@ function deliverFile(url: string, fileName: string) {
 
 export function useReplayDownload(replayId: string | undefined) {
   const haptic = useHaptics()
+  // a ref, not mutation.isPending: the toast retry closes over the render
+  // that was pending, so a render-time flag would block it forever
+  const inFlight = useRef(false)
 
   const mutation = useMutation({
     mutationFn: async () => {
@@ -33,14 +41,20 @@ export function useReplayDownload(replayId: string | undefined) {
         fileName: response.data.fileName ?? `replay-${replayId}.mp4`,
       }
     },
+    // option callbacks (not mutate's) so the file is still delivered if the
+    // component unmounts mid-request
     onSuccess: (file) => {
       deliverFile(file.url, file.fileName)
+      // confirms the delivery, not the tap
       haptic()
-      toast.success('Download iniciado')
+      // stable id so repeated downloads replace the toast instead of stacking
+      toast.success('Download iniciado', {
+        id: `replay-download-${replayId}`,
+      })
     },
     onError: (error) => {
-      // the global 403 modal already informed the user
-      if (isForbiddenError(error)) return
+      // the global 403 modal / 401 redirect already inform the user
+      if (isForbiddenError(error) || isSessionExpiredError(error)) return
       toast.error(
         getApiErrorMessage(error, 'Não foi possível baixar o replay'),
         {
@@ -53,11 +67,19 @@ export function useReplayDownload(replayId: string | undefined) {
     },
   })
 
-  // a second tap while in flight would deliver the file twice
   function download() {
-    if (mutation.isPending) return
-    mutation.mutate()
+    if (inFlight.current) return
+    inFlight.current = true
+    mutation.mutate(undefined, {
+      onSettled: () => {
+        inFlight.current = false
+      },
+    })
   }
 
-  return { download, isPending: mutation.isPending }
+  return {
+    download,
+    isPending: mutation.isPending,
+    canDownload: Boolean(replayId),
+  }
 }

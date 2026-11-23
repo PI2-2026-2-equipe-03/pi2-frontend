@@ -168,6 +168,10 @@ export function isForbiddenError(error: unknown): boolean {
   return Axios.isAxiosError(error) && error.response?.status === 403
 }
 
+export function isSessionExpiredError(error: unknown): boolean {
+  return Axios.isAxiosError(error) && error.response?.status === 401
+}
+
 export function isClientError(error: unknown): boolean {
   if (!Axios.isAxiosError(error) || !error.response) return false
   return error.response.status >= 400 && error.response.status < 500

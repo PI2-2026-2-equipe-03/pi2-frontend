@@ -42,7 +42,7 @@ export function ReplayDetail() {
   const replaysQuery = useReplays()
   const view = replaysQuery.data?.find((r) => r.id === id)
 
-  const { download, isPending } = useReplayDownload(id)
+  const { download, isPending, canDownload } = useReplayDownload(id)
 
   const isLoading = replaysQuery.isPending
   const isError = replaysQuery.isError
@@ -151,7 +151,7 @@ export function ReplayDetail() {
               <Button
                 variant="brand"
                 className="w-full"
-                disabled={isPending || isDeleted}
+                disabled={isPending || isDeleted || !canDownload}
                 aria-busy={isPending}
                 onClick={() => download()}
               >
