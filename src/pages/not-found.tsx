@@ -2,7 +2,10 @@ import { motion } from 'framer-motion'
 import { Link, useLocation } from 'react-router-dom'
 
 import { Ilustracao } from '@/components/ilustracao'
-import { Logo } from '@/components/logo'
+import {
+  headerIconClasses,
+  SiteHeader,
+} from '@/components/navigation/site-header'
 import { ThemeToggle } from '@/components/theme/theme-toggle'
 import { Button } from '@/components/ui/button'
 import { useAuthSession } from '@/lib/auth/session'
@@ -71,13 +74,9 @@ export function NotFound({ embedded = false }: NotFoundProps) {
 
   return (
     <div className="bg-tg-brand-bg text-foreground flex min-h-svh flex-col">
-      <header className="flex shrink-0 items-center justify-between p-4 md:px-6">
-        <Logo
-          to={backTo}
-          className="text-tg-brand-blue text-2xl dark:text-white"
-        />
-        <ThemeToggle />
-      </header>
+      <SiteHeader logoTo={backTo}>
+        <ThemeToggle className={headerIconClasses} />
+      </SiteHeader>
       <main className="flex flex-1 items-center justify-center p-4 pb-20">
         {content}
       </main>

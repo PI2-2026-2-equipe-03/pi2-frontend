@@ -15,6 +15,10 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* desktop density: a wide screen driven by a mouse. landscape phones and
+   touch tablets are just as wide but keep the touch target */
+@custom-variant dense (@media (width >= 48rem) and (pointer: fine));
+
 /* light mode: paleta shadcn/neutral com primary azul repeteco (#103a9e) */
 :root {
   /* cores branco e preto suaves, 
@@ -102,6 +106,9 @@
   --tg-touch-target-comfortable: 48px;
   --tg-safe-area-top: env(safe-area-inset-top, 0px);
   --tg-safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  /* the sticky header grows by the top inset; the sidebar and full-height
+     screens offset by the same value */
+  --tg-header-height: calc(4rem + var(--tg-safe-area-top));
 
   --radius: 0.625rem;
 }
@@ -294,6 +301,7 @@
   --spacing-touch-comfortable: var(--tg-touch-target-comfortable);
   --spacing-safe-top: var(--tg-safe-area-top);
   --spacing-safe-bottom: var(--tg-safe-area-bottom);
+  --spacing-header: var(--tg-header-height);
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -308,6 +316,14 @@
   html {
     scroll-padding-bottom: calc(4.5rem + 1px + var(--tg-safe-area-bottom));
   }
+  /* toasts sit at the bottom on phones: lift them over whatever fixed bar the
+     route shows, or they cover the tabs / the submit button */
+  :root:has([data-slot='bottom-nav']) {
+    --tg-toast-lift: calc(3.5rem + 1px);
+  }
+  :root:has([data-slot='sticky-action-bar']) {
+    --tg-toast-lift: calc(4.5rem + 1px);
+  }
   * {
     @apply border-border outline-ring/50;
   }
@@ -318,6 +334,20 @@
   }
   body {
     @apply bg-background text-foreground font-sans antialiased;
+  }
+}
+
+/* widens the tap area to the touch token without changing the visual: taps on
+   the pseudo-element hit the element. the caller sets relative/absolute */
+@utility touch-hitbox {
+  &::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: max(100%, var(--tg-touch-target-min));
+    height: max(100%, var(--tg-touch-target-min));
+    transform: translate(-50%, -50%);
   }
 }
 

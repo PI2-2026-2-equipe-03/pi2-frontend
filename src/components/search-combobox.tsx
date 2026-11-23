@@ -69,8 +69,11 @@ export function SearchCombobox({
 
   const containerClasses =
     size === 'hero'
-      ? 'rounded-full px-5 py-3 text-base shadow-md focus-within:shadow-lg'
-      : 'rounded-full px-4 py-2 text-sm shadow-sm focus-within:shadow-md'
+      ? 'rounded-full px-5 text-base shadow-md focus-within:shadow-lg'
+      : 'rounded-full px-4 text-base shadow-sm focus-within:shadow-md'
+  // the vertical padding lives on the input so the whole pill is its tap area
+  const inputClasses =
+    size === 'hero' ? 'py-3' : 'min-h-touch-min py-2 dense:min-h-0'
 
   return (
     <Popover open={open && Boolean(value.trim())} onOpenChange={setOpen}>
@@ -104,7 +107,10 @@ export function SearchCombobox({
             aria-expanded={open}
             aria-controls={listboxId}
             aria-autocomplete="list"
-            className="placeholder:text-muted-foreground w-full flex-1 border-0 bg-transparent outline-none"
+            className={cn(
+              'placeholder:text-muted-foreground w-full flex-1 border-0 bg-transparent outline-none',
+              inputClasses,
+            )}
           />
           {value ? (
             <button
@@ -115,7 +121,7 @@ export function SearchCombobox({
                 setOpen(false)
                 inputRef.current?.focus()
               }}
-              className="text-muted-foreground hover:text-foreground hover:bg-muted focus-visible:ring-ring/40 -mr-1 inline-flex shrink-0 cursor-pointer items-center justify-center rounded-full p-1 transition-colors focus-visible:ring-2 focus-visible:outline-none active:scale-90"
+              className="text-muted-foreground hover:text-foreground hover:bg-muted focus-visible:ring-ring/40 touch-hitbox relative -mr-1 inline-flex shrink-0 cursor-pointer items-center justify-center rounded-full p-1 transition-colors focus-visible:ring-2 focus-visible:outline-none active:scale-90"
             >
               <X className={size === 'hero' ? 'size-5' : 'size-4'} />
             </button>

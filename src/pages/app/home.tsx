@@ -167,7 +167,7 @@ export function Home() {
           </h2>
           <Link
             to="/app/arenas"
-            className="text-tg-brand-text text-xs font-medium hover:underline"
+            className="text-tg-brand-text min-h-touch-min dense:min-h-0 inline-flex items-center text-sm font-medium hover:underline"
           >
             Ver todas →
           </Link>
@@ -241,7 +241,7 @@ export function Home() {
               <div className="flex justify-center">
                 <Link
                   to={`/app/arenas?q=${encodeURIComponent(q.trim())}`}
-                  className="text-tg-brand-text text-sm font-medium hover:underline"
+                  className="text-tg-brand-text min-h-touch-min dense:min-h-0 inline-flex items-center text-sm font-medium hover:underline"
                 >
                   Ver todas as arenas correspondentes →
                 </Link>

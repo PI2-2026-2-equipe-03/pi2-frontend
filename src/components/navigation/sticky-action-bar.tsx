@@ -1,6 +1,7 @@
 import type { ReactElement } from 'react'
 import { createPortal } from 'react-dom'
 
+import { useKeyboardInset } from '@/lib/use-keyboard-inset'
 import { cn } from '@/lib/utils'
 
 // padding(0.75rem * 2) + the 48px primary action + top border + the device safe
@@ -25,10 +26,16 @@ export function StickyActionBar({
   label,
   className,
 }: StickyActionBarProps) {
+  const keyboardInset = useKeyboardInset()
+
   return createPortal(
     <div
+      data-slot="sticky-action-bar"
       role="region"
       aria-label={label}
+      // bottom-0 alone hides behind the ios keyboard: it shrinks only the
+      // visual viewport, so the bar has to ride up by the covered height
+      style={{ bottom: keyboardInset }}
       // z-sticky (50) sits below overlays and modals on purpose: a dialog
       // covers the bar instead of negotiating with it. lg:left-56 leaves the
       // app sidebar (w-56) alone, it is the one thing that outranks the bar

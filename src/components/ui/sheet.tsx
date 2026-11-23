@@ -42,12 +42,31 @@ function SheetOverlay({
   )
 }
 
+// inline so a consumer's p-0 cannot merge it away; the base content has no
+// padding of its own, so nothing else is overridden
+const SAFE_AREA_PADDING: Record<
+  'top' | 'right' | 'bottom' | 'left',
+  React.CSSProperties
+> = {
+  top: { paddingTop: 'var(--tg-safe-area-top)' },
+  bottom: { paddingBottom: 'var(--tg-safe-area-bottom)' },
+  left: {
+    paddingTop: 'var(--tg-safe-area-top)',
+    paddingBottom: 'var(--tg-safe-area-bottom)',
+  },
+  right: {
+    paddingTop: 'var(--tg-safe-area-top)',
+    paddingBottom: 'var(--tg-safe-area-bottom)',
+  },
+}
+
 function SheetContent({
   className,
   overlayClassName,
   children,
   side = 'right',
   showCloseButton = true,
+  style,
   ...props
 }: React.ComponentProps<typeof SheetPrimitive.Content> & {
   side?: 'top' | 'right' | 'bottom' | 'left'
@@ -72,11 +91,12 @@ function SheetContent({
             'data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom inset-x-0 bottom-0 h-auto border-t',
           className,
         )}
+        style={{ ...SAFE_AREA_PADDING[side], ...style }}
         {...props}
       >
         {children}
         {showCloseButton && (
-          <SheetPrimitive.Close className="ring-offset-background focus:ring-ring data-[state=open]:bg-secondary absolute top-4 right-4 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none">
+          <SheetPrimitive.Close className="ring-offset-background focus:ring-ring data-[state=open]:bg-secondary touch-hitbox absolute top-[calc(1rem+var(--tg-safe-area-top))] right-4 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none">
             <XIcon className="size-4" />
             <span className="sr-only">Close</span>
           </SheetPrimitive.Close>

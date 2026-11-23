@@ -218,7 +218,7 @@ function QuadraCard({
         <p className="text-foreground group-hover:text-tg-brand-text font-semibold tracking-tight transition-colors">
           {quadra.nome}
         </p>
-        <p className="text-muted-foreground text-xs leading-relaxed">
+        <p className="text-muted-foreground text-sm leading-relaxed">
           {arena?.nome ?? 'Arena desconhecida'}
         </p>
       </div>
@@ -461,7 +461,7 @@ export function Quadras() {
         {isDeepLinked && arenaSelecionada ? (
           <nav
             aria-label="breadcrumb"
-            className="text-muted-foreground flex items-center gap-1 text-xs"
+            className="text-muted-foreground flex items-center gap-1 text-sm"
           >
             <Link to="/app" className="hover:text-foreground">
               Início

@@ -21,6 +21,7 @@ import {
   type ResetPasswordInput,
   resetPasswordSchema,
 } from '@/lib/schemas/reset-password-schema'
+import { AuthCard, authSubmitClasses } from '@/pages/auth/components/auth-card'
 import { PasswordRequirements } from '@/pages/auth/components/password-requirements'
 
 export function ResetPassword() {
@@ -74,7 +75,7 @@ export function ResetPassword() {
 
   if (!token) {
     return (
-      <div className="bg-card border-border w-full max-w-md rounded-xl border p-8 shadow-sm">
+      <AuthCard>
         <div className="space-y-3 text-center">
           <h1 className="text-tg-brand-text text-2xl font-bold">
             Link inválido
@@ -84,17 +85,17 @@ export function ResetPassword() {
           </p>
           <Link
             to="/forgot-password"
-            className="text-primary inline-block text-sm font-medium hover:underline"
+            className="text-primary min-h-touch-min dense:min-h-0 inline-flex items-center text-sm font-medium hover:underline"
           >
             Solicitar novo link
           </Link>
         </div>
-      </div>
+      </AuthCard>
     )
   }
 
   return (
-    <div className="bg-card border-border w-full max-w-md rounded-xl border p-8 shadow-sm">
+    <AuthCard>
       <div className="mb-6 space-y-1">
         <h1 className="text-tg-brand-text text-2xl font-bold">
           Redefinir senha
@@ -163,7 +164,7 @@ export function ResetPassword() {
             variant="brand"
             disabled={isSubmitting}
             aria-busy={isSubmitting}
-            className="w-full"
+            className={authSubmitClasses}
           >
             {isSubmitting ? (
               <>
@@ -179,13 +180,13 @@ export function ResetPassword() {
             Lembrou sua senha?{' '}
             <Link
               to="/sign-in"
-              className="text-primary focus-visible:ring-ring/50 rounded-sm font-medium hover:underline focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+              className="text-primary focus-visible:ring-ring/50 touch-hitbox relative rounded-sm font-medium hover:underline focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
             >
               Entrar
             </Link>
           </p>
         </form>
       </Form>
-    </div>
+    </AuthCard>
   )
 }

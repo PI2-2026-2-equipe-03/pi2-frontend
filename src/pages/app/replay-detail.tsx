@@ -29,12 +29,12 @@ const timeFormatter = new Intl.DateTimeFormat('pt-BR', {
   minute: '2-digit',
 })
 
-// a tela cabe no slot que o AppLayout deixa: 4rem de header + o padding do main
+// a tela cabe no slot que o AppLayout deixa: o header (4rem + área segura) + o padding do main
 // (p-4 no mobile, p-8 no md+). sem isso o conteúdo gera scroll de página.
 // abaixo de 36rem de altura (celular deitado) travar a altura espremeria o
 // player a ponto de esconder o botão de download: ali o scroll normal é melhor.
 const SHELL =
-  'mx-auto flex h-[calc(100svh-6rem)] w-full max-w-6xl flex-col gap-3 md:h-[calc(100svh-8rem)] md:gap-4 [@media(max-height:36rem)]:h-auto'
+  'mx-auto flex h-[calc(100svh-var(--tg-header-height)-2rem)] w-full max-w-6xl flex-col gap-3 md:h-[calc(100svh-var(--tg-header-height)-4rem)] md:gap-4 [@media(max-height:36rem)]:h-auto'
 
 export function ReplayDetail() {
   const { id } = useParams<{ id: string }>()

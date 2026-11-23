@@ -26,6 +26,7 @@ export function BottomNav({ items }: BottomNavProps) {
 
   return (
     <nav
+      data-slot="bottom-nav"
       aria-label="Navegação principal"
       // z-sticky (50) stays below the overlay (60) on purpose: a bottom sheet
       // covers the bar instead of fighting it for the same strip

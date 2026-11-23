@@ -37,9 +37,11 @@ export function ListingToolbar({
   const trailing = filters.filter((filter) => filter.position === 'trailing')
   const hasFilters = filters.length > 0
 
+  // minmax(0, …) lets the columns shrink below their preferred width: fixed
+  // widths pushed the bar 117-123px past the viewport at 768px
   const desktopCols = [
-    ...leading.map((filter) => filter.width ?? '12rem'),
-    '1fr',
+    ...leading.map((filter) => `minmax(0, ${filter.width ?? '12rem'})`),
+    'minmax(0, 1fr)',
     ...trailing.map((filter) => filter.width ?? 'auto'),
   ].join(' ')
 
@@ -48,7 +50,7 @@ export function ListingToolbar({
       data-slot="listing-toolbar"
       data-active-count={activeCount}
       className={cn(
-        'bg-background/85 border-border/60 grid grid-cols-1 gap-3 rounded-xl border p-3 shadow-sm backdrop-blur-md md:grid-cols-[var(--listing-toolbar-cols)] md:items-center',
+        'bg-background/85 border-border/60 grid grid-cols-1 gap-3 rounded-xl border p-3 shadow-sm backdrop-blur-md lg:grid-cols-[var(--listing-toolbar-cols)] lg:items-center',
         className,
       )}
       style={{ '--listing-toolbar-cols': desktopCols } as CSSProperties}
@@ -58,14 +60,17 @@ export function ListingToolbar({
           key={filter.id}
           data-filter-id={filter.id}
           data-active={filter.active}
-          className="hidden md:block"
+          className="hidden min-w-0 lg:block"
         >
           {filter.control}
         </div>
       ))}
       <div
         data-slot="listing-toolbar-search"
-        className={cn(hasFilters ? 'md:col-auto' : 'md:col-span-full')}
+        className={cn(
+          'min-w-0',
+          hasFilters ? 'lg:col-auto' : 'lg:col-span-full',
+        )}
       >
         {search}
       </div>
@@ -74,7 +79,7 @@ export function ListingToolbar({
           key={filter.id}
           data-filter-id={filter.id}
           data-active={filter.active}
-          className="hidden md:block"
+          className="hidden min-w-0 lg:block"
         >
           {filter.control}
         </div>
@@ -100,7 +105,7 @@ export function ListingToolbar({
               type="button"
               variant="outline"
               aria-label={`Abrir filtros${activeCount > 0 ? ` (${activeCount} ativos)` : ''}`}
-              className="md:hidden"
+              className="lg:hidden"
             >
               <SlidersHorizontal className="size-4" aria-hidden />
               Filtros
