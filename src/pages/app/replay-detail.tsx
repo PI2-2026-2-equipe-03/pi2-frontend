@@ -1,4 +1,3 @@
-import { useMutation } from '@tanstack/react-query'
 import {
   ArrowLeft,
   Calendar,
@@ -8,7 +7,6 @@ import {
   RefreshCw,
 } from 'lucide-react'
 import { Link, useParams } from 'react-router-dom'
-import { toast } from 'sonner'
 
 import { EmptyState } from '@/components/empty-state'
 import { ReplayExpiry } from '@/components/replay-expiry'
@@ -18,8 +16,7 @@ import { Card } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { resolveMediaUrl } from '@/lib/api/mappers'
 import { useReplays } from '@/lib/api/queries'
-import { getReplayDownload } from '@/lib/api/replays'
-import { getApiErrorMessage, isForbiddenError } from '@/lib/errors'
+import { useReplayDownload } from '@/lib/use-replay-download'
 
 const dateFormatter = new Intl.DateTimeFormat('pt-BR', {
   day: '2-digit',
@@ -45,30 +42,7 @@ export function ReplayDetail() {
   const replaysQuery = useReplays()
   const view = replaysQuery.data?.find((r) => r.id === id)
 
-  const downloadMutation = useMutation({
-    mutationFn: async () => {
-      if (!id) throw new Error('Replay sem identificador')
-      const response = await getReplayDownload(id)
-      return resolveMediaUrl(response.data.downloadUrl)
-    },
-    onSuccess: (url) => {
-      window.open(url, '_blank', 'noopener,noreferrer')
-      toast.success('Download iniciado')
-    },
-    onError: (error) => {
-      // o modal global de 403 já informou
-      if (isForbiddenError(error)) return
-      toast.error(
-        getApiErrorMessage(error, 'Não foi possível baixar o replay'),
-        {
-          action: {
-            label: 'Tentar de novo',
-            onClick: () => downloadMutation.mutate(),
-          },
-        },
-      )
-    },
-  })
+  const { download, isPending, canDownload } = useReplayDownload(id)
 
   const isLoading = replaysQuery.isPending
   const isError = replaysQuery.isError
@@ -177,11 +151,11 @@ export function ReplayDetail() {
               <Button
                 variant="brand"
                 className="w-full"
-                disabled={downloadMutation.isPending || isDeleted}
-                aria-busy={downloadMutation.isPending}
-                onClick={() => downloadMutation.mutate()}
+                disabled={isPending || isDeleted || !canDownload}
+                aria-busy={isPending}
+                onClick={() => download()}
               >
-                {downloadMutation.isPending ? (
+                {isPending ? (
                   <Loader2 className="size-4 animate-spin" />
                 ) : (
                   <Download className="size-4" />

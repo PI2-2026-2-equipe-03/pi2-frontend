@@ -1,4 +1,3 @@
-import { useMutation } from '@tanstack/react-query'
 import { Calendar, Download, Loader2, MapPin, Play, Share2 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -9,9 +8,8 @@ import { SponsorBadge } from '@/components/sponsor-badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { resolveMediaUrl } from '@/lib/api/mappers'
-import { getReplayDownload } from '@/lib/api/replays'
-import { getApiErrorMessage, isForbiddenError } from '@/lib/errors'
 import type { ReplayView } from '@/lib/types'
+import { useReplayDownload } from '@/lib/use-replay-download'
 
 type ReplayCardProps = {
   replay: ReplayView
@@ -28,50 +26,13 @@ const timeFormatter = new Intl.DateTimeFormat('pt-BR', {
   minute: '2-digit',
 })
 
-function triggerDownload(url: string, fileName: string) {
-  const anchor = document.createElement('a')
-  anchor.href = url
-  anchor.download = fileName
-  anchor.rel = 'noopener'
-  anchor.target = '_blank'
-  document.body.appendChild(anchor)
-  anchor.click()
-  anchor.remove()
-}
-
 export function ReplayCard({ replay }: ReplayCardProps) {
   const recorded = new Date(replay.recordedAt)
   const title = `${replay.arena.nome} · ${replay.court.nome}`
   const detailHref = `/app/replays/${replay.id}`
   const watchUrl = resolveMediaUrl(replay.arquivoUrl)
 
-  const downloadMutation = useMutation({
-    mutationFn: async () => {
-      // o /download revalida expiração e autorização: um erro aqui precisa
-      // chegar ao usuário em vez de cair no url da listagem.
-      const response = await getReplayDownload(replay.id)
-      return {
-        url: resolveMediaUrl(response.data.downloadUrl),
-        fileName: response.data.fileName ?? `replay-${replay.id}.mp4`,
-      }
-    },
-    onSuccess: (file) => {
-      triggerDownload(file.url, file.fileName)
-    },
-    onError: (error) => {
-      // o modal global de 403 já informou
-      if (isForbiddenError(error)) return
-      toast.error(
-        getApiErrorMessage(error, 'Não foi possível baixar o replay'),
-        {
-          action: {
-            label: 'Tentar de novo',
-            onClick: () => downloadMutation.mutate(),
-          },
-        },
-      )
-    },
-  })
+  const { download, isPending } = useReplayDownload(replay.id)
 
   function handleShare() {
     const shareUrl = watchUrl || window.location.href
@@ -151,11 +112,11 @@ export function ReplayCard({ replay }: ReplayCardProps) {
               variant="ghost"
               size="icon-sm"
               aria-label={`Baixar replay de ${title}`}
-              aria-busy={downloadMutation.isPending}
-              disabled={downloadMutation.isPending}
-              onClick={() => downloadMutation.mutate()}
+              aria-busy={isPending}
+              disabled={isPending}
+              onClick={() => download()}
             >
-              {downloadMutation.isPending ? (
+              {isPending ? (
                 <Loader2 className="size-4 animate-spin" />
               ) : (
                 <Download className="size-4" />
