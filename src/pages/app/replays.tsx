@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import { X } from 'lucide-react'
 import { useQueryState } from 'nuqs'
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 
 import { CalendarSheet } from '@/components/calendar-sheet'
 import { CityCombobox } from '@/components/city-combobox'
@@ -18,7 +18,13 @@ import {
   useQuadras,
   useReplays,
 } from '@/lib/api/queries'
-import { localDateKey } from '@/lib/dates'
+import {
+  isWithinWindow,
+  localDateKey,
+  parseDateKey,
+  RETENTION_DAYS,
+  retentionWindow,
+} from '@/lib/dates'
 import { motionTokens } from '@/lib/motion'
 import { usePagination } from '@/lib/pagination'
 import { createCourtSuggestions } from '@/lib/search'
@@ -63,6 +69,21 @@ export function Replays() {
   const [courtId, setCourtId] = useQueryState('court', { defaultValue: '' })
   const [courtQ, setCourtQ] = useQueryState('q', { defaultValue: '' })
 
+  // ?date= arrives from a shared link or by hand, and the <input type="date">
+  // this screen used to carry accepted anything. garbage is dropped; a real
+  // date outside the window is kept and explained, because silently rewriting
+  // the url the user just opened is its own kind of surprise
+  const parsedDate = useMemo(() => (date ? parseDateKey(date) : null), [date])
+  const dateKey = parsedDate ? localDateKey(parsedDate) : null
+  const dateOutOfWindow = useMemo(() => {
+    if (!parsedDate) return false
+    return !isWithinWindow(parsedDate, retentionWindow(new Date()))
+  }, [parsedDate])
+
+  useEffect(() => {
+    if (date && !parsedDate) setDate(null)
+  }, [date, parsedDate, setDate])
+
   const replaysQuery = useReplays()
   const arenasQuery = useArenas()
   const quadrasQuery = useQuadras()
@@ -103,11 +124,11 @@ export function Replays() {
       const recordedAt = new Date(replay.recordedAt)
       const passaCity = city === CITY_ANY || replay.city === city
       const passaCourt = !courtId || replay.court.id === courtId
-      const passaDate = !date || localDateKey(recordedAt) === date
+      const passaDate = !dateKey || localDateKey(recordedAt) === dateKey
       const passaHour = hour === HOUR_ANY || localHourKey(recordedAt) === hour
       return passaCity && passaCourt && passaDate && passaHour
     })
-  }, [city, courtId, date, hour, replays])
+  }, [city, courtId, dateKey, hour, replays])
 
   const pagination = usePagination({
     items: replaysFiltrados,
@@ -115,7 +136,7 @@ export function Replays() {
   })
 
   const hasActiveFilters = Boolean(
-    (city && city !== CITY_ANY) || date || hour !== HOUR_ANY || courtId,
+    (city && city !== CITY_ANY) || dateKey || hour !== HOUR_ANY || courtId,
   )
 
   function resetPage() {
@@ -153,7 +174,7 @@ export function Replays() {
 
       <ListingToolbar
         activeCount={
-          (city !== CITY_ANY ? 1 : 0) + (date ? 1 : 0) + (courtId ? 1 : 0)
+          (city !== CITY_ANY ? 1 : 0) + (dateKey ? 1 : 0) + (courtId ? 1 : 0)
         }
         onClearAll={clearFilters}
         search={
@@ -198,12 +219,12 @@ export function Replays() {
           {
             id: 'date',
             label: 'Data',
-            active: Boolean(date),
+            active: Boolean(dateKey),
             position: 'trailing',
             width: '11rem',
             control: (
               <CalendarSheet
-                value={date || null}
+                value={dateKey}
                 onChange={(next) => {
                   setDate(next)
                   resetPage()
@@ -249,9 +270,11 @@ export function Replays() {
           ilustracao={hasActiveFilters ? 'busca-vazia' : 'sem-replays'}
           title="Nenhum replay encontrado"
           description={
-            hasActiveFilters
-              ? 'Ajuste os filtros ou limpe para ver todos os replays.'
-              : 'Nenhum replay disponível no momento.'
+            dateOutOfWindow
+              ? `Essa data está fora da janela de ${RETENTION_DAYS} dias: os replays dela já expiraram. Escolha uma data mais recente ou limpe o filtro.`
+              : hasActiveFilters
+                ? 'Ajuste os filtros ou limpe para ver todos os replays.'
+                : 'Nenhum replay disponível no momento.'
           }
           action={
             hasActiveFilters ? (

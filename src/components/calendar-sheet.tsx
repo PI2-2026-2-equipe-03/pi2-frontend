@@ -15,6 +15,7 @@ import {
   startOfMonth,
 } from '@/lib/dates'
 import { useHaptics } from '@/lib/haptics'
+import { DESKTOP_QUERY, useMediaQuery } from '@/lib/use-media-query'
 import { cn } from '@/lib/utils'
 
 const WEEKDAYS = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'] as const
@@ -54,16 +55,19 @@ export function CalendarSheet({
 }: CalendarSheetProps) {
   const [open, setOpen] = useState(false)
   const haptics = useHaptics()
-  // refreshed on every open, so a tab left on screen overnight still offers
-  // the right seven days
+  const isDesktop = useMediaQuery(DESKTOP_QUERY)
+  // frozen while the sheet is open, so the grid never shifts under the finger
+  // at midnight; refreshed on every open
   const [now, setNow] = useState(() => new Date())
   const selected = useMemo(() => (value ? parseDateKey(value) : null), [value])
-  const [visibleMonth, setVisibleMonth] = useState(() =>
-    startOfMonth(selected ?? now),
-  )
+  const [visibleMonth, setVisibleMonth] = useState(() => startOfMonth(now))
 
   const retention = useMemo(() => retentionWindow(now), [now])
   const days = useMemo(() => monthGrid(visibleMonth), [visibleMonth])
+
+  // the trigger is on screen without the sheet ever opening, so "hoje" can't
+  // come from `now`: a tab left overnight would keep calling yesterday today
+  const todayKey = localDateKey(new Date())
 
   // the window spans two months at most, so paging stops at its edges instead
   // of letting the user wander into months with nothing selectable
@@ -77,7 +81,13 @@ export function CalendarSheet({
     if (!next) return
     const fresh = new Date()
     setNow(fresh)
-    setVisibleMonth(startOfMonth(selected ?? fresh))
+    // a shared link can carry a date the window no longer covers; opening on
+    // its month would strand the user where every day and both arrows are
+    // dead, so the calendar starts where there is still something to pick
+    const freshWindow = retentionWindow(fresh)
+    const target =
+      selected && isWithinWindow(selected, freshWindow) ? selected : fresh
+    setVisibleMonth(startOfMonth(target))
   }
 
   function pick(day: Date) {
@@ -86,19 +96,22 @@ export function CalendarSheet({
     setOpen(false)
   }
 
-  const triggerLabel = !selected
-    ? 'Qualquer data'
-    : isSameDay(selected, retention.end)
+  // falls back to "qualquer data" when `value` is set but unparseable: the
+  // clear button below stays live on `value`, so the filter is never stuck
+  const triggerLabel =
+    value === todayKey
       ? 'Hoje'
-      : capitalize(shortFormatter.format(selected))
+      : selected
+        ? capitalize(shortFormatter.format(selected))
+        : 'Qualquer data'
 
   return (
     <BottomSheet
       open={open}
       onOpenChange={handleOpenChange}
-      // the date filter also lives inside the "Filtros" sheet on mobile, so
-      // this one opens on top of another sheet
-      nested
+      // below md the date filter lives inside the "Filtros" sheet, so this one
+      // opens stacked on top of it; on desktop it is the only sheet on screen
+      nested={!isDesktop}
       title="Data"
       description={`Replays ficam disponíveis por ${RETENTION_DAYS} dias. Datas anteriores já não têm gravação.`}
       // unlike the filters sheet this one also shows up on desktop, where a
@@ -119,9 +132,7 @@ export function CalendarSheet({
             className="text-muted-foreground size-4 shrink-0"
             aria-hidden
           />
-          <span
-            className={cn('truncate', !selected && 'text-muted-foreground')}
-          >
+          <span className={cn('truncate', !value && 'text-muted-foreground')}>
             {triggerLabel}
           </span>
         </Button>
@@ -132,7 +143,9 @@ export function CalendarSheet({
             type="button"
             variant="brandOutline"
             className="min-h-touch-min flex-1"
-            disabled={!selected}
+            // `value` and not `selected`: an unparseable date still applies a
+            // filter, and the sheet has to be able to clear what it shows
+            disabled={!value}
             onClick={() => {
               onChange(null)
               setOpen(false)
@@ -152,13 +165,20 @@ export function CalendarSheet({
       }
     >
       <div className="flex items-center justify-between gap-2">
+        {/* aria-disabled and not disabled: the arrow goes dead on the click
+            that reaches the edge of the window, and the browser empties the
+            focus of an element disabled under it, dropping the user back to
+            the top of the document with the sheet still open */}
         <Button
           type="button"
           variant="ghost"
           aria-label="Mês anterior"
-          disabled={!canGoBack}
-          onClick={() => setVisibleMonth((month) => addMonths(month, -1))}
-          className="min-h-touch-min min-w-touch-min rounded-full p-0"
+          aria-disabled={!canGoBack}
+          onClick={() => {
+            if (!canGoBack) return
+            setVisibleMonth((month) => addMonths(month, -1))
+          }}
+          className="min-h-touch-min min-w-touch-min rounded-full p-0 aria-disabled:cursor-not-allowed aria-disabled:opacity-50"
         >
           <ChevronLeft className="size-5" aria-hidden />
         </Button>
@@ -169,9 +189,12 @@ export function CalendarSheet({
           type="button"
           variant="ghost"
           aria-label="Mês seguinte"
-          disabled={!canGoForward}
-          onClick={() => setVisibleMonth((month) => addMonths(month, 1))}
-          className="min-h-touch-min min-w-touch-min rounded-full p-0"
+          aria-disabled={!canGoForward}
+          onClick={() => {
+            if (!canGoForward) return
+            setVisibleMonth((month) => addMonths(month, 1))
+          }}
+          className="min-h-touch-min min-w-touch-min rounded-full p-0 aria-disabled:cursor-not-allowed aria-disabled:opacity-50"
         >
           <ChevronRight className="size-5" aria-hidden />
         </Button>
@@ -196,7 +219,7 @@ export function CalendarSheet({
           const key = localDateKey(day)
           const selectable = isWithinWindow(day, retention)
           const isSelected = Boolean(selected && isSameDay(day, selected))
-          const isToday = isSameDay(day, retention.end)
+          const isToday = key === todayKey
           const inMonth = day.getMonth() === visibleMonth.getMonth()
           const label = capitalize(longFormatter.format(day))
 
@@ -206,6 +229,8 @@ export function CalendarSheet({
               type="button"
               disabled={!selectable}
               aria-pressed={isSelected}
+              // the ring that marks today is invisible to a screen reader
+              aria-current={isToday ? 'date' : undefined}
               aria-label={selectable ? label : `${label}, sem replay`}
               data-date={key}
               data-selectable={selectable}

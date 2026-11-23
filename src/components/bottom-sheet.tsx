@@ -57,9 +57,16 @@ function useDragDismiss(
 
   function onPointerDown(event: ReactPointerEvent<HTMLDivElement>) {
     // the header doubles as the grab area, so a tap on the close button — or
-    // on anything else interactive up there — must not become a drag
+    // on anything else interactive up there — must not become a drag.
+    // [role="button"] earns its place: the quadra card is a div, not a button
     const target = event.target as HTMLElement
-    if (target.closest('button, a, input, select, textarea')) return
+    if (
+      target.closest(
+        'button, a, input, select, textarea, label, [role="button"]',
+      )
+    ) {
+      return
+    }
     if (event.pointerType === 'mouse' && event.button !== 0) return
 
     const node = contentRef.current
@@ -178,13 +185,19 @@ export function BottomSheet({
     <Sheet open={open} onOpenChange={onOpenChange}>
       {trigger ? <SheetTrigger asChild>{trigger}</SheetTrigger> : null}
       <SheetContent
+        // reaches SheetPrimitive.Content because react 19 passes ref as a
+        // plain prop; on react 18 this would be dropped in silence and the
+        // drag would quietly do nothing
         ref={contentRef}
         side="bottom"
         showCloseButton={false}
         // important because tailwind-merge can't dedupe two named z utilities,
         // and the base z-overlay happens to win on css order
         overlayClassName={nested ? 'z-modal!' : undefined}
-        data-slot="bottom-sheet"
+        // alongside data-slot, never over it: ui/sheet.tsx writes
+        // data-slot="sheet-content" before spreading props, so overwriting it
+        // would hide every bottom sheet from a selector aimed at sheets
+        data-bottom-sheet=""
         className={cn(
           'flex max-h-[85svh] flex-col gap-0 overflow-hidden rounded-t-2xl p-0',
           className,

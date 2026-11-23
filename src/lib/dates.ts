@@ -36,7 +36,10 @@ export function localDateKey(date: Date): string {
   return `${date.getFullYear()}-${month}-${day}`
 }
 
-// new Date('2026-11-22') is utc midnight, which is still the 21st in brazil
+// new Date('2026-11-22') is utc midnight, which is still the 21st in brazil.
+// the roundtrip is the actual validation: the regex only checks the shape, and
+// the constructor rolls an impossible value forward instead of going invalid
+// (2026-13-45 -> 2027-02-14) and maps a two-digit year onto 1900 (0050 -> 1950)
 export function parseDateKey(key: string): Date | null {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(key)
   if (!match) return null
@@ -45,7 +48,7 @@ export function parseDateKey(key: string): Date | null {
     Number(match[2]) - 1,
     Number(match[3]),
   )
-  return Number.isNaN(date.getTime()) ? null : date
+  return localDateKey(date) === key ? date : null
 }
 
 // inclusive on both ends: today plus the days before it

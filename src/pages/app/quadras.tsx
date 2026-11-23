@@ -167,15 +167,18 @@ function CourtRecentReplays({ courtId }: { courtId: Quadra['id'] }) {
   )
 }
 
+// isDesktop vem da página: um matchMedia por card dava 12 listeners para o
+// mesmo booleano numa grade de 12 quadras
 function QuadraCard({
   quadra,
   arena,
+  isDesktop,
 }: {
   quadra: Quadra
   arena: Arena | undefined
+  isDesktop: boolean
 }) {
   const [open, setOpen] = useState(false)
-  const isDesktop = useMediaQuery(DESKTOP_QUERY)
 
   // a quadra não tem foto própria no MER; herda a da arena quando existir.
   const cover = arena?.fotoUrl ?? null
@@ -363,6 +366,7 @@ function isStatusFilter(value: string): value is StatusFilter {
 }
 
 export function Quadras() {
+  const isDesktop = useMediaQuery(DESKTOP_QUERY)
   const [arenaId, setArenaId] = useQueryState('arena', { defaultValue: '' })
   const [cidade, setCidade] = useQueryState('city', { defaultValue: CITY_ANY })
   const [status, setStatus] = useQueryState<StatusFilter>('status', {
@@ -624,6 +628,7 @@ export function Quadras() {
                 <QuadraCard
                   quadra={quadra}
                   arena={arenaById.get(quadra.arenaId)}
+                  isDesktop={isDesktop}
                 />
               </motion.li>
             ))}
