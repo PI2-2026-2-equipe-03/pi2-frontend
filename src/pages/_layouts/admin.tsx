@@ -9,6 +9,10 @@ import {
   SideNav,
   SideNavFooter,
 } from '@/components/navigation/side-nav'
+import {
+  headerIconClasses,
+  SiteHeader,
+} from '@/components/navigation/site-header'
 import { RouteTransition } from '@/components/route-transition'
 import { ThemeToggle } from '@/components/theme/theme-toggle'
 import { Button } from '@/components/ui/button'
@@ -24,6 +28,7 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet'
 import { TooltipProvider } from '@/components/ui/tooltip'
+import { cn } from '@/lib/utils'
 
 // only routes that exist: cameras, usuarios and replays fell into the global
 // catch-all and threw a signed-in admin out to /sign-in (#36). they come back
@@ -43,8 +48,9 @@ export function AdminLayout() {
     <MotionConfig reducedMotion="user">
       <TooltipProvider>
         <div className="bg-background text-foreground flex min-h-svh flex-col">
-          <header className="bg-tg-brand-blue z-sticky h-header pt-safe-top sticky top-0 flex shrink-0 items-center justify-between px-4 text-white shadow-sm md:px-6">
-            <div className="flex items-center gap-2">
+          <SiteHeader
+            logoTo="/admin"
+            leading={
               <Sheet>
                 <SheetTrigger asChild>
                   <Button
@@ -52,7 +58,7 @@ export function AdminLayout() {
                     variant="ghost"
                     size="icon"
                     aria-label="Abrir menu"
-                    className="rounded-full text-white hover:bg-white/10 hover:text-white lg:hidden"
+                    className={cn(headerIconClasses, 'lg:hidden')}
                   >
                     <Menu className="size-5" />
                   </Button>
@@ -79,27 +85,24 @@ export function AdminLayout() {
                   </div>
                 </SheetContent>
               </Sheet>
-              <Logo to="/admin" className="text-xl md:text-2xl" />
-            </div>
-
-            <div className="flex items-center gap-1">
-              <ProfileMenu
-                className="rounded-full text-white hover:bg-white/10 hover:text-white focus-visible:ring-white/40"
-                extraItems={
-                  <>
-                    <DropdownMenuItem asChild>
-                      <Link to="/app">
-                        <ArrowLeft className="size-4" />
-                        Voltar ao app
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                  </>
-                }
-              />
-              <ThemeToggle />
-            </div>
-          </header>
+            }
+          >
+            <ProfileMenu
+              className={headerIconClasses}
+              extraItems={
+                <>
+                  <DropdownMenuItem asChild>
+                    <Link to="/app">
+                      <ArrowLeft className="size-4" />
+                      Voltar ao app
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                </>
+              }
+            />
+            <ThemeToggle className={headerIconClasses} />
+          </SiteHeader>
 
           <div className="flex flex-1">
             <aside className="bg-sidebar text-sidebar-foreground border-sidebar-border z-sidebar top-header sticky hidden h-[calc(100svh-var(--tg-header-height))] w-56 shrink-0 flex-col justify-between overflow-y-auto border-r py-6 lg:flex">
