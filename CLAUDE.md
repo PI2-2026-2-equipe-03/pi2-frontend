@@ -92,7 +92,7 @@ Páginas vivem em `src/pages/{auth,app,admin}/*.tsx`. Componentes específicos d
 
 ### Commits
 
-Convenção do time: prefixo **`F-XX:`** referenciando a feature/issue (ex.: `F-01: setup inicial`). Emojis de categoria (`:sparkles:`, `:bug:`, `:books:`) são comuns no histórico.
+Convenção do time: prefixo **`F-XX:`** referenciando a feature/issue, seguido do nome da issue (ex.: `F-01: setup inicial`).
 
 ## Skills versionadas
 
