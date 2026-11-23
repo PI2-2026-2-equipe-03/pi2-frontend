@@ -1,8 +1,9 @@
 import { motion } from 'framer-motion'
-import { CalendarDays, X } from 'lucide-react'
+import { X } from 'lucide-react'
 import { useQueryState } from 'nuqs'
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 
+import { CalendarSheet } from '@/components/calendar-sheet'
 import { CityCombobox } from '@/components/city-combobox'
 import { EmptyState } from '@/components/empty-state'
 import { ListingToolbar } from '@/components/listing-toolbar'
@@ -10,7 +11,6 @@ import { PaginationControl } from '@/components/pagination-control'
 import { QueryErrorState } from '@/components/query-error-state'
 import { SearchCombobox } from '@/components/search-combobox'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import {
   citiesFromArenas,
   indexById,
@@ -18,6 +18,13 @@ import {
   useQuadras,
   useReplays,
 } from '@/lib/api/queries'
+import {
+  isWithinWindow,
+  localDateKey,
+  parseDateKey,
+  RETENTION_DAYS,
+  retentionWindow,
+} from '@/lib/dates'
 import { motionTokens } from '@/lib/motion'
 import { usePagination } from '@/lib/pagination'
 import { createCourtSuggestions } from '@/lib/search'
@@ -49,14 +56,8 @@ const itemVariants = {
 const CITY_ANY = 'all'
 const HOUR_ANY = 'all'
 
-// recordedAt é iso em utc; data e hora do filtro valem no fuso do usuário
+// recordedAt é iso em utc; a hora do filtro vale no fuso do usuário
 // (gravação às 22h em brasília não pode cair no dia seguinte)
-function localDateKey(date: Date): string {
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  return `${date.getFullYear()}-${month}-${day}`
-}
-
 function localHourKey(date: Date): string {
   return `${String(date.getHours()).padStart(2, '0')}:00`
 }
@@ -67,6 +68,21 @@ export function Replays() {
   const [hour, setHour] = useQueryState('hour', { defaultValue: HOUR_ANY })
   const [courtId, setCourtId] = useQueryState('court', { defaultValue: '' })
   const [courtQ, setCourtQ] = useQueryState('q', { defaultValue: '' })
+
+  // ?date= arrives from a shared link or by hand, and the <input type="date">
+  // this screen used to carry accepted anything. garbage is dropped; a real
+  // date outside the window is kept and explained, because silently rewriting
+  // the url the user just opened is its own kind of surprise
+  const parsedDate = useMemo(() => (date ? parseDateKey(date) : null), [date])
+  const dateKey = parsedDate ? localDateKey(parsedDate) : null
+  const dateOutOfWindow = useMemo(() => {
+    if (!parsedDate) return false
+    return !isWithinWindow(parsedDate, retentionWindow(new Date()))
+  }, [parsedDate])
+
+  useEffect(() => {
+    if (date && !parsedDate) setDate(null)
+  }, [date, parsedDate, setDate])
 
   const replaysQuery = useReplays()
   const arenasQuery = useArenas()
@@ -108,11 +124,11 @@ export function Replays() {
       const recordedAt = new Date(replay.recordedAt)
       const passaCity = city === CITY_ANY || replay.city === city
       const passaCourt = !courtId || replay.court.id === courtId
-      const passaDate = !date || localDateKey(recordedAt) === date
+      const passaDate = !dateKey || localDateKey(recordedAt) === dateKey
       const passaHour = hour === HOUR_ANY || localHourKey(recordedAt) === hour
       return passaCity && passaCourt && passaDate && passaHour
     })
-  }, [city, courtId, date, hour, replays])
+  }, [city, courtId, dateKey, hour, replays])
 
   const pagination = usePagination({
     items: replaysFiltrados,
@@ -120,7 +136,7 @@ export function Replays() {
   })
 
   const hasActiveFilters = Boolean(
-    (city && city !== CITY_ANY) || date || hour !== HOUR_ANY || courtId,
+    (city && city !== CITY_ANY) || dateKey || hour !== HOUR_ANY || courtId,
   )
 
   function resetPage() {
@@ -158,7 +174,7 @@ export function Replays() {
 
       <ListingToolbar
         activeCount={
-          (city !== CITY_ANY ? 1 : 0) + (date ? 1 : 0) + (courtId ? 1 : 0)
+          (city !== CITY_ANY ? 1 : 0) + (dateKey ? 1 : 0) + (courtId ? 1 : 0)
         }
         onClearAll={clearFilters}
         search={
@@ -203,22 +219,17 @@ export function Replays() {
           {
             id: 'date',
             label: 'Data',
-            active: Boolean(date),
+            active: Boolean(dateKey),
             position: 'trailing',
             width: '11rem',
             control: (
-              <div className="border-border bg-background focus-within:border-tg-brand-blue/60 focus-within:ring-tg-brand-blue/20 flex items-center gap-2 rounded-md border px-3 py-1.5 transition-colors focus-within:ring-2">
-                <CalendarDays className="text-muted-foreground size-4 shrink-0" />
-                <Input
-                  type="date"
-                  value={date}
-                  onChange={(event) => {
-                    setDate(event.target.value || null)
-                    resetPage()
-                  }}
-                  className="h-7 border-0 bg-transparent p-0 shadow-none focus-visible:ring-0"
-                />
-              </div>
+              <CalendarSheet
+                value={dateKey}
+                onChange={(next) => {
+                  setDate(next)
+                  resetPage()
+                }}
+              />
             ),
           },
         ]}
@@ -259,9 +270,11 @@ export function Replays() {
           ilustracao={hasActiveFilters ? 'busca-vazia' : 'sem-replays'}
           title="Nenhum replay encontrado"
           description={
-            hasActiveFilters
-              ? 'Ajuste os filtros ou limpe para ver todos os replays.'
-              : 'Nenhum replay disponível no momento.'
+            dateOutOfWindow
+              ? `Essa data está fora da janela de ${RETENTION_DAYS} dias: os replays dela já expiraram. Escolha uma data mais recente ou limpe o filtro.`
+              : hasActiveFilters
+                ? 'Ajuste os filtros ou limpe para ver todos os replays.'
+                : 'Nenhum replay disponível no momento.'
           }
           action={
             hasActiveFilters ? (

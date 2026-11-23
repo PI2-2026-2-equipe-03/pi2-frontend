@@ -2,15 +2,8 @@ import { SlidersHorizontal } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
 
+import { BottomSheet } from '@/components/bottom-sheet'
 import { Button } from '@/components/ui/button'
-import {
-  Sheet,
-  SheetContent,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet'
 import { cn } from '@/lib/utils'
 
 export type ToolbarFilter = {
@@ -88,8 +81,21 @@ export function ListingToolbar({
       ))}
 
       {hasFilters ? (
-        <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-          <SheetTrigger asChild>
+        <BottomSheet
+          open={sheetOpen}
+          onOpenChange={setSheetOpen}
+          title="Filtros"
+          // the footer already carries the way out, so a second x on top of
+          // the title would only crowd it
+          showCloseButton={false}
+          titleAside={
+            activeCount > 0 ? (
+              <span className="text-muted-foreground text-sm font-normal">
+                {activeCount} {activeCount === 1 ? 'ativo' : 'ativos'}
+              </span>
+            ) : null
+          }
+          trigger={
             <Button
               type="button"
               variant="outline"
@@ -107,41 +113,9 @@ export function ListingToolbar({
                 </span>
               ) : null}
             </Button>
-          </SheetTrigger>
-          <SheetContent
-            side="bottom"
-            showCloseButton={false}
-            className="flex max-h-[85svh] flex-col gap-0 overflow-hidden rounded-t-2xl p-0"
-          >
-            <div
-              aria-hidden
-              className="bg-muted mx-auto mt-2 h-1 w-10 shrink-0 rounded-full"
-            />
-            <SheetHeader className="px-5 pt-3 pb-2">
-              <SheetTitle className="flex items-center justify-between text-base">
-                <span>Filtros</span>
-                {activeCount > 0 ? (
-                  <span className="text-muted-foreground text-sm font-normal">
-                    {activeCount} {activeCount === 1 ? 'ativo' : 'ativos'}
-                  </span>
-                ) : null}
-              </SheetTitle>
-            </SheetHeader>
-            <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-5 py-4">
-              {filters.map((filter) => (
-                <div key={filter.id} className="flex flex-col gap-1.5">
-                  <span className="text-foreground text-sm font-medium">
-                    {filter.label}
-                  </span>
-                  <div data-filter-id={filter.id} data-active={filter.active}>
-                    {filter.control}
-                  </div>
-                </div>
-              ))}
-            </div>
-            {/* the sheet covers the bottom nav (overlay 60 > nav 50), so the
-                safe area the nav used to hold is now this footer's job */}
-            <SheetFooter className="border-border/60 flex-row gap-2 border-t px-5 pt-4 pb-[calc(1rem+var(--tg-safe-area-bottom))]">
+          }
+          footer={
+            <>
               {onClearAll ? (
                 <Button
                   type="button"
@@ -163,9 +137,20 @@ export function ListingToolbar({
               >
                 {onClearAll ? 'Aplicar' : 'Fechar'}
               </Button>
-            </SheetFooter>
-          </SheetContent>
-        </Sheet>
+            </>
+          }
+        >
+          {filters.map((filter) => (
+            <div key={filter.id} className="flex flex-col gap-1.5">
+              <span className="text-foreground text-sm font-medium">
+                {filter.label}
+              </span>
+              <div data-filter-id={filter.id} data-active={filter.active}>
+                {filter.control}
+              </div>
+            </div>
+          ))}
+        </BottomSheet>
       ) : null}
     </div>
   )
