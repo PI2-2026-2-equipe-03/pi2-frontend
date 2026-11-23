@@ -1,7 +1,5 @@
-import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 
-import { useMotionSafe } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 
 type LogoProps = {
@@ -15,8 +13,11 @@ type LogoProps = {
 // logo repeteco: "e" amarelo (vira seta de replay) + palavra em currentColor.
 // o tamanho segue o font-size (text-xl, text-2xl...), como o wordmark antigo.
 // no hover o "e" rebobina (gira -360°), respeitando prefers-reduced-motion.
+// the rewind is css, not framer: this logo is on the first paint of every
+// area, so a motion lib here lands on the critical path (RNF-03).
+// hover sits on the static wrapper (group), not on the <g> that spins: a
+// rotating element slides out from under the pointer and stalls mid-turn.
 export function Logo({ className, to, variant = 'full' }: LogoProps) {
-  const { shouldReduce } = useMotionSafe()
   const symbolOnly = variant === 'symbol'
 
   const mark = (
@@ -26,17 +27,7 @@ export function Logo({ className, to, variant = 'full' }: LogoProps) {
       role="img"
       aria-label="repeteco"
     >
-      <motion.g
-        style={{ originX: '132.0px', originY: '190.0px' }}
-        whileHover={
-          shouldReduce
-            ? undefined
-            : {
-                rotate: -360,
-                transition: { duration: 0.7, ease: [0.65, 0, 0.35, 1] },
-              }
-        }
-      >
+      <g className="origin-[132px_190px] transition-[rotate] duration-700 ease-[cubic-bezier(0.65,0,0.35,1)] motion-safe:group-hover:-rotate-[360deg]">
         <g
           transform="translate(132.0 190.0) scale(1.25)"
           className="text-tg-brand-yellow"
@@ -56,7 +47,7 @@ export function Logo({ className, to, variant = 'full' }: LogoProps) {
             strokeLinejoin="round"
           />
         </g>
-      </motion.g>
+      </g>
       {symbolOnly ? null : (
         <path
           fill="currentColor"
