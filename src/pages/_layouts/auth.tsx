@@ -20,7 +20,11 @@ export function AuthLayout() {
         <ThemeToggle className={headerIconClasses} />
       </SiteHeader>
 
-      <div className="flex flex-1">
+      {/* from md the row is capped to the viewport so the aside stops growing
+          with the form and its tagline stays on screen. below md the page keeps
+          its own scroll: a scroller inside a container fights the virtual
+          keyboard on a phone. */}
+      <div className="flex flex-1 md:h-[calc(100svh-var(--tg-header-height))] md:flex-none">
         {/* the logo lives in the header now: the panel keeps only the tagline */}
         <aside
           className="bg-tg-brand-blue-dark relative hidden flex-1 flex-col justify-end gap-8 overflow-hidden bg-cover bg-center p-10 text-white md:flex"
@@ -42,10 +46,16 @@ export function AuthLayout() {
           <p className="text-sm text-white/75">© 2026 repeteco</p>
         </aside>
 
-        <main className="flex flex-1 items-center justify-center p-4 sm:p-6">
-          <RouteTransition>
-            <Outlet />
-          </RouteTransition>
+        {/* the form column is the only scroller from md. centring with m-auto
+            instead of items-center on purpose: an overflowing flex item centred
+            on the cross axis puts its top above the scroll origin, where no
+            amount of scrolling reaches it. */}
+        <main className="flex flex-1 justify-center p-4 sm:p-6 md:overflow-y-auto">
+          <div className="m-auto">
+            <RouteTransition>
+              <Outlet />
+            </RouteTransition>
+          </div>
         </main>
       </div>
     </div>
