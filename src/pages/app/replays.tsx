@@ -1,19 +1,23 @@
+import { useQueryClient } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import { X } from 'lucide-react'
 import { useQueryState } from 'nuqs'
-import { useEffect, useMemo } from 'react'
+import { useCallback, useEffect, useMemo } from 'react'
+import { useLocation } from 'react-router-dom'
 
 import { CalendarSheet } from '@/components/calendar-sheet'
 import { CityCombobox } from '@/components/city-combobox'
 import { EmptyState } from '@/components/empty-state'
 import { ListingToolbar } from '@/components/listing-toolbar'
-import { PaginationControl } from '@/components/pagination-control'
+import { LoadMore } from '@/components/load-more'
+import { PullToRefresh } from '@/components/pull-to-refresh'
 import { QueryErrorState } from '@/components/query-error-state'
 import { SearchCombobox } from '@/components/search-combobox'
 import { Button } from '@/components/ui/button'
 import {
   citiesFromArenas,
   indexById,
+  queryKeys,
   useArenas,
   useQuadras,
   useReplays,
@@ -25,9 +29,10 @@ import {
   RETENTION_DAYS,
   retentionWindow,
 } from '@/lib/dates'
+import { useClientInfiniteList } from '@/lib/infinite-list'
 import { motionTokens } from '@/lib/motion'
-import { usePagination } from '@/lib/pagination'
 import { createCourtSuggestions } from '@/lib/search'
+import { useScrollRestoration } from '@/lib/use-scroll-restoration'
 
 import { HourChips } from './components/hour-chips'
 import { ReplayCard } from './components/replay-card'
@@ -63,6 +68,8 @@ function localHourKey(date: Date): string {
 }
 
 export function Replays() {
+  const location = useLocation()
+  const queryClient = useQueryClient()
   const [city, setCity] = useQueryState('city', { defaultValue: CITY_ANY })
   const [date, setDate] = useQueryState('date', { defaultValue: '' })
   const [hour, setHour] = useQueryState('hour', { defaultValue: HOUR_ANY })
@@ -92,7 +99,6 @@ export function Replays() {
   const arenas = useMemo(() => arenasQuery.data ?? [], [arenasQuery.data])
   const quadras = useMemo(() => quadrasQuery.data ?? [], [quadrasQuery.data])
 
-  const isLoading = replaysQuery.isPending
   const isError = replaysQuery.isError
 
   const dataset = useMemo(() => ({ arenas, quadras }), [arenas, quadras])
@@ -130,17 +136,45 @@ export function Replays() {
     })
   }, [city, courtId, dateKey, hour, replays])
 
-  const pagination = usePagination({
+  // the key carries everything the slicing depends on, so a filter change or a
+  // refresh starts the list over at page 1 — and an unchanged key hands every
+  // loaded page back from the cache when the detail screen releases the list
+  const infinite = useClientInfiniteList({
+    queryKey: [
+      ...queryKeys.replays,
+      'infinite',
+      replaysQuery.dataUpdatedAt,
+      { city, dateKey, hour, courtId },
+    ],
     items: replaysFiltrados,
-    pageParam: 'page',
+    enabled: !replaysQuery.isPending,
   })
+
+  // the slice lands a microtask after the source does: folded in here, the
+  // list waits on the skeleton instead of blinking through "fim da lista"
+  const isLoading = replaysQuery.isPending || infinite.isPending
+
+  // coming back to item 40 needs the pages up to it already loaded — the
+  // infinite cache is what returns them, and only then is the page tall
+  // enough for the saved offset to mean anything
+  useScrollRestoration(
+    location.key,
+    !isLoading && !isError && infinite.items.length > 0,
+  )
+
+  const refresh = useCallback(
+    () => queryClient.invalidateQueries({ queryKey: queryKeys.replays }),
+    [queryClient],
+  )
 
   const hasActiveFilters = Boolean(
     (city && city !== CITY_ANY) || dateKey || hour !== HOUR_ANY || courtId,
   )
 
-  function resetPage() {
-    pagination.setPage(1)
+  // with no numbered pages left, a filter that shrinks the list would drop
+  // the user somewhere in the middle of whatever survived it
+  function backToTop() {
+    window.scrollTo({ top: 0, behavior: 'auto' })
   }
 
   function clearFilters() {
@@ -149,163 +183,173 @@ export function Replays() {
     setHour(null)
     setCourtId(null)
     setCourtQ(null)
-    resetPage()
+    backToTop()
   }
 
   return (
-    <div className="mx-auto flex max-w-6xl flex-col gap-6">
-      <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h1 className="text-tg-brand-text text-[clamp(1.5rem,3vw,2rem)] font-bold">
-            Replays
-          </h1>
-          <p className="text-tg-brand-text font-medium">
-            Replays disponíveis nos últimos 7 dias. Assista ou baixe antes de
-            expirar.
-          </p>
-        </div>
-        {hasActiveFilters ? (
-          <Button variant="brandOutline" size="sm" onClick={clearFilters}>
-            <X className="size-4" />
-            Limpar filtros
-          </Button>
-        ) : null}
-      </header>
+    <PullToRefresh
+      onRefresh={refresh}
+      disabled={isLoading || isError}
+      className="mx-auto max-w-6xl"
+    >
+      <div className="flex flex-col gap-6">
+        <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <h1 className="text-tg-brand-text text-[clamp(1.5rem,3vw,2rem)] font-bold">
+              Replays
+            </h1>
+            <p className="text-tg-brand-text font-medium">
+              Replays disponíveis nos últimos 7 dias. Assista ou baixe antes de
+              expirar.
+            </p>
+          </div>
+          {hasActiveFilters ? (
+            <Button variant="brandOutline" size="sm" onClick={clearFilters}>
+              <X className="size-4" />
+              Limpar filtros
+            </Button>
+          ) : null}
+        </header>
 
-      <ListingToolbar
-        activeCount={
-          (city !== CITY_ANY ? 1 : 0) + (dateKey ? 1 : 0) + (courtId ? 1 : 0)
-        }
-        onClearAll={clearFilters}
-        search={
-          <SearchCombobox
-            value={courtQ || selectedCourtName}
-            onValueChange={(value) => {
-              setCourtQ(value || null)
-              if (!value) {
-                setCourtId(null)
-                resetPage()
-              }
+        <ListingToolbar
+          activeCount={
+            (city !== CITY_ANY ? 1 : 0) + (dateKey ? 1 : 0) + (courtId ? 1 : 0)
+          }
+          onClearAll={clearFilters}
+          search={
+            <SearchCombobox
+              value={courtQ || selectedCourtName}
+              onValueChange={(value) => {
+                setCourtQ(value || null)
+                if (!value) {
+                  setCourtId(null)
+                  backToTop()
+                }
+              }}
+              onSelect={(suggestion) => {
+                if (suggestion.payload.kind === 'court') {
+                  setCourtId(suggestion.payload.value)
+                  setCourtQ(suggestion.label)
+                  backToTop()
+                }
+              }}
+              fetchSuggestions={fetchSuggestions}
+              placeholder="Buscar por quadra, arena ou cidade…"
+              emptyMessage="Nenhuma correspondência."
+            />
+          }
+          filters={[
+            {
+              id: 'city',
+              label: 'Cidade',
+              active: city !== CITY_ANY,
+              control: (
+                <CityCombobox
+                  value={city}
+                  onValueChange={(v) => {
+                    setCity(v === CITY_ANY ? null : v)
+                    backToTop()
+                  }}
+                  cities={cityOptions}
+                  anyValue={CITY_ANY}
+                />
+              ),
+            },
+            {
+              id: 'date',
+              label: 'Data',
+              active: Boolean(dateKey),
+              position: 'trailing',
+              width: '11rem',
+              control: (
+                <CalendarSheet
+                  value={dateKey}
+                  onChange={(next) => {
+                    setDate(next)
+                    backToTop()
+                  }}
+                />
+              ),
+            },
+          ]}
+        />
+
+        {!isLoading && !isError ? (
+          <HourChips
+            availableHours={hourOptions}
+            value={hour === HOUR_ANY ? null : hour}
+            onChange={(next) => {
+              setHour(next)
+              backToTop()
             }}
-            onSelect={(suggestion) => {
-              if (suggestion.payload.kind === 'court') {
-                setCourtId(suggestion.payload.value)
-                setCourtQ(suggestion.label)
-                resetPage()
-              }
-            }}
-            fetchSuggestions={fetchSuggestions}
-            placeholder="Buscar por quadra, arena ou cidade…"
-            emptyMessage="Nenhuma correspondência."
           />
-        }
-        filters={[
-          {
-            id: 'city',
-            label: 'Cidade',
-            active: city !== CITY_ANY,
-            control: (
-              <CityCombobox
-                value={city}
-                onValueChange={(v) => {
-                  setCity(v === CITY_ANY ? null : v)
-                  resetPage()
-                }}
-                cities={cityOptions}
-                anyValue={CITY_ANY}
-              />
-            ),
-          },
-          {
-            id: 'date',
-            label: 'Data',
-            active: Boolean(dateKey),
-            position: 'trailing',
-            width: '11rem',
-            control: (
-              <CalendarSheet
-                value={dateKey}
-                onChange={(next) => {
-                  setDate(next)
-                  resetPage()
-                }}
-              />
-            ),
-          },
-        ]}
-      />
+        ) : null}
 
-      {!isLoading && !isError ? (
-        <HourChips
-          availableHours={hourOptions}
-          value={hour === HOUR_ANY ? null : hour}
-          onChange={(next) => {
-            setHour(next)
-            resetPage()
-          }}
-        />
-      ) : null}
-
-      {isLoading ? (
-        <ul
-          aria-busy="true"
-          aria-live="polite"
-          className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
-        >
-          {Array.from({ length: 6 }).map((_, i) => (
-            <li key={i}>
-              <ReplayCardSkeleton />
-            </li>
-          ))}
-        </ul>
-      ) : isError ? (
-        <QueryErrorState
-          title="Não foi possível carregar os replays"
-          error={replaysQuery.error}
-          onRetry={() => void replaysQuery.refetch()}
-          isRetrying={replaysQuery.isRefetching}
-        />
-      ) : replaysFiltrados.length === 0 ? (
-        <EmptyState
-          ilustracao={hasActiveFilters ? 'busca-vazia' : 'sem-replays'}
-          title="Nenhum replay encontrado"
-          description={
-            dateOutOfWindow
-              ? `Essa data está fora da janela de ${RETENTION_DAYS} dias: os replays dela já expiraram. Escolha uma data mais recente ou limpe o filtro.`
-              : hasActiveFilters
-                ? 'Ajuste os filtros ou limpe para ver todos os replays.'
-                : 'Nenhum replay disponível no momento.'
-          }
-          action={
-            hasActiveFilters ? (
-              <Button variant="brandOutline" onClick={clearFilters}>
-                Limpar filtros
-              </Button>
-            ) : undefined
-          }
-        />
-      ) : (
-        <>
-          <motion.ul
-            key={pagination.page}
-            variants={listVariants}
-            initial="hidden"
-            animate="visible"
+        {isLoading ? (
+          <ul
+            aria-busy="true"
+            aria-live="polite"
             className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
           >
-            {pagination.pageItems.map((replay) => (
-              <motion.li key={replay.id} variants={itemVariants}>
-                <ReplayCard replay={replay} />
-              </motion.li>
+            {Array.from({ length: 6 }).map((_, i) => (
+              <li key={i}>
+                <ReplayCardSkeleton />
+              </li>
             ))}
-          </motion.ul>
-          <PaginationControl
-            page={pagination.page}
-            totalPages={pagination.totalPages}
-            onPageChange={pagination.setPage}
+          </ul>
+        ) : isError ? (
+          <QueryErrorState
+            title="Não foi possível carregar os replays"
+            error={replaysQuery.error}
+            onRetry={() => void replaysQuery.refetch()}
+            isRetrying={replaysQuery.isRefetching}
           />
-        </>
-      )}
-    </div>
+        ) : replaysFiltrados.length === 0 ? (
+          <EmptyState
+            ilustracao={hasActiveFilters ? 'busca-vazia' : 'sem-replays'}
+            title="Nenhum replay encontrado"
+            description={
+              dateOutOfWindow
+                ? `Essa data está fora da janela de ${RETENTION_DAYS} dias: os replays dela já expiraram. Escolha uma data mais recente ou limpe o filtro.`
+                : hasActiveFilters
+                  ? 'Ajuste os filtros ou limpe para ver todos os replays.'
+                  : 'Nenhum replay disponível no momento.'
+            }
+            action={
+              hasActiveFilters ? (
+                <Button variant="brandOutline" onClick={clearFilters}>
+                  Limpar filtros
+                </Button>
+              ) : undefined
+            }
+          />
+        ) : (
+          <>
+            {/* sem key na lista: a página nova entra animando item por item em
+              vez de reanimar tudo o que já estava na tela */}
+            <motion.ul
+              variants={listVariants}
+              initial="hidden"
+              animate="visible"
+              className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
+            >
+              {infinite.items.map((replay) => (
+                <motion.li key={replay.id} variants={itemVariants}>
+                  <ReplayCard replay={replay} />
+                </motion.li>
+              ))}
+            </motion.ul>
+            <LoadMore
+              hasNextPage={infinite.hasNextPage}
+              isFetchingNextPage={infinite.isFetchingNextPage}
+              onLoadMore={infinite.fetchNextPage}
+              loadedCount={infinite.items.length}
+              totalCount={replaysFiltrados.length}
+              itemLabel="replay"
+            />
+          </>
+        )}
+      </div>
+    </PullToRefresh>
   )
 }
