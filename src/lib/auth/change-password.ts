@@ -99,12 +99,10 @@ export async function changePassword(
     })
     failure = error
   } catch (error) {
-    throw new ChangePasswordError(
-      error instanceof Error && error.message.trim()
-        ? error.message
-        : FALLBACK_MESSAGE,
-      'root',
-    )
+    // a thrown error here is better-fetch or a bug, so its text is english
+    // and belongs in the console, not in the dialog
+    if (error instanceof Error) console.error(error)
+    throw new ChangePasswordError(FALLBACK_MESSAGE, 'root')
   }
 
   if (failure) throw toChangePasswordError(failure)

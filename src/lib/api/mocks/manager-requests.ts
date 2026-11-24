@@ -1,4 +1,5 @@
 import type { ManagerRequestResponse } from '@/lib/api/manager-requests'
+import { UserFacingError } from '@/lib/errors'
 
 const MOCK_DELAY_MS = 400
 
@@ -12,7 +13,7 @@ let hasPendingRequest = false
 export async function createManagerRequest(): Promise<ManagerRequestResponse> {
   await delay()
   if (hasPendingRequest) {
-    throw new Error('Você já possui uma solicitação pendente')
+    throw new UserFacingError('Você já possui uma solicitação pendente')
   }
   hasPendingRequest = true
   return {

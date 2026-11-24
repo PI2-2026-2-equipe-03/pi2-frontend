@@ -13,6 +13,16 @@ export type AuthFailure = {
   error?: { code?: string }
 }
 
+// only messages thrown as this reach the screen. everything else that is not
+// an axios error is a library or a bug ("Request failed with status code 500",
+// a TypeError), and the user gets the caller's portuguese fallback instead
+export class UserFacingError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'UserFacingError'
+  }
+}
+
 export const FORBIDDEN_MESSAGE =
   'Você não possui permissão para acessar este recurso'
 export const SESSION_EXPIRED_MESSAGE = 'Sua sessão expirou. Entre novamente.'
@@ -146,9 +156,12 @@ export function toApiAuthError(
 
 export function getApiErrorMessage(error: unknown, fallback: string): string {
   if (!Axios.isAxiosError<ErrorEnvelope>(error)) {
-    return error instanceof Error && error.message.trim()
-      ? error.message
-      : fallback
+    if (error instanceof UserFacingError && error.message.trim()) {
+      return error.message
+    }
+    // keep the real reason where a developer can find it, out of the ui
+    if (error instanceof Error) console.error(error)
+    return fallback
   }
 
   // textos neutros de propósito: o motivo detalhado do backend não vai para a tela

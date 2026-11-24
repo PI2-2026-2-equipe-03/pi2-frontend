@@ -1,6 +1,7 @@
 import { removeCamerasOfQuadra } from '@/lib/api/mocks/cameras'
 import { unlinkQuadra } from '@/lib/api/mocks/patrocinadores'
 import type { QuadraDto } from '@/lib/api/quadras'
+import { UserFacingError } from '@/lib/errors'
 import { QUADRAS } from '@/lib/mocks'
 
 const MOCK_DELAY_MS = 400
@@ -20,7 +21,7 @@ export async function listQuadras(): Promise<{ data: QuadraDto[] }> {
 export async function deleteQuadra(id: string): Promise<void> {
   await delay()
   if (!rows.some((q) => q.id === id)) {
-    throw new Error('Quadra não encontrada.')
+    throw new UserFacingError('Quadra não encontrada.')
   }
   rows = rows.filter((q) => q.id !== id)
   removeCamerasOfQuadra(id)

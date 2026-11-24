@@ -1,4 +1,5 @@
 import type { ReplayDownloadDto, ReplayDto } from '@/lib/api/replays'
+import { UserFacingError } from '@/lib/errors'
 import { REPLAY_VIEWS } from '@/lib/mocks'
 
 const MOCK_DELAY_MS = 400
@@ -49,7 +50,7 @@ export async function getReplayDownload(
   await delay()
   const view = REPLAY_VIEWS.find((r) => r.id === id)
   if (!view) {
-    throw new Error('Replay não encontrado')
+    throw new UserFacingError('Replay não encontrado')
   }
   return {
     data: {
