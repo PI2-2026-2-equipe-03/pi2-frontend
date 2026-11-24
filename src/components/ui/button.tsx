@@ -24,17 +24,19 @@ const buttonVariants = cva(
         brand:
           'bg-tg-brand-yellow text-tg-brand-blue-dark font-semibold shadow-sm hover:bg-tg-brand-yellow/90 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]',
         brandOutline:
-          'border border-tg-brand-blue text-tg-brand-blue hover:bg-tg-brand-blue hover:text-white active:scale-[0.98]',
+          'border border-tg-brand-text text-tg-brand-text hover:bg-tg-brand-blue hover:text-white active:scale-[0.98]',
       },
       size: {
-        default: 'h-10 md:h-9 px-4 py-2 has-[>svg]:px-3',
-        xs: "h-6 gap-1 rounded-md px-2 text-xs has-[>svg]:px-1.5 [&_svg:not([class*='size-'])]:size-3",
-        sm: 'h-9 md:h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5',
-        lg: 'h-10 rounded-md px-6 has-[>svg]:px-4',
-        icon: 'size-10 md:size-9',
-        'icon-xs': "size-6 rounded-md [&_svg:not([class*='size-'])]:size-3",
-        'icon-sm': 'size-9 md:size-8',
-        'icon-lg': 'size-10',
+        // touch token by default, back to the current density with a mouse (dense)
+        default: 'h-touch-min dense:h-9 px-4 py-2 has-[>svg]:px-3',
+        xs: "h-touch-min dense:h-6 gap-1 rounded-md px-2 text-xs has-[>svg]:px-1.5 [&_svg:not([class*='size-'])]:size-3",
+        sm: 'h-touch-min dense:h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5',
+        lg: 'h-touch-min dense:h-10 rounded-md px-6 has-[>svg]:px-4',
+        icon: 'size-touch-min dense:size-9',
+        'icon-xs':
+          "size-touch-min dense:size-6 rounded-md [&_svg:not([class*='size-'])]:size-3",
+        'icon-sm': 'size-touch-min dense:size-8',
+        'icon-lg': 'size-touch-min dense:size-10',
       },
     },
     defaultVariants: {

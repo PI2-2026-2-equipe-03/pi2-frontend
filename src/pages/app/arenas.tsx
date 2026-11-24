@@ -1,5 +1,4 @@
 import { motion } from 'framer-motion'
-import { MapPinOff } from 'lucide-react'
 import { useQueryState } from 'nuqs'
 import { useMemo } from 'react'
 
@@ -112,10 +111,10 @@ export function Arenas() {
     <div className="mx-auto flex max-w-6xl flex-col gap-6">
       <header className="flex items-end justify-between gap-3">
         <div>
-          <h1 className="text-tg-brand-blue text-[clamp(1.5rem,3vw,2rem)] font-bold">
+          <h1 className="text-tg-brand-text text-[clamp(1.5rem,3vw,2rem)] font-bold">
             Arenas
           </h1>
-          <p className="text-tg-brand-blue font-medium">
+          <p className="text-tg-brand-text font-medium">
             Explore locais parceiros e abra as quadras.
           </p>
         </div>
@@ -180,7 +179,7 @@ export function Arenas() {
         />
       ) : arenasFiltradas.length === 0 ? (
         <EmptyState
-          icon={MapPinOff}
+          ilustracao={hasActiveFilters ? 'busca-vazia' : 'sem-arenas'}
           title="Nenhuma arena encontrada"
           description={
             hasActiveFilters

@@ -1,4 +1,3 @@
-import { useMutation } from '@tanstack/react-query'
 import {
   ArrowLeft,
   Calendar,
@@ -6,11 +5,8 @@ import {
   Loader2,
   MapPin,
   RefreshCw,
-  VideoOff,
-  WifiOff,
 } from 'lucide-react'
 import { Link, useParams } from 'react-router-dom'
-import { toast } from 'sonner'
 
 import { EmptyState } from '@/components/empty-state'
 import { ReplayExpiry } from '@/components/replay-expiry'
@@ -20,8 +16,8 @@ import { Card } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { resolveMediaUrl } from '@/lib/api/mappers'
 import { useReplays } from '@/lib/api/queries'
-import { getReplayDownload } from '@/lib/api/replays'
-import { getApiErrorMessage, isForbiddenError } from '@/lib/errors'
+import { useReplayDownload } from '@/lib/use-replay-download'
+import { cn } from '@/lib/utils'
 
 const dateFormatter = new Intl.DateTimeFormat('pt-BR', {
   day: '2-digit',
@@ -34,12 +30,12 @@ const timeFormatter = new Intl.DateTimeFormat('pt-BR', {
   minute: '2-digit',
 })
 
-// a tela cabe no slot que o AppLayout deixa: 4rem de header + o padding do main
+// a tela cabe no slot que o AppLayout deixa: o header (4rem + área segura) + o padding do main
 // (p-4 no mobile, p-8 no md+). sem isso o conteúdo gera scroll de página.
 // abaixo de 36rem de altura (celular deitado) travar a altura espremeria o
 // player a ponto de esconder o botão de download: ali o scroll normal é melhor.
 const SHELL =
-  'mx-auto flex h-[calc(100svh-6rem)] w-full max-w-6xl flex-col gap-3 md:h-[calc(100svh-8rem)] md:gap-4 [@media(max-height:36rem)]:h-auto'
+  'mx-auto flex h-[calc(100svh-var(--tg-header-height)-2rem)] w-full max-w-6xl flex-col gap-3 md:h-[calc(100svh-var(--tg-header-height)-4rem)] md:gap-4 [@media(max-height:36rem)]:h-auto'
 
 export function ReplayDetail() {
   const { id } = useParams<{ id: string }>()
@@ -47,30 +43,7 @@ export function ReplayDetail() {
   const replaysQuery = useReplays()
   const view = replaysQuery.data?.find((r) => r.id === id)
 
-  const downloadMutation = useMutation({
-    mutationFn: async () => {
-      if (!id) throw new Error('Replay sem identificador')
-      const response = await getReplayDownload(id)
-      return resolveMediaUrl(response.data.downloadUrl)
-    },
-    onSuccess: (url) => {
-      window.open(url, '_blank', 'noopener,noreferrer')
-      toast.success('Download iniciado')
-    },
-    onError: (error) => {
-      // o modal global de 403 já informou
-      if (isForbiddenError(error)) return
-      toast.error(
-        getApiErrorMessage(error, 'Não foi possível baixar o replay'),
-        {
-          action: {
-            label: 'Tentar de novo',
-            onClick: () => downloadMutation.mutate(),
-          },
-        },
-      )
-    },
-  })
+  const { download, isPending, canDownload } = useReplayDownload(id)
 
   const isLoading = replaysQuery.isPending
   const isError = replaysQuery.isError
@@ -99,7 +72,7 @@ export function ReplayDetail() {
       ) : isError ? (
         <div className="grid min-h-0 flex-1 place-content-center">
           <EmptyState
-            icon={WifiOff}
+            ilustracao="sem-conexao"
             title="Não foi possível carregar o replay"
             description="Confira se a API está no ar e tente novamente."
             action={
@@ -110,7 +83,10 @@ export function ReplayDetail() {
                 aria-busy={replaysQuery.isRefetching}
               >
                 <RefreshCw
-                  className={`size-4 ${replaysQuery.isRefetching ? 'animate-spin' : ''}`}
+                  className={cn(
+                    'size-4 md:size-5',
+                    replaysQuery.isRefetching && 'animate-spin',
+                  )}
                 />
                 Tentar novamente
               </Button>
@@ -120,7 +96,7 @@ export function ReplayDetail() {
       ) : notFound ? (
         <div className="grid min-h-0 flex-1 place-content-center">
           <EmptyState
-            icon={VideoOff}
+            ilustracao="replay-expirado"
             title="Replay não encontrado"
             description="O replay pode ter expirado ou sido removido."
             action={
@@ -153,7 +129,7 @@ export function ReplayDetail() {
               <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
                 {view.arena.nome}
               </p>
-              <h1 className="text-tg-brand-blue text-[clamp(1.25rem,2.5vw,1.75rem)] leading-tight font-bold">
+              <h1 className="text-tg-brand-text text-[clamp(1.25rem,2.5vw,1.75rem)] leading-tight font-bold">
                 {view.court.nome}
               </h1>
             </div>
@@ -179,12 +155,12 @@ export function ReplayDetail() {
               <Button
                 variant="brand"
                 className="w-full"
-                disabled={downloadMutation.isPending || isDeleted}
-                aria-busy={downloadMutation.isPending}
-                onClick={() => downloadMutation.mutate()}
+                disabled={isPending || isDeleted || !canDownload}
+                aria-busy={isPending}
+                onClick={() => download()}
               >
-                {downloadMutation.isPending ? (
-                  <Loader2 className="size-4 animate-spin" />
+                {isPending ? (
+                  <Loader2 className="size-4 animate-spin md:size-5" />
                 ) : (
                   <Download className="size-4" />
                 )}

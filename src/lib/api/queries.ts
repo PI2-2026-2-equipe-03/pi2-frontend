@@ -10,6 +10,7 @@ import {
 import {
   toArena,
   toCamera,
+  toFeaturedReplayView,
   toPatrocinador,
   toQuadra,
   toReplayView,
@@ -88,6 +89,19 @@ export function useReplays() {
     queryKey: queryKeys.replays,
     queryFn: listReplays,
     select: (response): ReplayView[] => response.data.map(toReplayView),
+  })
+}
+
+// same cache entry as useReplays, so the home shares the fetch with the replay
+// list instead of adding a round trip. the dedicated highlight route (B-10) is
+// what will let the request itself shrink; GET /replays rejects unknown query
+// params, so there is no limit to send today.
+export function useFeaturedReplay() {
+  return useQuery({
+    queryKey: queryKeys.replays,
+    queryFn: listReplays,
+    select: (response): ReplayView | undefined =>
+      toFeaturedReplayView(response.data),
   })
 }
 

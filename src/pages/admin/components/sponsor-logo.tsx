@@ -26,7 +26,7 @@ export function SponsorLogo({ nome, fotoUrl, className }: SponsorLogoProps) {
   return (
     <span
       className={cn(
-        'bg-tg-brand-yellow/20 text-tg-brand-blue inline-flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full text-sm font-semibold',
+        'bg-tg-brand-yellow/20 text-tg-brand-text inline-flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full text-sm font-semibold',
         className,
       )}
     >

@@ -1,4 +1,5 @@
 import type { PatrocinadorDto } from '@/lib/api/patrocinadores'
+import { UserFacingError } from '@/lib/errors'
 import { PATROCINADORES, QUADRA_PATROCINADORES } from '@/lib/mocks'
 
 const MOCK_DELAY_MS = 400
@@ -25,7 +26,7 @@ export async function listPatrocinadores(): Promise<{
 export async function deletePatrocinador(id: string): Promise<void> {
   await delay()
   if (!rows.some((p) => p.id === id)) {
-    throw new Error('Patrocinador não encontrado.')
+    throw new UserFacingError('Patrocinador não encontrado.')
   }
   rows = rows.filter((p) => p.id !== id)
 }

@@ -1,4 +1,4 @@
-import { LayoutGrid, Trash2, VideoOff } from 'lucide-react'
+import { Trash2, VideoOff } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
@@ -200,13 +200,13 @@ export function AdminQuadras() {
         />
       ) : rows.length === 0 ? (
         <EmptyState
-          icon={LayoutGrid}
+          ilustracao="sem-quadras"
           title="Nenhuma quadra cadastrada"
           description="As quadras da sua arena aparecem aqui assim que forem cadastradas."
         />
       ) : (
         <>
-          <div className="bg-card hidden overflow-hidden rounded-2xl border md:block">
+          <div className="bg-card hidden overflow-hidden rounded-2xl border lg:block">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -258,7 +258,7 @@ export function AdminQuadras() {
             </Table>
           </div>
 
-          <ul className="flex flex-col gap-3 md:hidden">
+          <ul className="flex flex-col gap-3 lg:hidden">
             {rows.map((row) => (
               <li key={row.quadra.id}>
                 <Card className="gap-3 p-4">

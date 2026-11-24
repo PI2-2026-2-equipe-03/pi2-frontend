@@ -1,12 +1,12 @@
 import type { AxiosError } from 'axios'
 
+import { env } from '@/env'
+import * as mocks from '@/lib/api/mocks/auth'
 import { axiosInstance } from '@/lib/api/mutator/axios-instance'
 
-// custom auth endpoints live at /auth/* on the backend (not /api/auth/*).
-// bypass the /api baseURL so requests hit the /auth vite proxy rule directly.
-const AUTH_CFG = { baseURL: '' }
-
-type RegisterBody = {
+// auth endpoints now live at /api/auth/* on the backend. the shared axiosInstance
+// already has baseURL = '/api' (or VITE_API_URL in prod), so we just use it.
+export type RegisterBody = {
   name: string
   email: string
   phone: string
@@ -14,7 +14,7 @@ type RegisterBody = {
   confirmPassword: string
 }
 
-type RegisterResponse = {
+export type RegisterResponse = {
   id: string
   name: string
   email: string
@@ -25,12 +25,12 @@ type RegisterResponse = {
   role: string
 }
 
-type LoginBody = {
+export type LoginBody = {
   email: string
   password: string
 }
 
-type LoginResponse = {
+export type LoginResponse = {
   token: string
   expiresIn: number
   user: {
@@ -41,52 +41,55 @@ type LoginResponse = {
   }
 }
 
-type ForgotPasswordBody = {
+export type ForgotPasswordBody = {
   email: string
 }
 
-type MessageResponse = {
+export type MessageResponse = {
   message: string
 }
 
-type ResetPasswordBody = {
+export type ResetPasswordBody = {
   token: string
   password: string
   passwordConfirmation: string
 }
 
-export async function registerUser(body: RegisterBody): Promise<RegisterResponse> {
+export async function registerUser(
+  body: RegisterBody,
+): Promise<RegisterResponse> {
+  if (env.VITE_USE_MOCKS) return mocks.registerUser(body)
   const { data } = await axiosInstance.post<RegisterResponse>(
     '/auth/register',
     body,
-    AUTH_CFG,
   )
   return data
 }
 
 export async function loginUser(body: LoginBody): Promise<LoginResponse> {
-  const { data } = await axiosInstance.post<LoginResponse>(
-    '/auth/login',
-    body,
-    AUTH_CFG,
-  )
+  if (env.VITE_USE_MOCKS) return mocks.loginUser(body)
+  const { data } = await axiosInstance.post<LoginResponse>('/auth/login', body)
   return data
 }
 
-export async function forgotPassword(body: ForgotPasswordBody): Promise<MessageResponse> {
+export async function forgotPassword(
+  body: ForgotPasswordBody,
+): Promise<MessageResponse> {
+  if (env.VITE_USE_MOCKS) return mocks.forgotPassword(body)
   const { data } = await axiosInstance.post<MessageResponse>(
     '/auth/forgot-password',
     body,
-    AUTH_CFG,
   )
   return data
 }
 
-export async function resetPassword(body: ResetPasswordBody): Promise<MessageResponse> {
+export async function resetPassword(
+  body: ResetPasswordBody,
+): Promise<MessageResponse> {
+  if (env.VITE_USE_MOCKS) return mocks.resetPassword()
   const { data } = await axiosInstance.post<MessageResponse>(
     '/auth/reset-password',
     body,
-    AUTH_CFG,
   )
   return data
 }

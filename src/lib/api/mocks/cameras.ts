@@ -1,4 +1,5 @@
 import type { CameraDto } from '@/lib/api/cameras'
+import { UserFacingError } from '@/lib/errors'
 import { CAMERAS } from '@/lib/mocks'
 
 const MOCK_DELAY_MS = 400
@@ -18,7 +19,7 @@ export async function listCameras(): Promise<{ data: CameraDto[] }> {
 export async function deleteCamera(id: string): Promise<void> {
   await delay()
   if (!rows.some((c) => c.id === id)) {
-    throw new Error('Câmera não encontrada.')
+    throw new UserFacingError('Câmera não encontrada.')
   }
   rows = rows.filter((c) => c.id !== id)
 }

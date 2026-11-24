@@ -21,7 +21,7 @@ export function PasswordRequirements({
         <li
           key={rule.key}
           className={cn(
-            'flex items-center gap-2 text-xs transition-colors duration-150',
+            'flex items-center gap-2 text-sm transition-colors duration-150',
             rule.isMet ? 'text-success' : 'text-muted-foreground',
           )}
         >

@@ -37,11 +37,11 @@ export function ArenaCard({ arena, quadrasCount = 0 }: ArenaCardProps) {
           ) : null}
         </div>
         <div className="space-y-1.5 p-4">
-          <p className="text-foreground group-hover:text-tg-brand-blue text-base font-semibold tracking-tight transition-colors">
+          <p className="text-foreground group-hover:text-tg-brand-text text-base font-semibold tracking-tight transition-colors">
             {arena.nome}
           </p>
-          <p className="text-muted-foreground flex items-center gap-1 text-xs leading-relaxed">
-            <MapPin className="size-3 shrink-0" />
+          <p className="text-muted-foreground flex items-center gap-1 text-sm leading-relaxed">
+            <MapPin className="size-3.5 shrink-0" />
             <span className="line-clamp-1">
               {arena.cidade} · {arena.endereco}
             </span>

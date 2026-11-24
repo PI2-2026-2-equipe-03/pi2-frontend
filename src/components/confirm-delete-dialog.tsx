@@ -43,7 +43,7 @@ export function ConfirmDeleteDialog({
     >
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle className="text-tg-brand-blue dark:text-foreground">
+          <AlertDialogTitle className="text-tg-brand-text">
             {title}
           </AlertDialogTitle>
           <AlertDialogDescription>{description}</AlertDialogDescription>
@@ -61,7 +61,7 @@ export function ConfirmDeleteDialog({
             }}
           >
             {isPending ? (
-              <Loader2 className="size-4 animate-spin" />
+              <Loader2 className="size-4 animate-spin md:size-5" />
             ) : (
               <Trash2 className="size-4" />
             )}

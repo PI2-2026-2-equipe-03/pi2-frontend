@@ -1,5 +1,6 @@
 // mocks locais, shapes alinhados ao MER (ver src/lib/types.ts)
 import { ARENA_COVERS } from '@/lib/assets'
+import { addDays, RETENTION_DAYS, retentionWindow } from '@/lib/dates'
 import type {
   Arena,
   Camera,
@@ -12,7 +13,7 @@ import type {
 } from '@/lib/types'
 import { REPLAY_DURATION_SECONDS } from '@/lib/types'
 
-const EXPIRY_WINDOW_MS = 7 * 24 * 60 * 60 * 1000
+const EXPIRY_WINDOW_MS = RETENTION_DAYS * 24 * 60 * 60 * 1000
 
 function plus7days(iso: string): string {
   const t = new Date(iso).getTime() + EXPIRY_WINDOW_MS
@@ -165,22 +166,44 @@ export const QUADRA_PATROCINADORES: readonly QuadraPatrocinador[] = [
   { quadraId: '108', patrocinadorId: '4' },
 ] as const
 
-// gerados sobre uma janela de 7 dias para variar o estado de expiração.
-// data base: 2026-10-02 (hoje da varredura). o front recalcula "quanto falta expirar"
-// dinamicamente via expiraEm, então valores absolutos podem envelhecer sem drama.
+// seeds are placed relative to today through dates.ts, the same functions the
+// filter uses, so the mock cannot drift from the retention window (rn-01).
+// hours are local on purpose: 22:30 in brasília is already the next day in
+// utc, which is the case localDateKey exists to protect
+const MOCK_NOW = Date.now()
+const TODAY = retentionWindow(new Date(MOCK_NOW)).end
+
+function seedTime(daysAgo: number, hour: number, minute: number): string {
+  const at = addDays(TODAY, -daysAgo)
+  at.setHours(hour, minute, 0, 0)
+  // never in the future when the day is still going
+  const latest = Math.max(TODAY.getTime(), MOCK_NOW - 60_000)
+  return new Date(Math.min(at.getTime(), latest)).toISOString()
+}
+
+// two seeds sit past the window on purpose, so the date filter has something
+// to hide; the 22:30 one is the timezone edge case
 const REPLAY_SEEDS: ReadonlyArray<{
   id: Id
   courtId: Id
   recordedAt: string
 }> = [
-  { id: '1001', courtId: '101', recordedAt: '2026-10-02T18:30:00Z' },
-  { id: '1002', courtId: '103', recordedAt: '2026-10-01T20:15:00Z' },
-  { id: '1003', courtId: '105', recordedAt: '2026-09-30T17:00:00Z' },
-  { id: '1004', courtId: '107', recordedAt: '2026-09-29T19:45:00Z' },
-  { id: '1005', courtId: '108', recordedAt: '2026-09-28T21:30:00Z' },
-  { id: '1006', courtId: '102', recordedAt: '2026-09-27T16:00:00Z' },
-  { id: '1007', courtId: '104', recordedAt: '2026-09-26T18:00:00Z' },
-  { id: '1008', courtId: '106', recordedAt: '2026-09-25T20:00:00Z' },
+  { id: '1001', courtId: '101', recordedAt: seedTime(0, 18, 30) },
+  { id: '1002', courtId: '103', recordedAt: seedTime(1, 20, 15) },
+  { id: '1003', courtId: '105', recordedAt: seedTime(2, 17, 0) },
+  { id: '1004', courtId: '107', recordedAt: seedTime(3, 19, 45) },
+  { id: '1005', courtId: '108', recordedAt: seedTime(4, 22, 30) },
+  {
+    id: '1006',
+    courtId: '102',
+    recordedAt: seedTime(RETENTION_DAYS - 1, 16, 0),
+  },
+  { id: '1007', courtId: '104', recordedAt: seedTime(RETENTION_DAYS, 18, 0) },
+  {
+    id: '1008',
+    courtId: '106',
+    recordedAt: seedTime(RETENTION_DAYS + 2, 20, 0),
+  },
 ]
 
 export const REPLAYS: readonly Replay[] = REPLAY_SEEDS.map((seed) => {
@@ -231,7 +254,7 @@ export function toReplayView(replay: Replay): ReplayView | undefined {
   return {
     id: replay.id,
     court: { id: quadra.id, nome: quadra.nome },
-    arena: { id: arena.id, nome: arena.nome },
+    arena: { nome: arena.nome },
     city: arena.cidade,
     recordedAt: replay.criadoEm,
     duration: REPLAY_DURATION_SECONDS,

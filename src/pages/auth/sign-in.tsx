@@ -21,12 +21,10 @@ import { loginUser } from '@/lib/api/auth'
 import { getMe } from '@/lib/api/me'
 import { queryKeys } from '@/lib/api/queries'
 import { authClient } from '@/lib/auth/client'
-import {
-  SESSION_EXPIRED_MESSAGE,
-  toApiAuthError,
-} from '@/lib/errors'
+import { SESSION_EXPIRED_MESSAGE, toApiAuthError } from '@/lib/errors'
 import { queryClient } from '@/lib/react-query'
 import { type SignInInput, signInSchema } from '@/lib/schemas/sign-in-schema'
+import { AuthCard, authSubmitClasses } from '@/pages/auth/components/auth-card'
 
 async function performSignIn(input: SignInInput): Promise<void> {
   await loginUser({ email: input.email, password: input.password })
@@ -85,9 +83,9 @@ export function SignIn() {
   const isSubmitting = signInMutation.isPending
 
   return (
-    <div className="bg-card border-border w-full max-w-md rounded-xl border p-8 shadow-sm">
+    <AuthCard>
       <div className="mb-6 space-y-1">
-        <h1 className="text-tg-brand-blue text-2xl font-bold">
+        <h1 className="text-tg-brand-text text-2xl font-bold">
           Entrar na sua conta
         </h1>
         <p className="text-muted-foreground text-sm">
@@ -146,7 +144,7 @@ export function SignIn() {
                   <FormLabel>Senha</FormLabel>
                   <Link
                     to="/forgot-password"
-                    className="text-primary focus-visible:ring-ring/50 rounded-sm text-sm hover:underline focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+                    className="text-primary focus-visible:ring-ring/50 min-h-touch-min dense:min-h-0 inline-flex items-center rounded-sm text-sm hover:underline focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
                   >
                     Esqueci minha senha
                   </Link>
@@ -193,11 +191,11 @@ export function SignIn() {
             variant="brand"
             disabled={isSubmitting}
             aria-busy={isSubmitting}
-            className="w-full"
+            className={authSubmitClasses}
           >
             {isSubmitting ? (
               <>
-                <Loader2 className="mr-2 size-4 animate-spin" />
+                <Loader2 className="mr-2 size-4 animate-spin md:size-5" />
                 Entrando…
               </>
             ) : (
@@ -209,13 +207,13 @@ export function SignIn() {
             Não possui uma conta?{' '}
             <Link
               to="/sign-up"
-              className="text-primary focus-visible:ring-ring/50 rounded-sm font-medium hover:underline focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+              className="text-primary focus-visible:ring-ring/50 touch-hitbox relative rounded-sm font-medium hover:underline focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
             >
               Criar conta
             </Link>
           </p>
         </form>
       </Form>
-    </div>
+    </AuthCard>
   )
 }

@@ -1,4 +1,3 @@
-import { useMutation } from '@tanstack/react-query'
 import { Calendar, Download, Loader2, MapPin, Play, Share2 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -9,9 +8,8 @@ import { SponsorBadge } from '@/components/sponsor-badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { resolveMediaUrl } from '@/lib/api/mappers'
-import { getReplayDownload } from '@/lib/api/replays'
-import { getApiErrorMessage, isForbiddenError } from '@/lib/errors'
 import type { ReplayView } from '@/lib/types'
+import { useReplayDownload } from '@/lib/use-replay-download'
 
 type ReplayCardProps = {
   replay: ReplayView
@@ -28,50 +26,13 @@ const timeFormatter = new Intl.DateTimeFormat('pt-BR', {
   minute: '2-digit',
 })
 
-function triggerDownload(url: string, fileName: string) {
-  const anchor = document.createElement('a')
-  anchor.href = url
-  anchor.download = fileName
-  anchor.rel = 'noopener'
-  anchor.target = '_blank'
-  document.body.appendChild(anchor)
-  anchor.click()
-  anchor.remove()
-}
-
 export function ReplayCard({ replay }: ReplayCardProps) {
   const recorded = new Date(replay.recordedAt)
   const title = `${replay.arena.nome} · ${replay.court.nome}`
   const detailHref = `/app/replays/${replay.id}`
   const watchUrl = resolveMediaUrl(replay.arquivoUrl)
 
-  const downloadMutation = useMutation({
-    mutationFn: async () => {
-      // o /download revalida expiração e autorização: um erro aqui precisa
-      // chegar ao usuário em vez de cair no url da listagem.
-      const response = await getReplayDownload(replay.id)
-      return {
-        url: resolveMediaUrl(response.data.downloadUrl),
-        fileName: response.data.fileName ?? `replay-${replay.id}.mp4`,
-      }
-    },
-    onSuccess: (file) => {
-      triggerDownload(file.url, file.fileName)
-    },
-    onError: (error) => {
-      // o modal global de 403 já informou
-      if (isForbiddenError(error)) return
-      toast.error(
-        getApiErrorMessage(error, 'Não foi possível baixar o replay'),
-        {
-          action: {
-            label: 'Tentar de novo',
-            onClick: () => downloadMutation.mutate(),
-          },
-        },
-      )
-    },
-  })
+  const { download, isPending } = useReplayDownload(replay.id)
 
   function handleShare() {
     const shareUrl = watchUrl || window.location.href
@@ -123,16 +84,16 @@ export function ReplayCard({ replay }: ReplayCardProps) {
       </div>
 
       <div className="space-y-2 p-4">
-        <p className="text-foreground group-hover:text-tg-brand-blue line-clamp-1 font-semibold tracking-tight transition-colors">
+        <p className="text-foreground group-hover:text-tg-brand-text line-clamp-1 font-semibold tracking-tight transition-colors">
           {title}
         </p>
-        <div className="text-muted-foreground flex flex-col gap-1 text-xs">
+        <div className="text-muted-foreground flex flex-col gap-1 text-sm">
           <span className="flex items-center gap-1">
-            <MapPin className="size-3 shrink-0" />
+            <MapPin className="size-3.5 shrink-0" />
             <span className="line-clamp-1">{replay.city}</span>
           </span>
           <span className="flex items-center gap-1">
-            <Calendar className="size-3 shrink-0" />
+            <Calendar className="size-3.5 shrink-0" />
             {dateFormatter.format(recorded)} · {timeFormatter.format(recorded)}
           </span>
         </div>
@@ -140,7 +101,7 @@ export function ReplayCard({ replay }: ReplayCardProps) {
         <div className="flex items-center justify-between pt-2">
           <span
             aria-hidden
-            className="text-muted-foreground group-hover:text-tg-brand-blue flex items-center gap-1.5 text-xs font-medium transition-colors"
+            className="text-muted-foreground group-hover:text-tg-brand-text flex items-center gap-1.5 text-sm font-medium transition-colors"
           >
             <Play className="size-3.5" />
             Ver replay
@@ -151,12 +112,12 @@ export function ReplayCard({ replay }: ReplayCardProps) {
               variant="ghost"
               size="icon-sm"
               aria-label={`Baixar replay de ${title}`}
-              aria-busy={downloadMutation.isPending}
-              disabled={downloadMutation.isPending}
-              onClick={() => downloadMutation.mutate()}
+              aria-busy={isPending}
+              disabled={isPending}
+              onClick={() => download()}
             >
-              {downloadMutation.isPending ? (
-                <Loader2 className="size-4 animate-spin" />
+              {isPending ? (
+                <Loader2 className="size-4 animate-spin md:size-5" />
               ) : (
                 <Download className="size-4" />
               )}

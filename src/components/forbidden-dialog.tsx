@@ -29,7 +29,7 @@ export function ForbiddenDialog() {
     >
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle className="text-tg-brand-blue dark:text-foreground">
+          <AlertDialogTitle className="text-tg-brand-text">
             Acesso não permitido
           </AlertDialogTitle>
           <AlertDialogDescription>{FORBIDDEN_MESSAGE}</AlertDialogDescription>

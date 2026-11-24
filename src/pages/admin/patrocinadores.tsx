@@ -1,4 +1,4 @@
-import { Megaphone, Trash2 } from 'lucide-react'
+import { Trash2 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
@@ -149,13 +149,13 @@ export function AdminPatrocinadores() {
         />
       ) : patrocinadores.length === 0 ? (
         <EmptyState
-          icon={Megaphone}
+          ilustracao="sem-patrocinadores"
           title="Nenhum patrocinador cadastrado"
           description="Os patrocinadores vinculados às suas quadras aparecem aqui."
         />
       ) : (
         <>
-          <div className="bg-card hidden overflow-hidden rounded-2xl border md:block">
+          <div className="bg-card hidden overflow-hidden rounded-2xl border lg:block">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -198,7 +198,7 @@ export function AdminPatrocinadores() {
             </Table>
           </div>
 
-          <ul className="flex flex-col gap-3 md:hidden">
+          <ul className="flex flex-col gap-3 lg:hidden">
             {patrocinadores.map((patrocinador) => (
               <li key={patrocinador.id}>
                 <Card className="gap-3 p-4">

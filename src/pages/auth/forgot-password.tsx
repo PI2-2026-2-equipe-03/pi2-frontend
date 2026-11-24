@@ -21,6 +21,7 @@ import {
   type ForgotPasswordInput,
   forgotPasswordSchema,
 } from '@/lib/schemas/forgot-password-schema'
+import { AuthCard, authSubmitClasses } from '@/pages/auth/components/auth-card'
 
 export function ForgotPassword() {
   const navigate = useNavigate()
@@ -60,9 +61,9 @@ export function ForgotPassword() {
   const isSubmitting = mutation.isPending
 
   return (
-    <div className="bg-card border-border w-full max-w-md rounded-xl border p-8 shadow-sm">
+    <AuthCard>
       <div className="mb-6 space-y-1">
-        <h1 className="text-tg-brand-blue text-2xl font-bold">
+        <h1 className="text-tg-brand-text text-2xl font-bold">
           Recuperar senha
         </h1>
         <p className="text-muted-foreground text-sm">
@@ -114,11 +115,11 @@ export function ForgotPassword() {
             variant="brand"
             disabled={isSubmitting}
             aria-busy={isSubmitting}
-            className="w-full"
+            className={authSubmitClasses}
           >
             {isSubmitting ? (
               <>
-                <Loader2 className="mr-2 size-4 animate-spin" />
+                <Loader2 className="mr-2 size-4 animate-spin md:size-5" />
                 Enviando…
               </>
             ) : (
@@ -130,13 +131,13 @@ export function ForgotPassword() {
             Lembrou sua senha?{' '}
             <Link
               to="/sign-in"
-              className="text-primary focus-visible:ring-ring/50 rounded-sm font-medium hover:underline focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+              className="text-primary focus-visible:ring-ring/50 touch-hitbox relative rounded-sm font-medium hover:underline focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
             >
               Entrar
             </Link>
           </p>
         </form>
       </Form>
-    </div>
+    </AuthCard>
   )
 }

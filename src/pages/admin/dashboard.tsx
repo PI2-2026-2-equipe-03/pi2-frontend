@@ -11,7 +11,6 @@ import { toast } from 'sonner'
 
 import { QueryErrorState } from '@/components/query-error-state'
 import { Button } from '@/components/ui/button'
-import { Skeleton } from '@/components/ui/skeleton'
 import type { AdminMetricsDto, ManagerMetricsDto } from '@/lib/api/metrics'
 import {
   useAdminMetrics,
@@ -19,8 +18,11 @@ import {
   useManagerMetrics,
 } from '@/lib/api/queries'
 import { cn } from '@/lib/utils'
-import { RankingChart } from '@/pages/admin/components/ranking-chart'
-import { StatCard } from '@/pages/admin/components/stat-card'
+import {
+  RankingChart,
+  RankingChartSkeleton,
+} from '@/pages/admin/components/ranking-chart'
+import { StatCard, StatCardSkeleton } from '@/pages/admin/components/stat-card'
 
 function formatAccesses(value: number) {
   return `${value} ${value === 1 ? 'acesso' : 'acessos'}`
@@ -30,16 +32,25 @@ function formatReplays(value: number) {
   return `${value} ${value === 1 ? 'replay' : 'replays'}`
 }
 
-function DashboardSkeleton() {
+// mirrors AdminOverview / ManagerOverview; the role is unknown until /me
+// answers, and the admin shape is the default guess
+function DashboardSkeleton({ isManager }: { isManager: boolean }) {
   return (
     <div role="status" aria-busy="true" className="flex flex-col gap-8">
-      <span className="sr-only">Carregando…</span>
-      <section className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <span className="sr-only">Carregando as métricas…</span>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
         {Array.from({ length: 3 }, (_, index) => (
-          <Skeleton key={index} className="h-32 rounded-xl" />
+          <StatCardSkeleton key={index} />
         ))}
-      </section>
-      <Skeleton className="h-56 rounded-xl" />
+      </div>
+      {isManager ? (
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <RankingChartSkeleton />
+          <RankingChartSkeleton />
+        </div>
+      ) : (
+        <RankingChartSkeleton />
+      )}
     </div>
   )
 }
@@ -47,7 +58,7 @@ function DashboardSkeleton() {
 function AdminOverview({ metrics }: { metrics: AdminMetricsDto }) {
   return (
     <>
-      <section className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <section className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
         <StatCard
           title="Usuários ativos"
           value={metrics.activeUsers}
@@ -86,7 +97,7 @@ function AdminOverview({ metrics }: { metrics: AdminMetricsDto }) {
 function ManagerOverview({ metrics }: { metrics: ManagerMetricsDto }) {
   return (
     <>
-      <section className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <section className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
         <StatCard
           title="Replays ativos"
           value={metrics.totalReplays}
@@ -156,12 +167,12 @@ export function Dashboard() {
     <div className="mx-auto flex max-w-6xl flex-col gap-8">
       <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-tg-brand-blue text-2xl font-bold md:text-3xl">
+          <h1 className="text-tg-brand-text text-2xl font-bold md:text-3xl">
             {isAdmin ? 'Painel administrativo' : 'Painel do gestor'}
           </h1>
-          <p className="text-tg-brand-blue font-medium">
+          <p className="text-tg-brand-text font-medium">
             {isAdmin
-              ? 'Visão geral do sistema TaGravado'
+              ? 'Visão geral do sistema repeteco'
               : 'Visão geral das suas quadras'}
           </p>
         </div>
@@ -172,14 +183,17 @@ export function Dashboard() {
           onClick={() => void handleRefresh()}
         >
           <RefreshCw
-            className={cn('size-4', metrics.isFetching && 'animate-spin')}
+            className={cn(
+              'size-4 md:size-5',
+              metrics.isFetching && 'animate-spin',
+            )}
           />
           Atualizar
         </Button>
       </header>
 
       {metrics.isPending ? (
-        <DashboardSkeleton />
+        <DashboardSkeleton isManager={currentUser?.role === 'CLI'} />
       ) : metrics.isError ? (
         <QueryErrorState
           title="Não foi possível carregar as métricas"

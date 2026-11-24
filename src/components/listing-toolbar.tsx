@@ -2,15 +2,8 @@ import { SlidersHorizontal } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
 
+import { BottomSheet } from '@/components/bottom-sheet'
 import { Button } from '@/components/ui/button'
-import {
-  Sheet,
-  SheetContent,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet'
 import { cn } from '@/lib/utils'
 
 export type ToolbarFilter = {
@@ -44,9 +37,11 @@ export function ListingToolbar({
   const trailing = filters.filter((filter) => filter.position === 'trailing')
   const hasFilters = filters.length > 0
 
+  // minmax(0, …) lets the columns shrink below their preferred width: fixed
+  // widths pushed the bar 117-123px past the viewport at 768px
   const desktopCols = [
-    ...leading.map((filter) => filter.width ?? '12rem'),
-    '1fr',
+    ...leading.map((filter) => `minmax(0, ${filter.width ?? '12rem'})`),
+    'minmax(0, 1fr)',
     ...trailing.map((filter) => filter.width ?? 'auto'),
   ].join(' ')
 
@@ -55,7 +50,7 @@ export function ListingToolbar({
       data-slot="listing-toolbar"
       data-active-count={activeCount}
       className={cn(
-        'bg-background/85 border-border/60 grid grid-cols-1 gap-3 rounded-xl border p-3 shadow-sm backdrop-blur-md md:grid-cols-[var(--listing-toolbar-cols)] md:items-center',
+        'bg-background/85 border-border/60 grid grid-cols-1 gap-3 rounded-xl border p-3 shadow-sm backdrop-blur-md lg:grid-cols-[var(--listing-toolbar-cols)] lg:items-center',
         className,
       )}
       style={{ '--listing-toolbar-cols': desktopCols } as CSSProperties}
@@ -65,14 +60,17 @@ export function ListingToolbar({
           key={filter.id}
           data-filter-id={filter.id}
           data-active={filter.active}
-          className="hidden md:block"
+          className="hidden min-w-0 lg:block"
         >
           {filter.control}
         </div>
       ))}
       <div
         data-slot="listing-toolbar-search"
-        className={cn(hasFilters ? 'md:col-auto' : 'md:col-span-full')}
+        className={cn(
+          'min-w-0',
+          hasFilters ? 'lg:col-auto' : 'lg:col-span-full',
+        )}
       >
         {search}
       </div>
@@ -81,20 +79,33 @@ export function ListingToolbar({
           key={filter.id}
           data-filter-id={filter.id}
           data-active={filter.active}
-          className="hidden md:block"
+          className="hidden min-w-0 lg:block"
         >
           {filter.control}
         </div>
       ))}
 
       {hasFilters ? (
-        <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-          <SheetTrigger asChild>
+        <BottomSheet
+          open={sheetOpen}
+          onOpenChange={setSheetOpen}
+          title="Filtros"
+          // the footer already carries the way out, so a second x on top of
+          // the title would only crowd it
+          showCloseButton={false}
+          titleAside={
+            activeCount > 0 ? (
+              <span className="text-muted-foreground text-sm font-normal">
+                {activeCount} {activeCount === 1 ? 'ativo' : 'ativos'}
+              </span>
+            ) : null
+          }
+          trigger={
             <Button
               type="button"
               variant="outline"
               aria-label={`Abrir filtros${activeCount > 0 ? ` (${activeCount} ativos)` : ''}`}
-              className="md:hidden"
+              className="lg:hidden"
             >
               <SlidersHorizontal className="size-4" aria-hidden />
               Filtros
@@ -107,39 +118,9 @@ export function ListingToolbar({
                 </span>
               ) : null}
             </Button>
-          </SheetTrigger>
-          <SheetContent
-            side="bottom"
-            showCloseButton={false}
-            className="flex max-h-[85svh] flex-col gap-0 overflow-hidden rounded-t-2xl p-0"
-          >
-            <div
-              aria-hidden
-              className="bg-muted mx-auto mt-2 h-1 w-10 shrink-0 rounded-full"
-            />
-            <SheetHeader className="px-5 pt-3 pb-2">
-              <SheetTitle className="flex items-center justify-between text-base">
-                <span>Filtros</span>
-                {activeCount > 0 ? (
-                  <span className="text-muted-foreground text-sm font-normal">
-                    {activeCount} {activeCount === 1 ? 'ativo' : 'ativos'}
-                  </span>
-                ) : null}
-              </SheetTitle>
-            </SheetHeader>
-            <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-5 py-4">
-              {filters.map((filter) => (
-                <div key={filter.id} className="flex flex-col gap-1.5">
-                  <span className="text-foreground text-sm font-medium">
-                    {filter.label}
-                  </span>
-                  <div data-filter-id={filter.id} data-active={filter.active}>
-                    {filter.control}
-                  </div>
-                </div>
-              ))}
-            </div>
-            <SheetFooter className="border-border/60 flex-row gap-2 border-t px-5 py-4">
+          }
+          footer={
+            <>
               {onClearAll ? (
                 <Button
                   type="button"
@@ -161,9 +142,20 @@ export function ListingToolbar({
               >
                 {onClearAll ? 'Aplicar' : 'Fechar'}
               </Button>
-            </SheetFooter>
-          </SheetContent>
-        </Sheet>
+            </>
+          }
+        >
+          {filters.map((filter) => (
+            <div key={filter.id} className="flex flex-col gap-1.5">
+              <span className="text-foreground text-sm font-medium">
+                {filter.label}
+              </span>
+              <div data-filter-id={filter.id} data-active={filter.active}>
+                {filter.control}
+              </div>
+            </div>
+          ))}
+        </BottomSheet>
       ) : null}
     </div>
   )
