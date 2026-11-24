@@ -1,6 +1,7 @@
 import { QueryClientProvider } from '@tanstack/react-query'
 import { RouterProvider } from 'react-router-dom'
 
+import { ErrorBoundary } from '@/components/error-boundary'
 import { ForbiddenDialog } from '@/components/forbidden-dialog'
 import { ThemeProvider } from '@/components/theme/theme-provider'
 import { Toaster } from '@/components/ui/sonner'
@@ -27,7 +28,9 @@ export function App() {
   return (
     <ThemeProvider>
       <QueryClientProvider client={queryClient}>
-        <RouterProvider router={router} />
+        <ErrorBoundary>
+          <RouterProvider router={router} />
+        </ErrorBoundary>
         <ForbiddenDialog />
         <Toaster
           position={isDesktop ? 'top-right' : 'bottom-center'}
