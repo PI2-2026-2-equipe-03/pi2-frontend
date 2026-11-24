@@ -7,7 +7,6 @@ import tseslint from 'typescript-eslint'
 
 export default [
   {
-    // scripts das skills versionadas em .claude/ são internos delas (node cjs) e não fazem parte do app
     ignores: ['dist', 'node_modules', '.claude/**', '.agents/**'],
   },
   js.configs.recommended,
@@ -26,24 +25,20 @@ export default [
       'simple-import-sort': simpleImportSort,
     },
     rules: {
-      // ordena imports/exports automaticamente
       'simple-import-sort/imports': 'error',
       'simple-import-sort/exports': 'error',
-      // regras clássicas do react
       'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': 'warn',
       'react-refresh/only-export-components': [
         'warn',
         { allowConstantExport: true },
       ],
-      // desliga a versão base para não conflitar com a do ts-eslint
       'no-unused-vars': 'off',
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-unused-vars': [
         'error',
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
       ],
-      // só ícones da lucide-react — mantém consistência com o shadcn
       'no-restricted-imports': [
         'error',
         {
@@ -58,10 +53,26 @@ export default [
     },
   },
   {
-    // configs da raiz rodam em node (process.env etc), não no browser
-    files: ['*.config.{ts,js,mts,mjs}'],
+    files: ['vite.config.ts', 'vitest.config.ts', 'playwright.config.ts', 'orval.config.ts'],
     languageOptions: {
-      globals: globals.node,
+      ecmaVersion: 2022,
+      sourceType: 'module',
+      globals: { ...globals.node, ...globals.browser },
+      parser: tseslint.parser,
+    },
+    plugins: {
+      '@typescript-eslint': tseslint.plugin,
+      'simple-import-sort': simpleImportSort,
+    },
+    rules: {
+      'simple-import-sort/imports': 'error',
+      'simple-import-sort/exports': 'error',
+      'no-unused-vars': 'off',
+      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+      ],
     },
   },
 ]
