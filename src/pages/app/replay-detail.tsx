@@ -17,6 +17,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { resolveMediaUrl } from '@/lib/api/mappers'
 import { useReplays } from '@/lib/api/queries'
 import { useReplayDownload } from '@/lib/use-replay-download'
+import { cn } from '@/lib/utils'
 
 const dateFormatter = new Intl.DateTimeFormat('pt-BR', {
   day: '2-digit',
@@ -82,7 +83,10 @@ export function ReplayDetail() {
                 aria-busy={replaysQuery.isRefetching}
               >
                 <RefreshCw
-                  className={`size-4 ${replaysQuery.isRefetching ? 'animate-spin' : ''}`}
+                  className={cn(
+                    'size-4 md:size-5',
+                    replaysQuery.isRefetching && 'animate-spin',
+                  )}
                 />
                 Tentar novamente
               </Button>

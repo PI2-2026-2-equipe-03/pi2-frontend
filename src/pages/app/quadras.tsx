@@ -124,7 +124,7 @@ function CourtRecentReplays({ courtId }: { courtId: Quadra['id'] }) {
         >
           <RefreshCw
             className={cn(
-              'size-4',
+              'size-4 md:size-5',
               replaysQuery.isRefetching && 'animate-spin',
             )}
           />

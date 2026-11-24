@@ -3,6 +3,7 @@ import { NuqsAdapter } from 'nuqs/adapters/react-router/v7'
 import { type ComponentType, lazy, Suspense } from 'react'
 import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom'
 
+import { RouteErrorElement } from '@/components/route-error-element'
 import { RouteFallback } from '@/components/route-fallback'
 import type { RouteHandle } from '@/pages/_layouts/app'
 
@@ -70,6 +71,7 @@ function NuqsRouteWrapper() {
 export const router = createBrowserRouter([
   {
     element: <NuqsRouteWrapper />,
+    errorElement: <RouteErrorElement />,
     children: [
       { path: '/', element: <Navigate to="/sign-in" replace /> },
       {

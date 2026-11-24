@@ -48,7 +48,9 @@ export function QueryErrorState({
             disabled={isRetrying}
             aria-busy={isRetrying}
           >
-            <RefreshCw className={cn('size-4', isRetrying && 'animate-spin')} />
+            <RefreshCw
+              className={cn('size-4 md:size-5', isRetrying && 'animate-spin')}
+            />
             Tentar novamente
           </Button>
         )

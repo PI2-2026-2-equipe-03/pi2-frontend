@@ -54,7 +54,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 : 'Ocorreu um erro inesperado. Tente recarregar a página.'}
             </p>
             <Button onClick={this.handleRefresh} className="gap-2">
-              <RefreshCw className="h-4 w-4" />
+              <RefreshCw className="size-4 md:size-5" />
               Recarregar
             </Button>
           </div>

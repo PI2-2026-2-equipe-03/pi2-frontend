@@ -17,6 +17,7 @@ import {
 import { motionTokens } from '@/lib/motion'
 import type { Suggestion } from '@/lib/search'
 import { createArenaSuggestions, suggestArenas } from '@/lib/search'
+import { cn } from '@/lib/utils'
 
 import { ArenaCard } from './components/arena-card'
 import { ArenaCardSkeleton } from './components/arena-card-skeleton'
@@ -200,9 +201,10 @@ export function Home() {
                 aria-busy={arenasQuery.isRefetching}
               >
                 <RefreshCw
-                  className={
-                    arenasQuery.isRefetching ? 'animate-spin' : undefined
-                  }
+                  className={cn(
+                    'size-4 md:size-5',
+                    arenasQuery.isRefetching && 'animate-spin',
+                  )}
                 />
                 Tentar novamente
               </Button>
