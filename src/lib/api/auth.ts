@@ -4,9 +4,16 @@ import { env } from '@/env'
 import * as mocks from '@/lib/api/mocks/auth'
 import { axiosInstance } from '@/lib/api/mutator/axios-instance'
 
-// custom auth endpoints live at /auth/* on the backend (not /api/auth/*).
-// bypass the /api baseURL so requests hit the /auth vite proxy rule directly.
-const AUTH_CFG = { baseURL: '' }
+// custom auth endpoints live at /auth/* on the backend (not /api/auth/*), so
+// they have to bypass the /api baseURL. in dev that means a root-relative url
+// the vite /auth proxy rule catches; in prod the api is on another host, and a
+// root-relative url would post to the spa origin instead — which is how this
+// shipped a 404 on login and signup. only an absolute env value is used, since
+// VITE_API_URL may legitimately be the path /api (see src/env.ts)
+const apiOrigin = env.VITE_API_URL
+const AUTH_CFG = {
+  baseURL: apiOrigin && /^https?:\/\//i.test(apiOrigin) ? apiOrigin : '',
+}
 
 export type RegisterBody = {
   name: string
