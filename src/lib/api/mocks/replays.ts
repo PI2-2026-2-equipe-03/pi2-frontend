@@ -1,4 +1,4 @@
-import type { ReplayDownloadDto, ReplayDto } from '@/lib/api/replays'
+import type { CreateReplayBody, CreateReplayResponse,ReplayDownloadDto, ReplayDto } from '@/lib/api/replays'
 import { UserFacingError } from '@/lib/errors'
 import { REPLAY_VIEWS } from '@/lib/mocks'
 
@@ -42,6 +42,15 @@ function toReplayDto(view: (typeof REPLAY_VIEWS)[number]): ReplayDto {
 export async function listReplays() {
   await delay()
   return { data: REPLAY_VIEWS.map(toReplayDto) }
+}
+
+export async function createReplay(
+  _body: CreateReplayBody,
+): Promise<CreateReplayResponse> {
+  await delay()
+  // mock simples: devolve o primeiro replay disponível
+  const view = REPLAY_VIEWS[0]
+  return { data: toReplayDto(view) }
 }
 
 export async function getReplayDownload(

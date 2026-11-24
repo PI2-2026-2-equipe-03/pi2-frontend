@@ -36,6 +36,14 @@ export type ReplayDownloadDto = {
   downloadUrl: string
 }
 
+export type CreateReplayBody = {
+  courtId: string
+}
+
+export type CreateReplayResponse = {
+  data: ReplayDto
+}
+
 type ListReplaysResponse = {
   data: ReplayDto[]
 }
@@ -49,6 +57,15 @@ export function listReplays() {
   return customInstance<ListReplaysResponse>({
     url: '/replays',
     method: 'GET',
+  })
+}
+
+export function createReplay(body: CreateReplayBody) {
+  if (env.VITE_USE_MOCKS) return mocks.createReplay(body)
+  return customInstance<CreateReplayResponse>({
+    url: '/replays',
+    method: 'POST',
+    data: body,
   })
 }
 
