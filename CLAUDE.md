@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Projeto
 
-**pi2-frontend** é a SPA do **TaGravado**, sistema de replay para quadras esportivas. Este repo contém apenas a interface — a API vive em [pi2-backend](https://github.com/PI2-2026-2-equipe-03/pi2-backend) e precisa estar rodando em paralelo (por padrão em `http://localhost:3000`) para o app funcionar completamente.
+**pi2-frontend** é a SPA do **repeteco**, sistema de replay para quadras esportivas. Este repo contém apenas a interface — a API vive em [pi2-backend](https://github.com/PI2-2026-2-equipe-03/pi2-backend) e precisa estar rodando em paralelo (por padrão em `http://localhost:3000`) para o app funcionar completamente.
 
 Dois públicos: **cliente da arena** (mobile-first, baixa clipes) e **administrador** (desktop, gerencia conteúdos). As mesmas telas atendem mobile/tablet/desktop (RNF-02).
 
@@ -16,14 +16,26 @@ npm run build         # tsc -b && vite build
 npm run lint          # eslint --fix + prettier --write em src/
 npm run format        # apenas prettier --write em src/
 npm run preview       # preview do build de produção
-npm run api:generate  # orval: gera src/lib/api/{endpoints.ts,model/} a partir do OpenAPI do backend
+npm run test          # vitest run (testes de unidade em test/unit/)
+npm run test:coverage # vitest run --coverage (relatório em coverage/)
+npm run test:e2e      # playwright test (testes e2e em test/e2e/)
+npm run test:e2e:ui   # playwright test --ui (modo interativo)
+npm run dev:test      # vite na porta 50789, modo test — é o webServer do playwright
+npm run api:generate  # orval (configurado, mas nunca gerou código — ver "Camada de API")
 ```
 
 Alternativa via Docker: `docker compose up` (sobe o dev server mapeando `.:/app`, com `CHOKIDAR_USEPOLLING=true`).
 
-**Observação sobre `api:generate`**: lê de `http://localhost:3000/api/openapi.json` — o backend precisa estar no ar para regenerar o client.
+**Observação sobre `api:generate`**: lê de `http://localhost:3000/api/openapi.json` — o backend precisa estar no ar para rodar.
 
-Não há suíte de testes neste repo.
+### Testes
+
+Há duas suítes, ambas com arquivos em `test/`:
+
+- **Unidade: Vitest** (`vitest.config.ts`) — roda `test/unit/**/*.test.ts` em ambiente `node`, com alias `@/`. Cobertura via `v8` sobre `src/lib/**/*.ts`, excluindo `mocks/` e `mutator/`.
+- **E2E: Playwright** (`playwright.config.ts`) — roda `test/e2e/` contra `http://localhost:50789`, subindo o dev server sozinho (`npm run dev:test`). Reporter `html`, trace na primeira retentativa.
+
+Quem escreve os testes neste projeto é o QA.
 
 ## Arquitetura
 
@@ -44,10 +56,11 @@ Três áreas, cada uma com seu layout em `src/pages/_layouts/`:
 
 Páginas vivem em `src/pages/{auth,app,admin}/*.tsx`. Componentes específicos de cada área ficam em `src/pages/<área>/components/`.
 
-### Camada de API (TanStack Query + axios + Orval)
+### Camada de API (TanStack Query + axios)
 
-- `src/lib/api/endpoints.ts` e `src/lib/api/model/` são **gerados pelo orval** (`npm run api:generate`) — não editar à mão.
-- Modo `tags-split` + cliente `react-query`: cada tag do OpenAPI vira um hook `useX()` tipado.
+- A camada é **escrita à mão**, um arquivo por domínio em `src/lib/api/*.ts` (`arenas.ts`, `quadras.ts`, `replays.ts`, `cameras.ts`, `metrics.ts`, `auth.ts`, `me.ts`, `manager-requests.ts`, `patrocinadores.ts`). Cada um exporta o DTO do backend e as funções de chamada daquele domínio.
+- `src/lib/api/queries.ts` é o ponto único de leitura: concentra `queryKeys` e os hooks `useQuery`/`useMutation`. `src/lib/api/mappers.ts` converte DTO → tipo de domínio (`src/lib/types.ts`).
+- O **orval está configurado** (`orval.config.ts`, script `api:generate`) mas **nunca gerou código**: não existem `src/lib/api/endpoints.ts` nem `src/lib/api/model/`. A dependência e a config ficam mantidas de propósito; decidir o futuro delas é assunto de outra issue. **Não escreva código assumindo que esses arquivos existem.**
 - Todas as chamadas passam pelo mutator `src/lib/api/mutator/axios-instance.ts` (`customInstance`), ponto único para interceptors, baseURL e auth.
 - `queryClient` configurado em `src/lib/react-query.ts` (padrão `staleTime` 5min / `gcTime` 10min — ver `docs/stack-frontend.md`).
 - Dev: `vite.config.ts` proxia `/api` → `http://localhost:3000`. A env `VITE_API_URL` só é obrigatória em `staging`/`production` (validado por zod em `src/env.ts` — boot quebra cedo se faltar).
@@ -61,9 +74,9 @@ Páginas vivem em `src/pages/{auth,app,admin}/*.tsx`. Componentes específicos d
 
 ### Estilo e UI
 
-- **Tailwind CSS 4** via `@tailwindcss/vite` — configuração vive em `src/style.css` (`@theme inline`, tokens de marca TaGravado, variáveis shadcn para claro/escuro).
+- **Tailwind CSS 4** via `@tailwindcss/vite` — configuração vive em `src/style.css` (`@theme inline`, tokens de marca repeteco, variáveis shadcn para claro/escuro).
 - **shadcn/ui estilo "new-york"** (`components.json`): componentes copiados para `src/components/ui/` — editáveis, não são dependência. Base color `neutral`, CSS variables ligadas.
-- **Tema** gerenciado pelo `next-themes` via `ThemeProvider` em `src/components/theme/` (persiste em `localStorage` com chave `tagravado-theme` — RNF-01).
+- **Tema** gerenciado pelo `next-themes` via `ThemeProvider` em `src/components/theme/` (persiste em `localStorage` com chave `repeteco-theme` — RNF-01).
 - **Ícones apenas do `lucide-react`**: regra ESLint (`no-restricted-imports`) bloqueia `react-icons`.
 - Sem CSS Modules ou CSS-in-JS. Classes do Tailwind são auto-ordenadas pelo `prettier-plugin-tailwindcss`.
 
@@ -79,7 +92,7 @@ Páginas vivem em `src/pages/{auth,app,admin}/*.tsx`. Componentes específicos d
 
 ### Commits
 
-Convenção do time: prefixo **`F-XX:`** referenciando a feature/issue (ex.: `F-01: setup inicial`). Emojis de categoria (`:sparkles:`, `:bug:`, `:books:`) são comuns no histórico.
+Convenção do time: prefixo **`F-XX:`** referenciando a feature/issue, seguido do nome da issue (ex.: `F-01: setup inicial`).
 
 ## Skills versionadas
 

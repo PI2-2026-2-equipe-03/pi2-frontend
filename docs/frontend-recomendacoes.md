@@ -1,6 +1,8 @@
-# recomendações de frontend — tagravado
+> nota (21/11/2026): o produto passou a se chamar repeteco (issue #39); o texto abaixo foi escrito sob o nome antigo, tagravado.
 
-documento vivo com propostas de melhoria de design, bibliotecas e componentes para o frontend do tagravado. atualize à medida que decisões forem tomadas.
+# recomendações de frontend — repeteco
+
+documento vivo com propostas de melhoria de design, bibliotecas e componentes para o frontend do repeteco. atualize à medida que decisões forem tomadas.
 
 > revisado em 17/10/2026: itens entregues foram marcados, a recomendação de storybook
 > foi descartada por decisão do time (sem dependências de teste) e a seção de imagens
