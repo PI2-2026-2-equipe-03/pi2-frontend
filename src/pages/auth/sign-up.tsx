@@ -20,6 +20,7 @@ import { registerUser } from '@/lib/api/auth'
 import { toApiAuthError } from '@/lib/errors'
 import { formatPhone, stripPhone } from '@/lib/forms/phone-mask'
 import { type SignUpInput, signUpSchema } from '@/lib/schemas/sign-up-schema'
+import { cn } from '@/lib/utils'
 import { AuthCard, authSubmitClasses } from '@/pages/auth/components/auth-card'
 import { PasswordRequirements } from '@/pages/auth/components/password-requirements'
 
@@ -32,6 +33,11 @@ async function performSignUp(input: SignUpInput): Promise<void> {
     confirmPassword: input.confirmPassword,
   })
 }
+
+// min-w-0 lets a cell shrink past the intrinsic width of its input: without it
+// the two columns refuse to fit the 448px card and the row overflows
+const fieldClasses = 'min-w-0'
+const fullWidthClasses = 'min-w-0 sm:col-span-2'
 
 export function SignUp() {
   const navigate = useNavigate()
@@ -98,17 +104,22 @@ export function SignUp() {
       </div>
 
       <Form {...form}>
+        {/* two columns from sm: stacked, the five fields plus the rule list
+        pushed "Criar conta" past the 656px the form column has at 1366x768.
+        the dom stays in reading order so tab still goes name -> email ->
+        phone -> password -> confirm. rows stretch, so an error under one of a
+        pair grows its cell downwards without nudging the field beside it. */}
         <form
           onSubmit={form.handleSubmit(onSubmit)}
           noValidate
-          className="space-y-5"
+          className="grid grid-cols-1 gap-5 sm:grid-cols-2"
           aria-label="Formulário de criação de conta"
         >
           <FormField
             control={form.control}
             name="fullName"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className={fullWidthClasses}>
                 <FormLabel>Nome completo</FormLabel>
                 <div className="relative">
                   <User
@@ -134,7 +145,7 @@ export function SignUp() {
             control={form.control}
             name="email"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className={fieldClasses}>
                 <FormLabel>E-mail</FormLabel>
                 <div className="relative">
                   <Mail
@@ -160,7 +171,7 @@ export function SignUp() {
             control={form.control}
             name="phone"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className={fieldClasses}>
                 <FormLabel>Telefone</FormLabel>
                 <div className="relative">
                   <Phone
@@ -193,7 +204,7 @@ export function SignUp() {
             control={form.control}
             name="password"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className={fieldClasses}>
                 <FormLabel>Senha</FormLabel>
                 <FormControl>
                   <PasswordInput
@@ -211,7 +222,7 @@ export function SignUp() {
             control={form.control}
             name="confirmPassword"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className={fieldClasses}>
                 <FormLabel>Confirmar senha</FormLabel>
                 <FormControl>
                   <PasswordInput
@@ -226,13 +237,20 @@ export function SignUp() {
           />
 
           {/* feedback visual dos requisitos de senha, atualizado em tempo real */}
-          <PasswordRequirements
-            password={password}
-            confirmPassword={confirmPassword}
-          />
+          {/* the list answers for both password fields, so it spans the row
+          below them instead of living inside one column */}
+          <div className={fullWidthClasses}>
+            <PasswordRequirements
+              password={password}
+              confirmPassword={confirmPassword}
+            />
+          </div>
 
           {form.formState.errors.root?.message ? (
-            <p role="alert" className="text-destructive text-sm">
+            <p
+              role="alert"
+              className={cn('text-destructive text-sm', fullWidthClasses)}
+            >
               {form.formState.errors.root.message}
             </p>
           ) : null}
@@ -242,7 +260,7 @@ export function SignUp() {
             variant="brand"
             disabled={isSubmitting}
             aria-busy={isSubmitting}
-            className={authSubmitClasses}
+            className={cn(authSubmitClasses, 'sm:col-span-2')}
           >
             {isSubmitting ? (
               <>
@@ -254,7 +272,12 @@ export function SignUp() {
             )}
           </Button>
 
-          <p className="text-muted-foreground text-center text-sm">
+          <p
+            className={cn(
+              'text-muted-foreground text-center text-sm',
+              fullWidthClasses,
+            )}
+          >
             Já possui uma conta?{' '}
             <Link
               to="/sign-in"
