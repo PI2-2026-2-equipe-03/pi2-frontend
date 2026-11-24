@@ -210,7 +210,7 @@ export function ChangePasswordDialog() {
               >
                 {isSubmitting ? (
                   <>
-                    <Loader2 className="mr-2 size-4 animate-spin" />
+                    <Loader2 className="mr-2 size-4 animate-spin md:size-5" />
                     Salvando…
                   </>
                 ) : (

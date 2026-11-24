@@ -156,7 +156,7 @@ export function ReplayDetail() {
                 onClick={() => download()}
               >
                 {isPending ? (
-                  <Loader2 className="size-4 animate-spin" />
+                  <Loader2 className="size-4 animate-spin md:size-5" />
                 ) : (
                   <Download className="size-4" />
                 )}

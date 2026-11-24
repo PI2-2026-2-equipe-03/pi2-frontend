@@ -80,7 +80,7 @@ export function LoadMore({
             }}
           >
             {isFetchingNextPage ? (
-              <Loader2 className="size-4 animate-spin" aria-hidden />
+              <Loader2 className="size-4 animate-spin md:size-5" aria-hidden />
             ) : null}
             Carregar mais
           </Button>

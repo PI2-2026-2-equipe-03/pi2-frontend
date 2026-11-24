@@ -183,7 +183,10 @@ export function Dashboard() {
           onClick={() => void handleRefresh()}
         >
           <RefreshCw
-            className={cn('size-4', metrics.isFetching && 'animate-spin')}
+            className={cn(
+              'size-4 md:size-5',
+              metrics.isFetching && 'animate-spin',
+            )}
           />
           Atualizar
         </Button>
