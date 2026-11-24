@@ -315,9 +315,11 @@ function QuadraCard({
             {quadra.disponivel ? 'Disponível' : 'Indisponível'}
           </span>
 
+          {/* this dialog only exists at >= 48rem, so `dense` here is purely a
+              pointer question: a touch tablet kept getting a 36px close box */}
           <DialogClose
             aria-label="Fechar"
-            className="absolute top-3 right-3 inline-flex size-9 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur transition-colors hover:bg-black/60 focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:outline-none"
+            className="size-touch-min dense:size-9 absolute top-3 right-3 inline-flex items-center justify-center rounded-full bg-black/40 text-white backdrop-blur transition-colors hover:bg-black/60 focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:outline-none"
           >
             <X className="size-5" />
           </DialogClose>
